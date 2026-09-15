@@ -4,27 +4,29 @@
  */
 
 class Player {
-  constructor(x, y) {
+  constructor(x, y, diffConfig = null) {
     this.x = x;
     this.y = y;
-    this.radius = 18;
+    this.radius = 20; // 放大至 20px，保证在更广视野下依然清晰显眼
     this.facingAngle = 0;
 
-    // 基础属性
+    // 基础属性 (根据难度配置动态初始化)
     this.baseMaxHp = 100;
     this.maxHp = 100;
     this.hp = 100;
-    this.baseSpeed = 175; // 像素/秒
-    this.moveSpeed = 175;
-    this.attackDamage = 1.0; // 伤害倍率
-    this.attackSpeed = 1.0;  // 攻速倍率 (冷却减缩)
-    this.critChance = 0.05;  // 基础暴击 5%
-    this.critDamage = 1.6;   // 基础暴击伤 160%
-    this.pickupRange = 85;   // 拾取距离
-    this.armor = 0;          // 护甲
-    this.expBonus = 1.0;     // 经验增幅
-    this.areaBonus = 1.0;    // 范围增幅
-    this.hpRegen = 0.2;      // 每秒自愈
+    this.baseSpeed = diffConfig ? diffConfig.playerBaseSpeed : 188;
+    this.moveSpeed = this.baseSpeed;
+    this.attackDamage = 1.0;
+    this.attackSpeed = 1.0;
+    this.critChance = 0.05;
+    this.critDamage = 1.6;
+    this.basePickupRange = diffConfig ? diffConfig.playerPickupRange : 105;
+    this.pickupRange = this.basePickupRange;
+    this.armor = 0;
+    this.expBonus = 1.0;
+    this.areaBonus = 1.0;
+    this.baseHpRegen = diffConfig ? diffConfig.playerHpRegen : 0.45;
+    this.hpRegen = this.baseHpRegen;
 
     // 等级与经验 (升级队列支持多级连续升级)
     this.level = 1;
@@ -32,15 +34,22 @@ class Player {
     this.nextLevelExp = 12;
     this.pendingUpgrades = 0;
 
-    // 状态机制
+    // 状态机制与安全缓冲期
     this.invulnerableTimer = 0;
-    this.invulnerableDuration = 0.35; // 受击无敌 0.35 秒
+    this.invulnerableDuration = diffConfig ? diffConfig.playerInvulDuration : 0.52;
+    this.graceShieldTimer = 0; // 选卡/恢复后的安全护盾时间
     this.isDead = false;
 
     // 视觉动画参数
     this.rotationAngle = 0;
     this.hurtFlashTimer = 0;
     this.trailHistory = [];
+  }
+
+  // 获得安全无敌缓冲期 (如关闭升级弹窗、暂停恢复)
+  grantInvulnerability(duration) {
+    this.invulnerableTimer = Math.max(this.invulnerableTimer, duration);
+    this.graceShieldTimer = Math.max(this.graceShieldTimer, duration);
   }
 
   // 经验升级需求公式 (平滑指数阶梯)
@@ -140,19 +149,20 @@ class Player {
     // 暴击率硬上限 100%
     this.critChance = Math.min(1.0, 0.05 + critMod);
     this.critDamage = 1.6 + (critMod * 0.8);
-    this.pickupRange = 85 * (1 + pickupMod);
+    this.pickupRange = (this.basePickupRange || 105) * (1 + pickupMod);
     this.armor = armorMod;
     this.expBonus = 1.0 + expMod;
     this.areaBonus = 1.0 + areaMod;
-    this.hpRegen = 0.2 + regenMod;
+    this.hpRegen = (this.baseHpRegen || 0.45) + regenMod;
   }
 
   update(dt, inputVector, arenaBound) {
     if (this.isDead) return;
 
-    // 无敌时间与受击红闪递减
+    // 无敌时间、受击红闪与安全护盾递减
     if (this.invulnerableTimer > 0) this.invulnerableTimer -= dt;
     if (this.hurtFlashTimer > 0) this.hurtFlashTimer -= dt;
+    if (this.graceShieldTimer > 0) this.graceShieldTimer -= dt;
 
     // 自愈
     if (this.hpRegen > 0 && this.hp < this.maxHp) {
@@ -274,6 +284,17 @@ class Player {
       ctx.shadowBlur = 6;
       ctx.fill();
       ctx.restore();
+
+      // 7. 选卡/恢复安全无敌光环 (青蓝力场护盾)
+      if (this.graceShieldTimer > 0) {
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius + 8, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 240, 255, ${Math.min(0.9, this.graceShieldTimer * 1.5)})`;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
+        ctx.stroke();
+      }
     }
 
     ctx.restore();

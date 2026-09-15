@@ -168,7 +168,7 @@ class InputManager {
 
           this.vector.x = nx;
           this.vector.y = ny;
-          this.vector.magnitude = clampedDist / this.maxRadius;
+          this.vector.magnitude = this.computeMagnitude(dist);
 
           const knobX = nx * clampedDist;
           const knobY = ny * clampedDist;
@@ -179,6 +179,18 @@ class InputManager {
         break;
       }
     }
+  }
+
+  // 手机端专用非线性映射：6px死区，8~28px迅速获得强机动力，无需大拇指生硬推满45px
+  computeMagnitude(dist) {
+    if (dist < 6) return 0;
+    if (dist < 16) {
+      return 0.72 + ((dist - 6) / 10) * 0.12;
+    }
+    if (dist < 28) {
+      return 0.84 + ((dist - 16) / 12) * 0.16;
+    }
+    return 1.0;
   }
 
   handleTouchEnd(e) {

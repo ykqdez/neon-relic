@@ -124,14 +124,25 @@ class UpgradeSystem {
       if (weapon.level < 5 && !weapon.isEvolved) {
         const nextLv = weapon.level + 1;
         const isNew = weapon.level === 0;
+        const rarity = this.rollRarity(isNew ? 0.3 : 0.15);
+        let bonus = null;
+        let desc = isNew ? `装配新武器：${weapon.name}` : `强化伤害与冷却，提升武器效能`;
+        if (rarity === 'rare') {
+          bonus = { healPercent: 0.08, exp: 0 };
+          desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';
+        } else if (rarity === 'epic') {
+          bonus = { healPercent: 0.15, exp: 12 };
+          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 12 EXP]';
+        }
         candidates.push({
           type: 'weapon',
           targetId: wId,
           name: weapon.name,
           icon: weapon.icon,
           levelTag: isNew ? 'NEW!' : `Lv.${weapon.level} ➔ Lv.${nextLv}`,
-          desc: isNew ? `装配新武器：${weapon.name}` : `强化伤害与冷却，提升武器效能`,
-          rarity: this.rollRarity(isNew ? 0.3 : 0.15)
+          desc: desc,
+          rarity: rarity,
+          bonus: bonus
         });
       }
     }
@@ -142,14 +153,25 @@ class UpgradeSystem {
       if (curLv < def.maxLevel) {
         const nextLv = curLv + 1;
         const isNew = curLv === 0;
+        const rarity = this.rollRarity(isNew ? 0.25 : 0.1);
+        let bonus = null;
+        let desc = def.desc;
+        if (rarity === 'rare') {
+          bonus = { healPercent: 0.08, exp: 0 };
+          desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';
+        } else if (rarity === 'epic') {
+          bonus = { healPercent: 0.15, exp: 12 };
+          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 12 EXP]';
+        }
         candidates.push({
           type: 'passive',
           targetId: pId,
           name: def.name,
           icon: def.icon,
           levelTag: isNew ? 'NEW!' : `Lv.${curLv} ➔ Lv.${nextLv}`,
-          desc: def.desc,
-          rarity: this.rollRarity(isNew ? 0.25 : 0.1)
+          desc: desc,
+          rarity: rarity,
+          bonus: bonus
         });
       }
     }
@@ -164,7 +186,8 @@ class UpgradeSystem {
           icon: '✨',
           levelTag: 'OVERDRIVE',
           desc: '瞬间回复 40% 最大生命值，并产生全屏冲击波清退敌人',
-          rarity: 'epic'
+          rarity: 'epic',
+          bonus: { healPercent: 0.40, exp: 20 }
         }
       ];
     }

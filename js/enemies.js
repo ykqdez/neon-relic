@@ -132,11 +132,12 @@ class SwarmDrone extends BaseEnemy {
 
 // 2. 霓虹侦察兵 (Neon Scout): 极速S形波浪包抄，双翼箭头飞梭
 class NeonScout extends BaseEnemy {
-  constructor(x, y, multiplier = 1) {
+  constructor(x, y, multiplier = 1, diffConfig = null) {
+    const scoutSpeed = (diffConfig && diffConfig.scoutSpeed) ? diffConfig.scoutSpeed : 160;
     super(x, y, {
       radius: 12,
       hp: Math.round(20 * multiplier),
-      speed: 160,
+      speed: scoutSpeed,
       damage: 7,
       exp: 1,
       color: '#00ffff'
@@ -276,7 +277,7 @@ class RelicGolem extends BaseEnemy {
 
 // 4. 棱镜射手 (Prism Sniper): 保持安全距离、带有长炮口的菱形聚能狙击
 class PrismSniper extends BaseEnemy {
-  constructor(x, y, multiplier = 1) {
+  constructor(x, y, multiplier = 1, diffConfig = null) {
     super(x, y, {
       radius: 16,
       hp: Math.round(55 * multiplier),
@@ -285,6 +286,9 @@ class PrismSniper extends BaseEnemy {
       exp: 2,
       color: '#b026ff'
     });
+    this.diffConfig = diffConfig;
+    this.aimDuration = (diffConfig && diffConfig.sniperAimTime !== undefined) ? diffConfig.sniperAimTime : 1.0;
+    this.bulletSpeed = (diffConfig && diffConfig.sniperBulletSpeed !== undefined) ? diffConfig.sniperBulletSpeed : 270;
     this.shootTimer = 2.5;
     this.aimTimer = 0;
     this.aimAngle = 0;
@@ -308,7 +312,7 @@ class PrismSniper extends BaseEnemy {
     }
 
     this.shootTimer -= dt;
-    if (this.shootTimer <= 1.0) {
+    if (this.shootTimer <= this.aimDuration) {
       this.aimAngle = Math.atan2(dy, dx);
       this.aimTimer += dt;
 
@@ -319,8 +323,8 @@ class PrismSniper extends BaseEnemy {
           bullets.push({
             x: this.x + Math.cos(this.aimAngle) * (this.radius * 1.5),
             y: this.y + Math.sin(this.aimAngle) * (this.radius * 1.5),
-            vx: Math.cos(this.aimAngle) * 270,
-            vy: Math.sin(this.aimAngle) * 270,
+            vx: Math.cos(this.aimAngle) * this.bulletSpeed,
+            vy: Math.sin(this.aimAngle) * this.bulletSpeed,
             radius: 6,
             damage: 16,
             life: 3.5,
@@ -333,7 +337,7 @@ class PrismSniper extends BaseEnemy {
 
   render(ctx) {
     // 瞄准激光瞄准线
-    if (this.shootTimer <= 1.0 && !this.isDead) {
+    if (this.shootTimer <= this.aimDuration && !this.isDead) {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
@@ -457,7 +461,7 @@ class FissionCore extends BaseEnemy {
 
 // 6. 突刺冲锋者 (Charge Striker): 尖锥长矛轮廓，极速突刺穿透
 class ChargeStriker extends BaseEnemy {
-  constructor(x, y, multiplier = 1) {
+  constructor(x, y, multiplier = 1, diffConfig = null) {
     super(x, y, {
       radius: 15,
       hp: Math.round(60 * multiplier),
@@ -466,6 +470,9 @@ class ChargeStriker extends BaseEnemy {
       exp: 2,
       color: '#ff007f'
     });
+    this.diffConfig = diffConfig;
+    this.aimDuration = (diffConfig && diffConfig.strikerAimTime !== undefined) ? diffConfig.strikerAimTime : 0.8;
+    this.dashSpeed = (diffConfig && diffConfig.strikerDashSpeed !== undefined) ? diffConfig.strikerDashSpeed : 390;
     this.state = 'walk';
     this.stateTimer = 2.0;
     this.dashAngle = 0;
@@ -487,7 +494,7 @@ class ChargeStriker extends BaseEnemy {
       }
       if (this.stateTimer <= 0 && dist < 290) {
         this.state = 'charge_aim';
-        this.stateTimer = 0.8;
+        this.stateTimer = this.aimDuration;
         this.dashAngle = Math.atan2(dy, dx);
       }
     } else if (this.state === 'charge_aim') {
@@ -496,7 +503,7 @@ class ChargeStriker extends BaseEnemy {
         this.stateTimer = 0.52;
       }
     } else if (this.state === 'dashing') {
-      const dashSpeed = 390;
+      const dashSpeed = this.dashSpeed;
       this.x += Math.cos(this.dashAngle) * dashSpeed * dt;
       this.y += Math.sin(this.dashAngle) * dashSpeed * dt;
 
@@ -559,10 +566,11 @@ class ChargeStriker extends BaseEnemy {
 
 // 7. Boss:「遗迹泰坦 AETHEL-TITAN」
 class BossTitan extends BaseEnemy {
-  constructor(x, y, multiplier = 1) {
+  constructor(x, y, multiplier = 1, diffConfig = null) {
+    const baseHp = (diffConfig && diffConfig.bossHp !== undefined) ? diffConfig.bossHp : 2800;
     super(x, y, {
       radius: 46,
-      hp: Math.round(2800 * multiplier),
+      hp: Math.round(baseHp * multiplier),
       speed: 55,
       damage: 28,
       exp: 100,
@@ -570,6 +578,9 @@ class BossTitan extends BaseEnemy {
       knockbackResistance: 1.0,
       isBoss: true
     });
+    this.diffConfig = diffConfig;
+    this.hazardTimerDuration = (diffConfig && diffConfig.bossHazardTimer !== undefined) ? diffConfig.bossHazardTimer : 1.2;
+    this.bulletSpeedMult = (diffConfig && diffConfig.bossBulletSpeedMult !== undefined) ? diffConfig.bossBulletSpeedMult : 1.0;
     this.isBoss = true;
     this.phase = 1; // 1, 2, 3
     this.attackTimer = 2.0;
@@ -637,8 +648,8 @@ class BossTitan extends BaseEnemy {
         bullets.push({
           x: this.x,
           y: this.y,
-          vx: Math.cos(a) * 160,
-          vy: Math.sin(a) * 160,
+          vx: Math.cos(a) * 160 * this.bulletSpeedMult,
+          vy: Math.sin(a) * 160 * this.bulletSpeedMult,
           radius: 7,
           damage: 16,
           life: 4.5,
@@ -661,8 +672,8 @@ class BossTitan extends BaseEnemy {
         bullets.push({
           x: this.x,
           y: this.y,
-          vx: Math.cos(a) * 210,
-          vy: Math.sin(a) * 210,
+          vx: Math.cos(a) * 210 * this.bulletSpeedMult,
+          vy: Math.sin(a) * 210 * this.bulletSpeedMult,
           radius: 8,
           damage: 18,
           life: 4.0,
@@ -672,13 +683,13 @@ class BossTitan extends BaseEnemy {
     } else if (this.phase === 3) {
       // 阶段三：在玩家周围放置 2 个地面预警圈 + 狂暴环形弹
       this.attackTimer = 2.4;
-      // 地面预警圈 (1.2 秒后引爆，留足手机端反应走位时间)
+      // 地面预警圈 (留足手机端反应走位时间)
       this.hazardZones.push({
         x: player.x + (Math.random() - 0.5) * 80,
         y: player.y + (Math.random() - 0.5) * 80,
         radius: 65,
-        timer: 1.2,
-        maxTimer: 1.2
+        timer: this.hazardTimerDuration,
+        maxTimer: this.hazardTimerDuration
       });
       // 8 向高速弹
       for (let i = 0; i < 8; i++) {
@@ -686,8 +697,8 @@ class BossTitan extends BaseEnemy {
         bullets.push({
           x: this.x,
           y: this.y,
-          vx: Math.cos(a) * 240,
-          vy: Math.sin(a) * 240,
+          vx: Math.cos(a) * 240 * this.bulletSpeedMult,
+          vy: Math.sin(a) * 240 * this.bulletSpeedMult,
           radius: 9,
           damage: 22,
           life: 3.8,

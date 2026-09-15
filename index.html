@@ -13,6 +13,9 @@
     <!-- 主游戏画布 -->
     <canvas id="game-canvas"></canvas>
 
+    <!-- 屏幕受创边缘红晕提示 -->
+    <div id="screen-vignette" class="screen-vignette"></div>
+
     <!-- 动态虚拟摇杆 UI (在触摸时动态定位并显示) -->
     <div id="joystick-container">
       <div class="joystick-base">
@@ -118,6 +121,17 @@
         <div class="start-records" id="start-records">
           <div class="record-badge">🏆 最佳记录: <span id="record-best-time">00:00</span></div>
           <div class="record-badge">👾 泰坦击杀: <span id="record-bosses">0</span> 次</div>
+        </div>
+
+        <!-- 难度选择器 -->
+        <div class="difficulty-select-wrap">
+          <div class="diff-title">难度设定 DIFFICULTY</div>
+          <div class="diff-btn-group" id="diff-btn-group">
+            <button class="diff-btn" data-diff="casual" type="button">休闲 CASUAL</button>
+            <button class="diff-btn" data-diff="normal" type="button">标准 NORMAL</button>
+            <button class="diff-btn" data-diff="hard" type="button">极境 HARD</button>
+          </div>
+          <div class="diff-desc" id="diff-desc">移动端专属调优：移速+自愈微流，死角视野拓宽，怪物解锁更平滑</div>
         </div>
 
         <button id="btn-start-game" class="game-btn start-action-btn">

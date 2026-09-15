@@ -3,11 +3,126 @@
  * 渲染循环、响应式相机缩放、升级队列、多阶段 Boss 与生命周期管理
  */
 
+const DIFFICULTY_PRESETS = {
+  casual: {
+    id: 'casual',
+    name: '休闲 CASUAL',
+    desc: '移动端专属调优：移速+自愈微流，死角视野拓宽，怪物解锁更平滑',
+    playerBaseSpeed: 188,
+    playerInvulDuration: 0.52,
+    playerHpRegen: 0.45,
+    playerPickupRange: 105,
+    upgradeGracePeriod: 0.85,
+    pauseGracePeriod: 0.50,
+    spawnIntervalBase: 1.25,
+    spawnIntervalMin: 0.24,
+    hpScalePerMin: 0.20,
+    maxEnemies: 120,
+    unlockTimes: {
+      drone: 0,
+      scout: 0,
+      golem: 90,
+      fission: 150,
+      sniper: 240,
+      striker: 330
+    },
+    firstEliteTime: 145,
+    eliteInterval: 100,
+    eliteHpMult: 2.3,
+    eliteShieldHp: 130,
+    scoutSpeed: 135,
+    sniperBulletSpeed: 210,
+    sniperAimTime: 1.3,
+    strikerDashSpeed: 310,
+    strikerAimTime: 1.1,
+    bossHp: 1900,
+    bossBulletSpeedMult: 0.82,
+    bossHazardTimer: 1.7
+  },
+  normal: {
+    id: 'normal',
+    name: '标准 NORMAL',
+    desc: '经典 Roguelite 节奏：标准移速与刷怪曲线，适度压迫感',
+    playerBaseSpeed: 175,
+    playerInvulDuration: 0.40,
+    playerHpRegen: 0.25,
+    playerPickupRange: 80,
+    upgradeGracePeriod: 0.60,
+    pauseGracePeriod: 0.35,
+    spawnIntervalBase: 1.10,
+    spawnIntervalMin: 0.16,
+    hpScalePerMin: 0.28,
+    maxEnemies: 150,
+    unlockTimes: {
+      drone: 0,
+      scout: 0,
+      golem: 60,
+      fission: 130,
+      sniper: 220,
+      striker: 300
+    },
+    firstEliteTime: 90,
+    eliteInterval: 80,
+    eliteHpMult: 3.2,
+    eliteShieldHp: 240,
+    scoutSpeed: 160,
+    sniperBulletSpeed: 270,
+    sniperAimTime: 1.0,
+    strikerDashSpeed: 390,
+    strikerAimTime: 0.8,
+    bossHp: 2800,
+    bossBulletSpeedMult: 1.0,
+    bossHazardTimer: 1.2
+  },
+  hard: {
+    id: 'hard',
+    name: '极境 HARD',
+    desc: '硬核狂暴挑战：怪物如潮涌现，高弹速冲锋与极短预警期',
+    playerBaseSpeed: 170,
+    playerInvulDuration: 0.32,
+    playerHpRegen: 0.10,
+    playerPickupRange: 75,
+    upgradeGracePeriod: 0.40,
+    pauseGracePeriod: 0.20,
+    spawnIntervalBase: 0.95,
+    spawnIntervalMin: 0.12,
+    hpScalePerMin: 0.36,
+    maxEnemies: 180,
+    unlockTimes: {
+      drone: 0,
+      scout: 0,
+      golem: 45,
+      fission: 100,
+      sniper: 180,
+      striker: 240
+    },
+    firstEliteTime: 75,
+    eliteInterval: 65,
+    eliteHpMult: 3.8,
+    eliteShieldHp: 320,
+    scoutSpeed: 175,
+    sniperBulletSpeed: 300,
+    sniperAimTime: 0.8,
+    strikerDashSpeed: 420,
+    strikerAimTime: 0.65,
+    bossHp: 3600,
+    bossBulletSpeedMult: 1.15,
+    bossHazardTimer: 0.95
+  }
+};
+
 class Game {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
     this.container = document.getElementById('game-container');
+    this.vignetteEl = document.getElementById('screen-vignette');
+
+    // 难度预设选择（手机触控优先默认休闲模式）
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
+    const savedDiff = localStorage.getItem('nr_difficulty');
+    this.difficulty = (savedDiff && DIFFICULTY_PRESETS[savedDiff]) ? savedDiff : (isTouchDevice ? 'casual' : 'normal');
+    this.diffConfig = DIFFICULTY_PRESETS[this.difficulty];
 
     // 随机种子生成器
     this.seed = this.generateSeed();
@@ -34,7 +149,7 @@ class Game {
     this.arenaRunes = this.generateArenaRunes();
 
     // 玩家
-    this.player = new Player(0, 0);
+    this.player = new Player(0, 0, this.diffConfig);
 
     // 输入管理器与摇杆元素
     const jContainer = document.getElementById('joystick-container');
@@ -74,7 +189,7 @@ class Game {
 
     // 刷怪计时器与节奏 (8 分钟 Boss 目标)
     this.spawnTimer = 0;
-    this.eliteTimer = 90; // 90 秒登场首个精英
+    this.eliteTimer = this.diffConfig.firstEliteTime;
     this.bossSpawned = false;
     this.bossTime = 480;  // 8 分钟 (480秒) 决战泰坦
 
@@ -161,19 +276,51 @@ class Game {
     this.camera.width = w;
     this.camera.height = h;
 
-    // 响应式动态相机缩放 (解决 1080p 桌面画面过小与空旷问题)
+    // 响应式动态相机缩放 (解决 1080p 桌面画面过小与手机视野受限问题)
     if (w > 1200) {
       this.camera.zoom = 1.18; // 桌面端清晰聚焦
     } else if (w >= 768) {
       this.camera.zoom = 1.08; // 平板适配
     } else {
-      // 手机端：根据最小边长维持舒适视场
-      const minDim = Math.min(w, h);
-      this.camera.zoom = Math.max(0.94, Math.min(1.04, minDim / 390));
+      // 手机端：拓宽横向视野，保持 470~520 世界单位预警宽度
+      this.camera.zoom = Math.max(0.78, Math.min(0.86, w / 480));
     }
   }
 
   initUI() {
+    // 难度按键选择器监听与双向同步
+    const diffButtons = document.querySelectorAll('.diff-btn');
+    const diffDescEl = document.getElementById('diff-desc');
+    const updateDiffUI = (dKey) => {
+      if (!DIFFICULTY_PRESETS[dKey]) return;
+      this.difficulty = dKey;
+      this.diffConfig = DIFFICULTY_PRESETS[dKey];
+      localStorage.setItem('nr_difficulty', dKey);
+      diffButtons.forEach(btn => {
+        if (btn.dataset.diff === dKey) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      if (diffDescEl) diffDescEl.textContent = this.diffConfig.desc;
+      if (this.player) {
+        this.player.diffConfig = this.diffConfig;
+        this.player.baseSpeed = this.diffConfig.playerBaseSpeed;
+        this.player.invulDuration = this.diffConfig.playerInvulDuration;
+        this.player.hpRegen = this.diffConfig.playerHpRegen;
+        this.player.pickupRange = this.diffConfig.playerPickupRange;
+        this.player.recalculateStats(this.passives);
+      }
+      this.eliteTimer = this.diffConfig.firstEliteTime;
+    };
+    diffButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        updateDiffUI(btn.dataset.diff);
+      });
+    });
+    updateDiffUI(this.difficulty);
+
     // 开始行动按键
     const startBtn = document.getElementById('btn-start-game');
     if (startBtn) {
@@ -243,6 +390,7 @@ class Game {
     document.getElementById('modal-pause').classList.remove('active');
     this.state = 'playing';
     this.lastTime = performance.now();
+    this.player.grantInvulnerability(this.diffConfig.pauseGracePeriod);
   }
 
   restart() {
@@ -259,7 +407,7 @@ class Game {
     this.lastTime = performance.now();
     this.stats = { kills: 0, totalDamage: 0, highestHit: 0, bossKills: 0 };
 
-    this.player = new Player(0, 0);
+    this.player = new Player(0, 0, this.diffConfig);
 
     this.weapons = {};
     for (const [id, Cls] of Object.entries(window.WeaponRegistry)) {
@@ -281,9 +429,10 @@ class Game {
     this.shockwaves = [];
 
     this.spawnTimer = 0;
-    this.eliteTimer = 90;
+    this.eliteTimer = this.diffConfig.firstEliteTime;
     this.bossSpawned = false;
 
+    if (this.vignetteEl) this.vignetteEl.classList.remove('active');
     document.getElementById('boss-hud').style.display = 'none';
     this.updateHUDBuild();
   }
@@ -308,6 +457,15 @@ class Game {
     // 1. 更新玩家
     const moveVec = this.input.getVector();
     this.player.update(dt, moveVec, this.arenaBound);
+
+    // 玩家受创屏幕红晕视觉反馈
+    if (this.vignetteEl) {
+      if (this.player.hurtTimer > 0) {
+        this.vignetteEl.classList.add('active');
+      } else {
+        this.vignetteEl.classList.remove('active');
+      }
+    }
 
     // 玩家死亡判定
     if (this.player.isDead) {
@@ -404,7 +562,7 @@ class Game {
     this.updateHUD();
   }
 
-  // 刷怪曲线与节奏演进 (8分钟单局设计，上限150)
+  // 刷怪曲线与节奏演进 (难度预设动态适配)
   updateSpawns(dt) {
     // 8 分钟 Boss 登场判定
     if (this.elapsedTime >= this.bossTime && !this.bossSpawned) {
@@ -413,23 +571,29 @@ class Game {
       const bAngle = Math.random() * Math.PI * 2;
       this.activeBoss = new EnemyTypes.BossTitan(
         this.player.x + Math.cos(bAngle) * 450,
-        this.player.y + Math.sin(bAngle) * 450
+        this.player.y + Math.sin(bAngle) * 450,
+        1,
+        this.diffConfig
       );
       this.enemies.push(this.activeBoss);
       document.getElementById('boss-hud').style.display = 'flex';
     }
 
-    // 精英怪定时生成 (90 秒首个，之后每 80 秒生成)
+    // 精英怪定时生成
     this.eliteTimer -= dt;
     if (this.eliteTimer <= 0) {
-      this.eliteTimer = 80;
+      this.eliteTimer = this.diffConfig.eliteInterval;
       this.spawnElite();
     }
 
     // 常规怪刷新
     this.spawnTimer -= dt;
-    const interval = Math.max(0.16, 1.1 - (this.elapsedTime / 480));
-    if (this.spawnTimer <= 0 && this.enemies.length < 150) {
+    const progress = Math.min(1, this.elapsedTime / 480);
+    const interval = Math.max(
+      this.diffConfig.spawnIntervalMin,
+      this.diffConfig.spawnIntervalBase - progress * (this.diffConfig.spawnIntervalBase - this.diffConfig.spawnIntervalMin)
+    );
+    if (this.spawnTimer <= 0 && this.enemies.length < this.diffConfig.maxEnemies) {
       this.spawnTimer = interval;
       this.spawnWave();
     }
@@ -437,7 +601,9 @@ class Game {
 
   spawnWave() {
     const minutes = this.elapsedTime / 60;
-    const hpMult = 1 + minutes * 0.28;
+    const hpMult = 1 + minutes * this.diffConfig.hpScalePerMin;
+    const unlocks = this.diffConfig.unlockTimes;
+    const t = this.elapsedTime;
 
     // 依据相机缩放比例动态计算屏幕视野外的生成距离
     const angle = Math.random() * Math.PI * 2;
@@ -445,20 +611,20 @@ class Game {
     const sx = this.player.x + Math.cos(angle) * dist;
     const sy = this.player.y + Math.sin(angle) * dist;
 
-    // 根据生存时间有序阶梯解锁更强的敌人种类
+    // 根据难度设定的阶梯解锁时间有序产生敌种
     const roll = Math.random();
     let enemy = null;
 
-    if (minutes > 5.0 && roll < 0.22) {
-      enemy = new EnemyTypes.ChargeStriker(sx, sy, hpMult);
-    } else if (minutes > 3.8 && roll < 0.38) {
-      enemy = new EnemyTypes.PrismSniper(sx, sy, hpMult);
-    } else if (minutes > 2.2 && roll < 0.55) {
+    if (t >= unlocks.striker && roll < 0.22) {
+      enemy = new EnemyTypes.ChargeStriker(sx, sy, hpMult, this.diffConfig);
+    } else if (t >= unlocks.sniper && roll < 0.38) {
+      enemy = new EnemyTypes.PrismSniper(sx, sy, hpMult, this.diffConfig);
+    } else if (t >= unlocks.fission && roll < 0.55) {
       enemy = new EnemyTypes.FissionCore(sx, sy, hpMult);
-    } else if (minutes > 1.0 && roll < 0.72) {
+    } else if (t >= unlocks.golem && roll < 0.72) {
       enemy = new EnemyTypes.RelicGolem(sx, sy, hpMult);
     } else if (roll < 0.45) {
-      enemy = new EnemyTypes.NeonScout(sx, sy, hpMult);
+      enemy = new EnemyTypes.NeonScout(sx, sy, hpMult, this.diffConfig);
     } else {
       enemy = new EnemyTypes.SwarmDrone(sx, sy, hpMult);
     }
@@ -474,17 +640,17 @@ class Game {
     const affixes = ['berserk', 'shield', 'splitter'];
     const affix = affixes[Math.floor(Math.random() * affixes.length)];
 
-    const elite = new EnemyTypes.RelicGolem(sx, sy, 3.2);
+    const elite = new EnemyTypes.RelicGolem(sx, sy, this.diffConfig.eliteHpMult);
     elite.isElite = true;
     elite.affix = affix;
     elite.radius = 32;
     elite.expValue = 40;
 
     if (affix === 'berserk') {
-      elite.speed *= 1.45;
+      elite.speed *= 1.35;
       elite.color = '#ff0033';
     } else if (affix === 'shield') {
-      elite.shieldHp = 240;
+      elite.shieldHp = this.diffConfig.eliteShieldHp;
       elite.color = '#00f0ff';
     } else if (affix === 'splitter') {
       elite.color = '#b026ff';
@@ -494,12 +660,25 @@ class Game {
     this.spawnShockwave(sx, sy, 80, '#ffaa00');
   }
 
-  // 经验晶体生成与上限聚合
+  // 经验晶体生成与就近上限聚合
   spawnCrystal(x, y, value) {
-    if (this.crystals.length > 180) {
-      const first = this.crystals[0];
-      first.value += value;
-      return;
+    if (this.crystals.length > 150) {
+      // 靠近搜索：在最近 30 个晶体中寻找与当前 (x, y) 距离最近的进行能量合并，避免集中到最老晶体
+      const searchStart = Math.max(0, this.crystals.length - 30);
+      let closest = this.crystals[searchStart];
+      let minD2 = Infinity;
+      for (let i = searchStart; i < this.crystals.length; i++) {
+        const c = this.crystals[i];
+        const d2 = (c.x - x) ** 2 + (c.y - y) ** 2;
+        if (d2 < minD2) {
+          minD2 = d2;
+          closest = c;
+        }
+      }
+      if (closest) {
+        closest.value += value;
+        return;
+      }
     }
 
     this.crystals.push({
@@ -667,6 +846,17 @@ class Game {
       this.spawnShockwave(this.player.x, this.player.y, 240, '#00f0ff');
     }
 
+    // 触发品质专属附加加成 (如史诗/稀有赠送的生命恢复与即时经验)
+    if (card.bonus) {
+      if (card.bonus.healPercent > 0) {
+        this.player.heal(this.player.maxHp * card.bonus.healPercent);
+        this.spawnShockwave(this.player.x, this.player.y, 140, '#00f0ff');
+      }
+      if (card.bonus.exp > 0) {
+        this.player.addExp(card.bonus.exp, () => this.openUpgradeModal());
+      }
+    }
+
     this.updateHUDBuild();
 
     // 扣减升级队列
@@ -679,6 +869,8 @@ class Game {
       document.getElementById('modal-upgrade').classList.remove('active');
       this.state = 'playing';
       this.lastTime = performance.now();
+      // 赋予升级弹窗关闭后的防秒杀安全缓冲时间 (默认休闲模式0.85s)
+      this.player.grantInvulnerability(this.diffConfig.upgradeGracePeriod);
     }
   }
 
@@ -897,6 +1089,69 @@ class Game {
     }
 
     ctx.restore();
+
+    // 9. 绘制屏幕边缘 Boss 与精英怪方向预警雷达指针 (强化手机端战场态势感知)
+    this.renderOffscreenIndicators(ctx, w, h);
+  }
+
+  renderOffscreenIndicators(ctx, w, h) {
+    const margin = 34;
+    for (const e of this.enemies) {
+      if ((e.isBoss || e.isElite) && !e.isDead) {
+        // 计算目标在屏幕坐标系中的投影位置
+        const screenX = (e.x - this.camera.x) * this.camera.zoom + w / 2;
+        const screenY = (e.y - this.camera.y) * this.camera.zoom + h / 2;
+
+        // 判断是否位于视野之外
+        const isOffscreen = screenX < 25 || screenX > w - 25 || screenY < 25 || screenY > h - 25;
+        if (!isOffscreen) continue;
+
+        // 计算屏幕中心指向目标的方位角
+        const cx = w / 2;
+        const cy = h / 2;
+        const angle = Math.atan2(screenY - cy, screenX - cx);
+
+        // 沿视野边界约束截断指示器坐标 (避开顶部 HUD 与底部 Dock)
+        const edgeX = Math.max(margin, Math.min(w - margin, cx + Math.cos(angle) * (w / 2 - margin)));
+        const edgeY = Math.max(margin + 52, Math.min(h - margin - 45, cy + Math.sin(angle) * (h / 2 - margin)));
+
+        const distWorld = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        const distText = `${Math.round(distWorld / 10)}m`;
+        const color = e.isBoss ? '#ff0055' : '#ffaa00';
+        const label = e.isBoss ? 'BOSS' : 'ELITE';
+
+        ctx.save();
+        ctx.translate(edgeX, edgeY);
+
+        // 绘制霓虹导引箭头
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(11, 0);
+        ctx.lineTo(-8, -7);
+        ctx.lineTo(-4, 0);
+        ctx.lineTo(-8, 7);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.restore();
+
+        // 标号与距离度量
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = color;
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 5;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, 0, -12);
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(distText, 0, 16);
+
+        ctx.restore();
+      }
+    }
   }
 
   renderArenaGrid(ctx) {
