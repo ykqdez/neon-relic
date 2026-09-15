@@ -1,0 +1,279 @@
+{
+  "diff_switch": {
+    "normalStats": {
+      "baseSpeed": 175,
+      "speed": 175,
+      "basePickupRange": 80,
+      "pickupRange": 80,
+      "baseHpRegen": 0.25,
+      "hpRegen": 0.25,
+      "invulDuration": 0.4
+    },
+    "casualStats": {
+      "baseSpeed": 188,
+      "speed": 188,
+      "basePickupRange": 105,
+      "pickupRange": 105,
+      "baseHpRegen": 0.45,
+      "hpRegen": 0.45,
+      "invulDuration": 0.52
+    },
+    "hardStats": {
+      "baseSpeed": 170,
+      "speed": 170,
+      "basePickupRange": 75,
+      "pickupRange": 75,
+      "baseHpRegen": 0.1,
+      "hpRegen": 0.1,
+      "invulDuration": 0.32
+    }
+  },
+  "dead_enemy_damage": {
+    "initialHp": 100,
+    "hpAfterDeadTouch": 100,
+    "hpAfterLivingTouch": 84,
+    "deadContactBlocked": true,
+    "casualDmgMultApplied": true
+  },
+  "hurt_flash": {
+    "beforeHurtTimer": 0,
+    "afterHurtTimer": 0.2,
+    "vignetteActive": true
+  },
+  "splitter_elite": {
+    "spawnedSubCount": 3,
+    "allSubsNonElite": true,
+    "parentCrystals": [
+      3,
+      25,
+      25
+    ],
+    "subCrystals": [
+      3
+    ]
+  },
+  "boss_suppression": {
+    "baseInterval": 0.45,
+    "bossInterval": 0.729,
+    "intervalRatio": 1.62,
+    "normalMaxEnemies": 96,
+    "bossMaxEnemies": 72,
+    "maxEnemiesRatio": 0.75
+  },
+  "pool_sampling": {
+    "Phase 1 (0-90s)": {
+      "activePool": [
+        "drone: 30",
+        "scout: 18"
+      ],
+      "totalWeight": 48,
+      "percentages": {
+        "drone": 62.1,
+        "scout": 38
+      }
+    },
+    "Phase 2 (90-150s)": {
+      "activePool": [
+        "drone: 30",
+        "scout: 18",
+        "golem: 14"
+      ],
+      "totalWeight": 62,
+      "percentages": {
+        "scout": 29,
+        "golem": 21.9,
+        "drone": 49
+      }
+    },
+    "Phase 3 (150-240s)": {
+      "activePool": [
+        "drone: 30",
+        "scout: 18",
+        "golem: 14",
+        "fission: 14"
+      ],
+      "totalWeight": 76,
+      "percentages": {
+        "fission": 18.8,
+        "golem": 19,
+        "scout": 23,
+        "drone": 39.2
+      }
+    },
+    "Phase 4 (240-330s)": {
+      "activePool": [
+        "drone: 30",
+        "scout: 18",
+        "golem: 14",
+        "fission: 14",
+        "sniper: 12"
+      ],
+      "totalWeight": 88,
+      "percentages": {
+        "sniper": 13.2,
+        "drone": 34.4,
+        "fission": 16,
+        "golem": 16,
+        "scout": 20.4
+      }
+    },
+    "Phase 5 (330s+)": {
+      "activePool": [
+        "drone: 30",
+        "scout: 18",
+        "golem: 14",
+        "fission: 14",
+        "sniper: 12",
+        "striker: 12"
+      ],
+      "totalWeight": 100,
+      "percentages": {
+        "striker": 11.5,
+        "drone": 28.9,
+        "scout": 18.6,
+        "sniper": 11.4,
+        "fission": 14.6,
+        "golem": 15.1
+      }
+    }
+  },
+  "weapon_evolutions": {
+    "plasma": {
+      "name": "湮灭重炮",
+      "isEvolved": true,
+      "baseCd": 1,
+      "shotCount": 3,
+      "shotProperties": {
+        "radius": 18,
+        "damage": 92,
+        "pierce": 9999,
+        "knockback": 320,
+        "isEvolved": true
+      }
+    },
+    "prism": {
+      "name": "超维裂隙",
+      "isEvolved": true,
+      "baseCd": 1.6,
+      "beamCount": 3,
+      "beamProperties": {
+        "width": 36,
+        "length": 850,
+        "damage": 34,
+        "life": 1.1,
+        "rotSpeed": -1.6,
+        "isEvolved": true
+      }
+    }
+  },
+  "rarity_and_passives": {
+    "normalPct": {
+      "common": 68,
+      "rare": 25.5,
+      "epic": 6.6
+    },
+    "newPct": {
+      "common": 58.5,
+      "rare": 29.7,
+      "epic": 11.8
+    },
+    "hasteDesc": "每级降低 8% 全武器技能冷却时间 (最高 40%，与电弧核心形成共鸣)",
+    "hpDesc": "每级提升 20% 生命上限，并获得 +0.35 HP/s 自愈微流",
+    "critDesc": "每级提升 6% 暴击几率与 15% 暴击伤害 (与脉冲刃形成共鸣)",
+    "dynamicExpTest": {
+      "nextLevelExp": 120,
+      "initialExp": 0,
+      "expAfterEpic": 24,
+      "expGained": 24,
+      "expected": 24
+    },
+    "statCalculations": {
+      "hasteCDR": 0.24,
+      "critDamage": 1.9,
+      "hpRegen": 1.15
+    }
+  },
+  "spawn_curves": {
+    "casualData": [
+      {
+        "minute": 0,
+        "interval": 1.3,
+        "countPerMin": 46,
+        "hpMult": 1
+      },
+      {
+        "minute": 2,
+        "interval": 1.087,
+        "countPerMin": 55,
+        "hpMult": 1.32
+      },
+      {
+        "minute": 4,
+        "interval": 0.875,
+        "countPerMin": 69,
+        "hpMult": 1.64
+      },
+      {
+        "minute": 6,
+        "interval": 0.662,
+        "countPerMin": 91,
+        "hpMult": 1.96
+      },
+      {
+        "minute": 8,
+        "interval": 0.45,
+        "countPerMin": 133,
+        "hpMult": 2.28
+      }
+    ],
+    "normalData": [
+      {
+        "minute": 0,
+        "interval": 1.1,
+        "countPerMin": 55,
+        "hpMult": 1
+      },
+      {
+        "minute": 2,
+        "interval": 0.885,
+        "countPerMin": 68,
+        "hpMult": 1.52
+      },
+      {
+        "minute": 4,
+        "interval": 0.67,
+        "countPerMin": 90,
+        "hpMult": 2.04
+      },
+      {
+        "minute": 6,
+        "interval": 0.455,
+        "countPerMin": 132,
+        "hpMult": 2.56
+      },
+      {
+        "minute": 8,
+        "interval": 0.24,
+        "countPerMin": 250,
+        "hpMult": 3.08
+      }
+    ]
+  },
+  "mobile_viewport": {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "cameraZoom": 0.813,
+    "worldWidth": 480,
+    "expWrap": {
+      "width": 281,
+      "height": 16,
+      "top": 54
+    },
+    "topHud": {
+      "width": null,
+      "top": null
+    }
+  }
+}

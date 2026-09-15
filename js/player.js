@@ -25,6 +25,7 @@ class Player {
     this.armor = 0;
     this.expBonus = 1.0;
     this.areaBonus = 1.0;
+    this.cooldownReduction = 0;
     this.baseHpRegen = diffConfig ? diffConfig.playerHpRegen : 0.45;
     this.hpRegen = this.baseHpRegen;
 
@@ -109,13 +110,13 @@ class Player {
     this.hp = Math.min(this.maxHp, this.hp + amount);
   }
 
-  // 刷新所有衍生属性 (被动芯片加成与上限钳制)
+  // 重新结算被动属性 (严格保持文案与实际公式一致)
   recalculateStats(passives) {
-    // 基础值重置
     let hpMod = 0;
     let speedMod = 0;
     let cdMod = 0;
-    let critMod = 0;
+    let critChanceMod = 0;
+    let critDmgMod = 0;
     let armorMod = 0;
     let pickupMod = 0;
     let expMod = 0;
@@ -125,35 +126,39 @@ class Player {
     for (const [id, p] of Object.entries(passives)) {
       if (!p || p.level <= 0) continue;
       const lv = p.level;
-      if (id === 'hp') hpMod += lv * 0.20; // 每级 +20% 最大生命
+      if (id === 'hp') {
+        hpMod += lv * 0.20; // 每级 +20% 最大生命
+        regenMod += lv * 0.35; // 量子核心真正生效：每级 +0.35 HP/s 自愈微流
+      }
       if (id === 'speed') speedMod += lv * 0.08; // 每级 +8% 移速
-      if (id === 'haste') cdMod += lv * 0.09; // 每级 +9% 冷却减缩
-      if (id === 'crit') critMod += lv * 0.06; // 每级 +6% 暴击率
+      if (id === 'haste') cdMod += lv * 0.08; // 每级降低 8% 技能冷却时间 (最多 40%)
+      if (id === 'crit') {
+        critChanceMod += lv * 0.06; // 每级 +6% 暴击率
+        critDmgMod += lv * 0.15; // 每级严格 +15% 暴击伤害
+      }
       if (id === 'armor') armorMod += lv * 5; // 每级 +5 点护甲
       if (id === 'pickup') pickupMod += lv * 0.25; // 每级 +25% 拾取范围
       if (id === 'exp') expMod += lv * 0.15; // 每级 +15% 经验
       if (id === 'area') areaMod += lv * 0.16; // 每级 +16% 技能范围
-      if (id === 'regen') regenMod += lv * 0.4; // 每级 +0.4 HP/s
     }
 
     const prevMax = this.maxHp;
     this.maxHp = Math.round(this.baseMaxHp * (1 + hpMod));
-    // 生命上限提升时等比或追加当前血量
+    // 生命上限提升时等比追加当前血量
     if (this.maxHp > prevMax) {
       this.hp += (this.maxHp - prevMax);
     }
 
-    this.moveSpeed = this.baseSpeed * (1 + speedMod);
-    // 攻速/冷却减缩钳制：最多提升至 2.5 倍速 (CD 最低降至 40%)
-    this.attackSpeed = Math.min(2.5, 1 + cdMod);
-    // 暴击率硬上限 100%
-    this.critChance = Math.min(1.0, 0.05 + critMod);
-    this.critDamage = 1.6 + (critMod * 0.8);
+    this.moveSpeed = (this.baseSpeed || 188) * (1 + speedMod);
+    this.cooldownReduction = Math.min(0.40, cdMod);
+    this.attackSpeed = Math.min(2.5, 1 / Math.max(0.60, 1 - this.cooldownReduction));
+    this.critChance = Math.min(1.0, 0.05 + critChanceMod);
+    this.critDamage = 1.6 + critDmgMod;
     this.pickupRange = (this.basePickupRange || 105) * (1 + pickupMod);
     this.armor = armorMod;
     this.expBonus = 1.0 + expMod;
     this.areaBonus = 1.0 + areaMod;
-    this.hpRegen = (this.baseHpRegen || 0.45) + regenMod;
+    this.hpRegen = (this.baseHpRegen !== undefined ? this.baseHpRegen : 0.45) + regenMod;
   }
 
   update(dt, inputVector, arenaBound) {

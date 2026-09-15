@@ -25,7 +25,7 @@ class UpgradeSystem {
         id: 'haste',
         name: '超频芯片',
         icon: '⚡',
-        desc: '每级降低 9% 全武器技能冷却时间 (与电弧核心形成共鸣)',
+        desc: '每级降低 8% 全武器技能冷却时间 (最高 40%，与电弧核心形成共鸣)',
         maxLevel: 5
       },
       crit: {
@@ -39,7 +39,7 @@ class UpgradeSystem {
         id: 'hp',
         name: '量子核心',
         icon: '❤️',
-        desc: '每级提升 20% 生命上限，并获得每秒自愈微流',
+        desc: '每级提升 20% 生命上限，并获得 +0.35 HP/s 自愈微流',
         maxLevel: 5
       },
       speed: {
@@ -124,15 +124,15 @@ class UpgradeSystem {
       if (weapon.level < 5 && !weapon.isEvolved) {
         const nextLv = weapon.level + 1;
         const isNew = weapon.level === 0;
-        const rarity = this.rollRarity(isNew ? 0.3 : 0.15);
+        const rarity = this.rollRarity(isNew);
         let bonus = null;
         let desc = isNew ? `装配新武器：${weapon.name}` : `强化伤害与冷却，提升武器效能`;
         if (rarity === 'rare') {
-          bonus = { healPercent: 0.08, exp: 0 };
+          bonus = { healPercent: 0.08, expPercent: 0 };
           desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';
         } else if (rarity === 'epic') {
-          bonus = { healPercent: 0.15, exp: 12 };
-          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 12 EXP]';
+          bonus = { healPercent: 0.15, expPercent: 0.20 };
+          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 20% 升级能量]';
         }
         candidates.push({
           type: 'weapon',
@@ -153,15 +153,15 @@ class UpgradeSystem {
       if (curLv < def.maxLevel) {
         const nextLv = curLv + 1;
         const isNew = curLv === 0;
-        const rarity = this.rollRarity(isNew ? 0.25 : 0.1);
+        const rarity = this.rollRarity(isNew);
         let bonus = null;
         let desc = def.desc;
         if (rarity === 'rare') {
-          bonus = { healPercent: 0.08, exp: 0 };
+          bonus = { healPercent: 0.08, expPercent: 0 };
           desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';
         } else if (rarity === 'epic') {
-          bonus = { healPercent: 0.15, exp: 12 };
-          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 12 EXP]';
+          bonus = { healPercent: 0.15, expPercent: 0.20 };
+          desc += ' ★ [史诗特权: 核心过载 15% 生命 + 20% 升级能量]';
         }
         candidates.push({
           type: 'passive',
@@ -187,7 +187,7 @@ class UpgradeSystem {
           levelTag: 'OVERDRIVE',
           desc: '瞬间回复 40% 最大生命值，并产生全屏冲击波清退敌人',
           rarity: 'epic',
-          bonus: { healPercent: 0.40, exp: 20 }
+          bonus: { healPercent: 0.40, expPercent: 0.20 }
         }
       ];
     }
@@ -209,11 +209,19 @@ class UpgradeSystem {
     return result;
   }
 
-  rollRarity(bonus = 0) {
-    const r = Math.random() - bonus;
-    if (r < 0.12) return 'epic';
-    if (r < 0.38) return 'rare';
-    return 'common';
+  rollRarity(isNew = false) {
+    const r = Math.random() * 100;
+    if (isNew) {
+      // 首次抽取新物品：58% 普通 / 30% 稀有 / 12% 史诗
+      if (r < 12) return 'epic';
+      if (r < 42) return 'rare';
+      return 'common';
+    } else {
+      // 后续升级常规抽取：68% 普通 / 25% 稀有 / 7% 史诗
+      if (r < 7) return 'epic';
+      if (r < 32) return 'rare';
+      return 'common';
+    }
   }
 }
 

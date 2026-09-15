@@ -17,7 +17,8 @@ class BaseWeapon {
   }
 
   getEffectiveCd(player) {
-    return Math.max(0.15, this.baseCd / player.attackSpeed);
+    const cdr = player.cooldownReduction || 0;
+    return Math.max(0.15, this.baseCd * (1 - cdr));
   }
 
   calcDamage(baseVal, player) {
@@ -404,10 +405,16 @@ class PlasmaCannon extends BaseWeapon {
           if (isDead) this.kills++;
 
           // 击退
-          e.vx += Math.cos(p.angle) * 110;
-          e.vy += Math.sin(p.angle) * 110;
+          const kb = p.knockback || 110;
+          e.vx += Math.cos(p.angle) * kb;
+          e.vy += Math.sin(p.angle) * kb;
 
-          pool.spawnSparks(p.x, p.y, '#39ff14', 6);
+          if (p.isEvolved) {
+            pool.spawnShockwave(e.x, e.y, 45, '#39ff14');
+            pool.spawnSparks(p.x, p.y, '#39ff14', 8);
+          } else {
+            pool.spawnSparks(p.x, p.y, '#39ff14', 6);
+          }
 
           if (p.pierce <= 0) {
             p.life = 0;
@@ -446,6 +453,34 @@ class PlasmaCannon extends BaseWeapon {
       }
     }
 
+    if (this.isEvolved) {
+      if (window.soundSystem) window.soundSystem.playShoot('plasma');
+      // 湮灭重炮：3 枚高密反物质能量弹，无限穿透，强击退 320，触敌生成冲击波
+      const shotCount = 3;
+      const spread = 0.22;
+      const baseDamage = 92;
+      const speed = 400;
+
+      for (let i = 0; i < shotCount; i++) {
+        const angle = targetAngle + (i - (shotCount - 1) / 2) * spread;
+        this.projectiles.push({
+          x: player.x,
+          y: player.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          angle: angle,
+          radius: 18 * player.areaBonus,
+          damage: baseDamage,
+          pierce: 9999,
+          knockback: 320,
+          life: 2.5,
+          hitList: new Set(),
+          isEvolved: true
+        });
+      }
+      return;
+    }
+
     const shotCount = this.level >= 5 ? 3 : (this.level >= 3 ? 2 : 1);
     const spread = 0.18;
     const baseDamage = 35 + (this.level - 1) * 12;
@@ -465,8 +500,10 @@ class PlasmaCannon extends BaseWeapon {
         radius: 8 * player.areaBonus,
         damage: baseDamage,
         pierce: pierce,
+        knockback: 110,
         life: 2.2,
-        hitList: new Set()
+        hitList: new Set(),
+        isEvolved: false
       });
     }
   }
@@ -477,17 +514,44 @@ class PlasmaCannon extends BaseWeapon {
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle);
 
-      ctx.beginPath();
-      ctx.ellipse(0, 0, p.radius * 1.8, p.radius, 0, 0, Math.PI * 2);
-      ctx.fillStyle = '#39ff14';
-      ctx.shadowColor = '#39ff14';
-      ctx.shadowBlur = 12;
-      ctx.fill();
+      if (p.isEvolved) {
+        // 湮灭重炮反物质光晕
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(57, 255, 20, 0.25)';
+        ctx.shadowColor = '#39ff14';
+        ctx.shadowBlur = 24;
+        ctx.fill();
 
-      ctx.beginPath();
-      ctx.ellipse(0, 0, p.radius * 0.9, p.radius * 0.5, 0, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.radius * 2.0, p.radius * 1.2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#39ff14';
+        ctx.fill();
+
+        // 反物质黑核
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.radius * 1.0, p.radius * 0.6, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a1f0a';
+        ctx.fill();
+
+        // 核心白炽亮点
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.radius * 1.8, p.radius, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#39ff14';
+        ctx.shadowColor = '#39ff14';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.radius * 0.9, p.radius * 0.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+      }
 
       ctx.restore();
     }
@@ -659,7 +723,7 @@ class BlackHoleGenerator extends BaseWeapon {
   }
 }
 
-// 6. 棱镜射线 (Prism Ray)
+// 6. 棱镜射线 (Prism Ray) -> 进化: 超维裂隙 (Dimensional Rift)
 class PrismRay extends BaseWeapon {
   constructor() {
     super('prism_ray', '棱镜射线', '🔦');
@@ -673,6 +737,11 @@ class PrismRay extends BaseWeapon {
     for (let i = this.beams.length - 1; i >= 0; i--) {
       const b = this.beams[i];
       b.life -= dt;
+
+      // 进化形态动态扫掠旋转
+      if (b.rotSpeed) {
+        b.angle += b.rotSpeed * dt;
+      }
 
       // 激光持续判定 (tick)
       b.tickTimer -= dt;
@@ -694,7 +763,13 @@ class PrismRay extends BaseWeapon {
               const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
               this.damageDealt += hit.damage;
               if (isDead) this.kills++;
-              pool.spawnSparks(e.x, e.y, '#00f0ff', 2);
+
+              if (b.isEvolved) {
+                pool.spawnShockwave(e.x, e.y, 24, '#ff007f');
+                pool.spawnSparks(e.x, e.y, '#ff007f', 3);
+              } else {
+                pool.spawnSparks(e.x, e.y, '#00f0ff', 2);
+              }
             }
           }
         }
@@ -729,6 +804,34 @@ class PrismRay extends BaseWeapon {
       }
     }
 
+    if (this.isEvolved) {
+      if (window.soundSystem) window.soundSystem.playShoot('laser');
+      // 超维裂隙：3 道旋转扫掠死光，持续 1.1s，宽度 36，每 tick 34 伤害
+      const duration = 1.1;
+      const width = 36 * player.areaBonus;
+      const baseDamage = 34;
+      const beamCount = 3;
+
+      for (let i = 0; i < beamCount; i++) {
+        const baseOffset = (i - 1) * 0.45;
+        const rotDir = (i === 0) ? -1 : (i === 2 ? 1 : 0.4);
+        this.beams.push({
+          x: player.x,
+          y: player.y,
+          angle: targetAngle + baseOffset,
+          rotSpeed: 1.6 * rotDir,
+          width: width,
+          length: 850,
+          damage: baseDamage,
+          life: duration,
+          maxLife: duration,
+          tickTimer: 0,
+          isEvolved: true
+        });
+      }
+      return;
+    }
+
     const duration = 0.45 + (this.level >= 5 ? 0.2 : 0);
     const width = (16 + (this.level - 1) * 3) * player.areaBonus;
     const baseDamage = 14 + (this.level - 1) * 5; // 每 tick 伤害
@@ -742,36 +845,59 @@ class PrismRay extends BaseWeapon {
         x: player.x,
         y: player.y,
         angle: targetAngle + offsetAngle,
+        rotSpeed: 0,
         width: width,
         length: 700,
         damage: baseDamage,
         life: duration,
         maxLife: duration,
-        tickTimer: 0
+        tickTimer: 0,
+        isEvolved: false
       });
     }
   }
 
   render(ctx) {
     for (const b of this.beams) {
-      const alpha = b.life / b.maxLife;
+      const alpha = Math.min(1.0, b.life / (b.maxLife * 0.8));
       ctx.save();
       ctx.translate(b.x, b.y);
       ctx.rotate(b.angle);
 
-      // 外围激光光晕
-      ctx.beginPath();
-      ctx.rect(0, -b.width / 2, b.length, b.width);
-      ctx.fillStyle = `rgba(0, 240, 255, ${alpha * 0.35})`;
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 18;
-      ctx.fill();
+      if (b.isEvolved) {
+        // 超维裂隙：青洋红双色裂隙死光
+        const grad = ctx.createLinearGradient(0, -b.width / 2, 0, b.width / 2);
+        grad.addColorStop(0, `rgba(0, 240, 255, ${alpha * 0.7})`);
+        grad.addColorStop(0.5, `rgba(255, 0, 127, ${alpha * 0.9})`);
+        grad.addColorStop(1, `rgba(0, 240, 255, ${alpha * 0.7})`);
 
-      // 核心高能白线
-      ctx.beginPath();
-      ctx.rect(0, -b.width * 0.2, b.length, b.width * 0.4);
-      ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-      ctx.fill();
+        ctx.beginPath();
+        ctx.rect(0, -b.width / 2, b.length, b.width);
+        ctx.fillStyle = grad;
+        ctx.shadowColor = '#ff007f';
+        ctx.shadowBlur = 24;
+        ctx.fill();
+
+        // 核心高能白线
+        ctx.beginPath();
+        ctx.rect(0, -b.width * 0.15, b.length, b.width * 0.3);
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+        ctx.fill();
+      } else {
+        // 外围激光光晕
+        ctx.beginPath();
+        ctx.rect(0, -b.width / 2, b.length, b.width);
+        ctx.fillStyle = `rgba(0, 240, 255, ${alpha * 0.35})`;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 18;
+        ctx.fill();
+
+        // 核心高能白线
+        ctx.beginPath();
+        ctx.rect(0, -b.width * 0.2, b.length, b.width * 0.4);
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+        ctx.fill();
+      }
 
       ctx.restore();
     }

@@ -609,11 +609,12 @@ class BossTitan extends BaseEnemy {
       const hz = this.hazardZones[i];
       hz.timer -= dt;
       if (hz.timer <= 0) {
-        // 危险区引爆
+        // 危险区引爆 (应用统一敌方伤害倍率)
         pool.spawnShockwave(hz.x, hz.y, hz.radius, '#ff0055');
         const pDist = Math.hypot(player.x - hz.x, player.y - hz.y);
         if (pDist < hz.radius + player.radius) {
-          player.takeDamage(32);
+          const dmgMult = (this.diffConfig && this.diffConfig.enemyDamageMult !== undefined) ? this.diffConfig.enemyDamageMult : 1.0;
+          player.takeDamage(Math.round(32 * dmgMult));
         }
         this.hazardZones.splice(i, 1);
       }
@@ -657,10 +658,11 @@ class BossTitan extends BaseEnemy {
         });
       }
     } else if (this.phase === 2) {
-      // 阶段二：召唤突袭工蜂 + 交叉弹幕
+      // 阶段二：召唤突袭工蜂 + 交叉弹幕 (小怪生成严格受总怪数上限约束)
       this.attackTimer = 3.8;
-      // 召唤 3 只工蜂
+      const maxEnemies = (this.diffConfig && this.diffConfig.maxEnemies) ? Math.round(this.diffConfig.maxEnemies * 0.75) : 75;
       for (let i = 0; i < 3; i++) {
+        if (enemies.length >= maxEnemies) break;
         const sx = this.x + (Math.random() - 0.5) * 80;
         const sy = this.y + (Math.random() - 0.5) * 80;
         enemies.push(new SwarmDrone(sx, sy, 1));

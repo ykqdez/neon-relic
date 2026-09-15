@@ -14,10 +14,19 @@ const DIFFICULTY_PRESETS = {
     playerPickupRange: 105,
     upgradeGracePeriod: 0.85,
     pauseGracePeriod: 0.50,
-    spawnIntervalBase: 1.25,
-    spawnIntervalMin: 0.24,
-    hpScalePerMin: 0.20,
-    maxEnemies: 120,
+    spawnIntervalBase: 1.30,
+    spawnIntervalMin: 0.45,
+    hpScalePerMin: 0.16,
+    maxEnemies: 96,
+    enemyDamageMult: 0.80,
+    enemyWeights: {
+      drone: 30,
+      scout: 18,
+      golem: 14,
+      fission: 14,
+      sniper: 12,
+      striker: 12
+    },
     unlockTimes: {
       drone: 0,
       scout: 0,
@@ -50,9 +59,18 @@ const DIFFICULTY_PRESETS = {
     upgradeGracePeriod: 0.60,
     pauseGracePeriod: 0.35,
     spawnIntervalBase: 1.10,
-    spawnIntervalMin: 0.16,
-    hpScalePerMin: 0.28,
-    maxEnemies: 150,
+    spawnIntervalMin: 0.24,
+    hpScalePerMin: 0.26,
+    maxEnemies: 140,
+    enemyDamageMult: 1.00,
+    enemyWeights: {
+      drone: 24,
+      scout: 18,
+      golem: 16,
+      fission: 15,
+      sniper: 14,
+      striker: 13
+    },
     unlockTimes: {
       drone: 0,
       scout: 0,
@@ -88,6 +106,15 @@ const DIFFICULTY_PRESETS = {
     spawnIntervalMin: 0.12,
     hpScalePerMin: 0.36,
     maxEnemies: 180,
+    enemyDamageMult: 1.18,
+    enemyWeights: {
+      drone: 18,
+      scout: 16,
+      golem: 18,
+      fission: 16,
+      sniper: 16,
+      striker: 16
+    },
     unlockTimes: {
       drone: 0,
       scout: 0,
@@ -287,39 +314,41 @@ class Game {
     }
   }
 
+  setDifficulty(dKey) {
+    if (!DIFFICULTY_PRESETS[dKey]) return;
+    this.difficulty = dKey;
+    this.diffConfig = DIFFICULTY_PRESETS[dKey];
+    localStorage.setItem('nr_difficulty', dKey);
+    const diffButtons = document.querySelectorAll('.diff-btn');
+    diffButtons.forEach(btn => {
+      if (btn.dataset.diff === dKey) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    const diffDescEl = document.getElementById('diff-desc');
+    if (diffDescEl) diffDescEl.textContent = this.diffConfig.desc;
+    if (this.player) {
+      this.player.diffConfig = this.diffConfig;
+      this.player.baseSpeed = this.diffConfig.playerBaseSpeed;
+      this.player.basePickupRange = this.diffConfig.playerPickupRange;
+      this.player.baseHpRegen = this.diffConfig.playerHpRegen;
+      this.player.invulnerableDuration = this.diffConfig.playerInvulDuration;
+      this.player.recalculateStats(this.passives);
+    }
+    this.eliteTimer = this.diffConfig.firstEliteTime;
+  }
+
   initUI() {
     // 难度按键选择器监听与双向同步
     const diffButtons = document.querySelectorAll('.diff-btn');
-    const diffDescEl = document.getElementById('diff-desc');
-    const updateDiffUI = (dKey) => {
-      if (!DIFFICULTY_PRESETS[dKey]) return;
-      this.difficulty = dKey;
-      this.diffConfig = DIFFICULTY_PRESETS[dKey];
-      localStorage.setItem('nr_difficulty', dKey);
-      diffButtons.forEach(btn => {
-        if (btn.dataset.diff === dKey) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-      if (diffDescEl) diffDescEl.textContent = this.diffConfig.desc;
-      if (this.player) {
-        this.player.diffConfig = this.diffConfig;
-        this.player.baseSpeed = this.diffConfig.playerBaseSpeed;
-        this.player.invulDuration = this.diffConfig.playerInvulDuration;
-        this.player.hpRegen = this.diffConfig.playerHpRegen;
-        this.player.pickupRange = this.diffConfig.playerPickupRange;
-        this.player.recalculateStats(this.passives);
-      }
-      this.eliteTimer = this.diffConfig.firstEliteTime;
-    };
     diffButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        updateDiffUI(btn.dataset.diff);
+        this.setDifficulty(btn.dataset.diff);
       });
     });
-    updateDiffUI(this.difficulty);
+    this.setDifficulty(this.difficulty);
 
     // 开始行动按键
     const startBtn = document.getElementById('btn-start-game');
@@ -458,9 +487,9 @@ class Game {
     const moveVec = this.input.getVector();
     this.player.update(dt, moveVec, this.arenaBound);
 
-    // 玩家受创屏幕红晕视觉反馈
+    // 玩家受创屏幕红晕视觉反馈 (由 Player.hurtFlashTimer 驱动)
     if (this.vignetteEl) {
-      if (this.player.hurtTimer > 0) {
+      if (this.player.hurtFlashTimer > 0) {
         this.vignetteEl.classList.add('active');
       } else {
         this.vignetteEl.classList.remove('active');
@@ -494,10 +523,13 @@ class Game {
         e.update(dt, this.player, this.enemies, this.enemyBullets);
       }
 
-      // 触碰玩家造成接触伤害
-      const distToPlayer = Math.hypot(this.player.x - e.x, this.player.y - e.y);
-      if (distToPlayer < this.player.radius + e.radius) {
-        this.player.takeDamage(e.damage);
+      // 触碰玩家造成接触伤害 (只有活着的敌人才能造成伤害，应用统一敌方伤害倍率)
+      if (!e.isDead) {
+        const distToPlayer = Math.hypot(this.player.x - e.x, this.player.y - e.y);
+        if (distToPlayer < this.player.radius + e.radius) {
+          const dmgMult = (this.diffConfig && this.diffConfig.enemyDamageMult !== undefined) ? this.diffConfig.enemyDamageMult : 1.0;
+          this.player.takeDamage(e.damage * dmgMult);
+        }
       }
 
       // 敌人死亡结算
@@ -513,7 +545,26 @@ class Game {
           this.enemies.push(new EnemyTypes.FissionCore(e.x + 12, e.y, 1, true));
         }
 
-        // 精英怪阵亡掉落高额经验
+        // 精英怪分裂词缀 splitter：死亡生成 2~3 个弱化子体 (子体非精英，不重复发放精英奖励)
+        if (e.isElite && e.affix === 'splitter') {
+          const splitCount = 2 + Math.floor(Math.random() * 2); // 2~3 个
+          for (let s = 0; s < splitCount; s++) {
+            const angle = (s / splitCount) * Math.PI * 2;
+            const sub = new EnemyTypes.RelicGolem(e.x + Math.cos(angle) * 24, e.y + Math.sin(angle) * 24, 0.45);
+            sub.isElite = false;
+            sub.affix = null;
+            sub.radius = 16;
+            sub.hp = Math.round(e.maxHp * 0.22);
+            sub.speed = e.speed * 1.25;
+            sub.damage = Math.round(e.damage * 0.6);
+            sub.expValue = 3;
+            sub.color = '#d066ff';
+            this.enemies.push(sub);
+          }
+          this.spawnShockwave(e.x, e.y, 60, '#b026ff');
+        }
+
+        // 精英怪阵亡掉落高额经验 (仅本体掉落)
         if (e.isElite) {
           this.spawnCrystal(e.x, e.y, 25);
           this.spawnCrystal(e.x + 8, e.y + 8, 25);
@@ -539,10 +590,11 @@ class Game {
       b.y += b.vy * dt;
       b.life -= dt;
 
-      // 命中玩家
+      // 命中玩家 (应用统一敌方伤害倍率)
       const d = Math.hypot(this.player.x - b.x, this.player.y - b.y);
       if (d < this.player.radius + b.radius) {
-        this.player.takeDamage(b.damage);
+        const dmgMult = (this.diffConfig && this.diffConfig.enemyDamageMult !== undefined) ? this.diffConfig.enemyDamageMult : 1.0;
+        this.player.takeDamage(b.damage * dmgMult);
         this.enemyBullets.splice(i, 1);
         continue;
       }
@@ -564,6 +616,8 @@ class Game {
 
   // 刷怪曲线与节奏演进 (难度预设动态适配)
   updateSpawns(dt) {
+    const isBossActive = this.activeBoss && !this.activeBoss.isDead;
+
     // 8 分钟 Boss 登场判定
     if (this.elapsedTime >= this.bossTime && !this.bossSpawned) {
       this.bossSpawned = true;
@@ -579,26 +633,37 @@ class Game {
       document.getElementById('boss-hud').style.display = 'flex';
     }
 
-    // 精英怪定时生成
-    this.eliteTimer -= dt;
-    if (this.eliteTimer <= 0) {
-      this.eliteTimer = this.diffConfig.eliteInterval;
-      this.spawnElite();
+    // 精英怪定时生成 (Boss 存活期间暂停新增 Elite)
+    if (!isBossActive) {
+      this.eliteTimer -= dt;
+      if (this.eliteTimer <= 0) {
+        this.eliteTimer = this.diffConfig.eliteInterval;
+        this.spawnElite();
+      }
     }
 
-    // 常规怪刷新
+    // 常规怪刷新 (Boss 存活期间刷新速率降低约 38%，杂兵上限临时降低 25%)
     this.spawnTimer -= dt;
     const progress = Math.min(1, this.elapsedTime / 480);
-    const interval = Math.max(
+    let interval = Math.max(
       this.diffConfig.spawnIntervalMin,
       this.diffConfig.spawnIntervalBase - progress * (this.diffConfig.spawnIntervalBase - this.diffConfig.spawnIntervalMin)
     );
-    if (this.spawnTimer <= 0 && this.enemies.length < this.diffConfig.maxEnemies) {
+    if (isBossActive) {
+      interval *= 1.62;
+    }
+
+    const currentMaxEnemies = isBossActive
+      ? Math.round(this.diffConfig.maxEnemies * 0.75)
+      : this.diffConfig.maxEnemies;
+
+    if (this.spawnTimer <= 0 && this.enemies.length < currentMaxEnemies) {
       this.spawnTimer = interval;
       this.spawnWave();
     }
   }
 
+  // 真正的加权随机敌人池 (Weighted Random Pool)
   spawnWave() {
     const minutes = this.elapsedTime / 60;
     const hpMult = 1 + minutes * this.diffConfig.hpScalePerMin;
@@ -611,22 +676,52 @@ class Game {
     const sx = this.player.x + Math.cos(angle) * dist;
     const sy = this.player.y + Math.sin(angle) * dist;
 
-    // 根据难度设定的阶梯解锁时间有序产生敌种
-    const roll = Math.random();
-    let enemy = null;
+    // 根据已解锁敌人群系动态构建加权池并归一化抽取
+    const activePool = [];
+    let totalWeight = 0;
+    const weights = this.diffConfig.enemyWeights || { drone: 30, scout: 18, golem: 14, fission: 14, sniper: 12, striker: 12 };
+    for (const [type, weight] of Object.entries(weights)) {
+      if (t >= (unlocks[type] ?? 0)) {
+        activePool.push({ type, weight });
+        totalWeight += weight;
+      }
+    }
+    if (activePool.length === 0) {
+      activePool.push({ type: 'drone', weight: 1 });
+      totalWeight = 1;
+    }
 
-    if (t >= unlocks.striker && roll < 0.22) {
-      enemy = new EnemyTypes.ChargeStriker(sx, sy, hpMult, this.diffConfig);
-    } else if (t >= unlocks.sniper && roll < 0.38) {
-      enemy = new EnemyTypes.PrismSniper(sx, sy, hpMult, this.diffConfig);
-    } else if (t >= unlocks.fission && roll < 0.55) {
-      enemy = new EnemyTypes.FissionCore(sx, sy, hpMult);
-    } else if (t >= unlocks.golem && roll < 0.72) {
-      enemy = new EnemyTypes.RelicGolem(sx, sy, hpMult);
-    } else if (roll < 0.45) {
-      enemy = new EnemyTypes.NeonScout(sx, sy, hpMult, this.diffConfig);
-    } else {
-      enemy = new EnemyTypes.SwarmDrone(sx, sy, hpMult);
+    let r = Math.random() * totalWeight;
+    let chosenType = activePool[0].type;
+    for (const item of activePool) {
+      if (r < item.weight) {
+        chosenType = item.type;
+        break;
+      }
+      r -= item.weight;
+    }
+
+    let enemy = null;
+    switch (chosenType) {
+      case 'striker':
+        enemy = new EnemyTypes.ChargeStriker(sx, sy, hpMult, this.diffConfig);
+        break;
+      case 'sniper':
+        enemy = new EnemyTypes.PrismSniper(sx, sy, hpMult, this.diffConfig);
+        break;
+      case 'fission':
+        enemy = new EnemyTypes.FissionCore(sx, sy, hpMult);
+        break;
+      case 'golem':
+        enemy = new EnemyTypes.RelicGolem(sx, sy, hpMult);
+        break;
+      case 'scout':
+        enemy = new EnemyTypes.NeonScout(sx, sy, hpMult, this.diffConfig);
+        break;
+      case 'drone':
+      default:
+        enemy = new EnemyTypes.SwarmDrone(sx, sy, hpMult);
+        break;
     }
 
     this.enemies.push(enemy);
@@ -846,13 +941,16 @@ class Game {
       this.spawnShockwave(this.player.x, this.player.y, 240, '#00f0ff');
     }
 
-    // 触发品质专属附加加成 (如史诗/稀有赠送的生命恢复与即时经验)
+    // 触发品质专属附加加成 (如史诗/稀有赠送的生命恢复与按等级动态挂钩的即时经验)
     if (card.bonus) {
       if (card.bonus.healPercent > 0) {
         this.player.heal(this.player.maxHp * card.bonus.healPercent);
         this.spawnShockwave(this.player.x, this.player.y, 140, '#00f0ff');
       }
-      if (card.bonus.exp > 0) {
+      if (card.bonus.expPercent > 0) {
+        const bonusExp = Math.max(1, Math.round(this.player.nextLevelExp * card.bonus.expPercent));
+        this.player.addExp(bonusExp, () => this.openUpgradeModal());
+      } else if (card.bonus.exp > 0) {
         this.player.addExp(card.bonus.exp, () => this.openUpgradeModal());
       }
     }
@@ -902,7 +1000,8 @@ class Game {
     document.getElementById('stat-damage').textContent = Math.round(this.stats.totalDamage);
     document.getElementById('stat-highest-hit').textContent = this.stats.highestHit;
     document.getElementById('stat-mvp').textContent = mvpWeapon;
-    document.getElementById('gameover-seed').textContent = `SEED: ${this.seed}`;
+    const seedEl = document.getElementById('gameover-seed');
+    if (seedEl) seedEl.style.display = 'none';
 
     const buildWrap = document.getElementById('final-build-items');
     buildWrap.innerHTML = '';
