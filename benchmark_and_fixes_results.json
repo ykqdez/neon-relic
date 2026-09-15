@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-09-16 03:44:58",
+  "code_fixes_verification": {
+    "shield_overflow": {
+      "shieldHp": 0,
+      "hp": 1,
+      "isDead": false,
+      "pass": true
+    },
+    "knockback_resistance": {
+      "normal_vx": 100,
+      "normal_vy": 50,
+      "golem_resistance": 0.75,
+      "golem_vx": 25,
+      "golem_vy": 12.5,
+      "boss_resistance": 1,
+      "boss_vx": 0,
+      "boss_vy": 0,
+      "boss_after_pb_vx": 0,
+      "boss_after_pb_vy": 0,
+      "pass": true
+    },
+    "dead_enemy_targeting": {
+      "validCount": 1,
+      "validIncludesDead": false,
+      "pbDamageDealt": 0,
+      "arcDamageDealt": 0,
+      "pass": true
+    },
+    "splitter_hp_sync": {
+      "subHp": 63,
+      "subMaxHp": 63,
+      "pass": true
+    },
+    "max_enemies_cap": {
+      "full_canSpawn1": false,
+      "full_canSpawn0": true,
+      "hasRoom_canSpawn": true,
+      "pass": true
+    },
+    "overdrive_matrix_heal": {
+      "initialHp": 20,
+      "finalHp": 60,
+      "hpDelta": 40,
+      "expectedDelta": 40,
+      "enemyVx": 145.3846153846154,
+      "pass": true
+    },
+    "camera_zoom_fov": {
+      "results": [
+        {
+          "name": "iPhone 14 Portrait",
+          "w": 390,
+          "h": 844,
+          "zoom": 0.813,
+          "worldW": 480,
+          "worldH": 1039,
+          "verticalFovOk": true
+        },
+        {
+          "name": "iPhone 14 Landscape",
+          "w": 844,
+          "h": 390,
+          "zoom": 0.78,
+          "worldW": 1082,
+          "worldH": 500,
+          "verticalFovOk": true
+        },
+        {
+          "name": "iPhone 15 Pro Max Portrait",
+          "w": 430,
+          "h": 932,
+          "zoom": 0.86,
+          "worldW": 500,
+          "worldH": 1084,
+          "verticalFovOk": true
+        },
+        {
+          "name": "iPhone 15 Pro Max Landscape",
+          "w": 932,
+          "h": 430,
+          "zoom": 0.78,
+          "worldW": 1195,
+          "worldH": 551,
+          "verticalFovOk": true
+        },
+        {
+          "name": "Mac/Desktop Large",
+          "w": 1728,
+          "h": 896,
+          "zoom": 1.18,
+          "worldW": 1464,
+          "worldH": 759,
+          "verticalFovOk": true
+        }
+      ],
+      "pass": true
+    },
+    "elite_boss_scaling": {
+      "spawnedNearBoss": false,
+      "hpAt0s": 437,
+      "hpAt180s": 647,
+      "hpRatio": 1.48,
+      "pass": true
+    },
+    "aurora_bastion_barrier": {
+      "isEvolved": true,
+      "orbCount": 6,
+      "damageDealt": 54,
+      "pass": true
+    },
+    "build_dock_hud": {
+      "totalChips": 4,
+      "dividerCount": 1,
+      "passiveChipsCount": 2,
+      "evolvedChipsCount": 1,
+      "pass": true
+    }
+  },
+  "dps_benchmarks": [
+    {
+      "weaponKey": "pulse_blade",
+      "name": "脉冲刃",
+      "evoName": "光子幻刃",
+      "damageLv5": 725,
+      "dpsLv5": 72.5,
+      "damageEvo": 1292,
+      "dpsEvo": 129.2,
+      "evolutionMultiplier": 1.78
+    },
+    {
+      "weaponKey": "arc_core",
+      "name": "电弧核心",
+      "evoName": "天罚风暴",
+      "damageLv5": 368,
+      "dpsLv5": 36.8,
+      "damageEvo": 715,
+      "dpsEvo": 71.5,
+      "evolutionMultiplier": 1.94
+    },
+    {
+      "weaponKey": "orbital_satellites",
+      "name": "轨道卫星",
+      "evoName": "极光环垒",
+      "damageLv5": 30,
+      "dpsLv5": 3,
+      "damageEvo": 54,
+      "dpsEvo": 5.4,
+      "evolutionMultiplier": 1.8
+    },
+    {
+      "weaponKey": "plasma_cannon",
+      "name": "等离子炮",
+      "evoName": "湮灭重炮",
+      "damageLv5": 1494,
+      "dpsLv5": 149.4,
+      "damageEvo": 2852,
+      "dpsEvo": 285.2,
+      "evolutionMultiplier": 1.91
+    },
+    {
+      "weaponKey": "black_hole",
+      "name": "奇点发生器",
+      "evoName": "坍缩超新星",
+      "damageLv5": 710,
+      "dpsLv5": 71,
+      "damageEvo": 1194,
+      "dpsEvo": 119.4,
+      "evolutionMultiplier": 1.68
+    },
+    {
+      "weaponKey": "prism_ray",
+      "name": "棱镜射线",
+      "evoName": "超维裂隙",
+      "damageLv5": 2210,
+      "dpsLv5": 221,
+      "damageEvo": 2400,
+      "dpsEvo": 240,
+      "evolutionMultiplier": 1.09
+    }
+  ]
+}

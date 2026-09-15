@@ -35,22 +35,33 @@ class BaseEnemy {
   takeDamage(amount, isCrit, pool) {
     if (this.isDead) return true;
 
-    // 护盾词缀优先吸收伤害
+    let remaining = amount;
+    // 护盾词缀优先吸收伤害 (支持溢出伤害 overflow damage)
     if (this.shieldHp > 0) {
-      this.shieldHp -= amount;
-      pool.spawnDamageText(this.x, this.y - this.radius, amount, false, '#00f0ff');
+      const absorbed = Math.min(this.shieldHp, remaining);
+      this.shieldHp -= absorbed;
+      remaining -= absorbed;
+      if (pool && pool.spawnDamageText) {
+        pool.spawnDamageText(this.x, this.y - this.radius, absorbed, false, '#00f0ff');
+      }
       if (this.shieldHp <= 0) {
         this.shieldHp = 0;
-        pool.spawnShockwave(this.x, this.y, 40, '#00f0ff');
+        if (pool && pool.spawnShockwave) {
+          pool.spawnShockwave(this.x, this.y, 40, '#00f0ff');
+        }
       }
-      return false;
+      if (remaining <= 0) {
+        return false;
+      }
     }
 
-    this.hp -= amount;
+    this.hp -= remaining;
     this.hurtTimer = 0.12;
 
     // 弹出浮动伤害数字
-    pool.spawnDamageText(this.x, this.y - this.radius, amount, isCrit, isCrit ? '#ffaa00' : '#ffffff');
+    if (pool && pool.spawnDamageText) {
+      pool.spawnDamageText(this.x, this.y - this.radius, remaining, isCrit, isCrit ? '#ffaa00' : '#ffffff');
+    }
 
     if (this.hp <= 0) {
       this.hp = 0;
@@ -60,6 +71,26 @@ class BaseEnemy {
       return true;
     }
     return false;
+  }
+
+  // 统一击退计算：effectiveKnockback = baseKnockback * (1 - clamp(knockbackResistance, 0, 1))
+  applyKnockback(vx, vy) {
+    if (this.isDead) return;
+    const res = Math.max(0, Math.min(1, this.knockbackResistance || 0));
+    const factor = 1 - res;
+    if (factor <= 0) return;
+    this.vx += vx * factor;
+    this.vy += vy * factor;
+  }
+
+  // 统一位置牵引位移 (如黑洞吸力)
+  applyDisplacement(dx, dy) {
+    if (this.isDead) return;
+    const res = Math.max(0, Math.min(1, this.knockbackResistance || 0));
+    const factor = 1 - res;
+    if (factor <= 0) return;
+    this.x += dx * factor;
+    this.y += dy * factor;
   }
 
   updateCommon(dt) {
@@ -658,14 +689,23 @@ class BossTitan extends BaseEnemy {
         });
       }
     } else if (this.phase === 2) {
-      // 阶段二：召唤突袭工蜂 + 交叉弹幕 (小怪生成严格受总怪数上限约束)
+      // 阶段二：召唤突袭工蜂 + 交叉弹幕 (按 Boss 时间动态缩放 HP，且严格受总怪数上限约束)
       this.attackTimer = 3.8;
+      const minutes = (pool && pool.elapsedTime) ? (pool.elapsedTime / 60) : 8;
+      const hpScale = (this.diffConfig && this.diffConfig.hpScalePerMin !== undefined) ? this.diffConfig.hpScalePerMin : 0.16;
+      const timeScale = 1 + minutes * hpScale;
+      const summonMult = Math.max(1.0, timeScale * 0.60); // 约为同时间常规工蜂的 60% HP
       const maxEnemies = (this.diffConfig && this.diffConfig.maxEnemies) ? Math.round(this.diffConfig.maxEnemies * 0.75) : 75;
+
       for (let i = 0; i < 3; i++) {
-        if (enemies.length >= maxEnemies) break;
+        if (pool && typeof pool.canSpawnEnemies === 'function') {
+          if (!pool.canSpawnEnemies(1)) break;
+        } else if (enemies.length >= maxEnemies) {
+          break;
+        }
         const sx = this.x + (Math.random() - 0.5) * 80;
         const sy = this.y + (Math.random() - 0.5) * 80;
-        enemies.push(new SwarmDrone(sx, sy, 1));
+        enemies.push(new SwarmDrone(sx, sy, summonMult));
       }
       // 瞄准玩家扇形 5 连发
       const baseAng = Math.atan2(player.y - this.y, player.x - this.x);
@@ -761,6 +801,7 @@ class BossTitan extends BaseEnemy {
 }
 
 window.EnemyTypes = {
+  BaseEnemy,
   SwarmDrone,
   NeonScout,
   RelicGolem,
@@ -769,3 +810,5 @@ window.EnemyTypes = {
   ChargeStriker,
   BossTitan
 };
+window.BaseEnemy = BaseEnemy;
+window.BossTitan = BossTitan;

@@ -187,7 +187,7 @@ class UpgradeSystem {
           levelTag: 'OVERDRIVE',
           desc: '瞬间回复 40% 最大生命值，并产生全屏冲击波清退敌人',
           rarity: 'epic',
-          bonus: { healPercent: 0.40, expPercent: 0.20 }
+          bonus: { healPercent: 0, expPercent: 0.20 }
         }
       ];
     }

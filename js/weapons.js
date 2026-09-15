@@ -3,6 +3,12 @@
  * 6 大基础武器 (Lv1-5) + 3 大超级进化形态 (附带独立音效、粒子与弹道机制)
  */
 
+// 统一获取有效存活敌人 (严格排除已死亡敌人)
+function getValidEnemies(enemies) {
+  if (!enemies || enemies.length === 0) return [];
+  return enemies.filter(e => e && !e.isDead);
+}
+
 class BaseWeapon {
   constructor(id, name, icon) {
     this.id = id;
@@ -57,14 +63,15 @@ class PulseBlade extends BaseWeapon {
   }
 
   fire(player, enemies, pool) {
-    if (enemies.length === 0) return;
+    const valid = getValidEnemies(enemies);
+    if (valid.length === 0) return;
 
     const count = this.isEvolved ? 5 : (this.level >= 5 ? 3 : (this.level >= 3 ? 2 : 1));
     const range = (this.isEvolved ? 180 : 130) * player.areaBonus;
     const baseDamage = this.isEvolved ? 68 : (22 + (this.level - 1) * 9);
 
-    // 寻找最近的若干敌人
-    const targets = enemies
+    // 寻找最近的若干有效存活敌人 (严格排除已死亡敌人)
+    const targets = valid
       .map(e => ({ enemy: e, dist: Math.hypot(e.x - player.x, e.y - player.y) }))
       .filter(item => item.dist <= range)
       .sort((a, b) => a.dist - b.dist)
@@ -79,6 +86,7 @@ class PulseBlade extends BaseWeapon {
 
     targets.forEach((t, idx) => {
       const e = t.enemy;
+      if (e.isDead) return;
       const angle = Math.atan2(e.y - player.y, e.x - player.x);
       const hitResult = this.calcDamage(baseDamage, player);
 
@@ -98,9 +106,9 @@ class PulseBlade extends BaseWeapon {
       this.damageDealt += hitResult.damage;
       if (isDead) this.kills++;
 
-      // 击退微动
-      e.vx += Math.cos(angle) * (this.isEvolved ? 80 : 40);
-      e.vy += Math.sin(angle) * (this.isEvolved ? 80 : 40);
+      // 统一击退计算 (遵照敌人击退抗性)
+      const kb = this.isEvolved ? 80 : 40;
+      e.applyKnockback(Math.cos(angle) * kb, Math.sin(angle) * kb);
     });
   }
 
@@ -163,10 +171,11 @@ class ArcCore extends BaseWeapon {
   }
 
   fire(player, enemies, pool) {
-    if (enemies.length === 0) return;
+    const valid = getValidEnemies(enemies);
+    if (valid.length === 0) return;
 
     if (this.isEvolved) {
-      this.fireTempest(player, enemies, pool);
+      this.fireTempest(player, valid, pool);
       return;
     }
 
@@ -174,7 +183,7 @@ class ArcCore extends BaseWeapon {
     const jumpDist = (140 + this.level * 15) * player.areaBonus;
     const baseDamage = 18 + (this.level - 1) * 7;
 
-    // 寻找起始目标
+    // 寻找起始目标 (从存活敌人中寻找)
     let currentPos = { x: player.x, y: player.y };
     const hitEnemies = new Set();
     const chainPoints = [{ x: player.x, y: player.y }];
@@ -183,7 +192,7 @@ class ArcCore extends BaseWeapon {
       let nearest = null;
       let minDist = jump === 0 ? 220 * player.areaBonus : jumpDist;
 
-      for (const e of enemies) {
+      for (const e of valid) {
         if (hitEnemies.has(e) || e.isDead) continue;
         const d = Math.hypot(e.x - currentPos.x, e.y - currentPos.y);
         if (d < minDist) {
@@ -217,14 +226,18 @@ class ArcCore extends BaseWeapon {
     }
   }
 
-  // 进化形态：全屏天罚落雷
+  // 进化形态：全屏天罚落雷 (严格排除已死亡敌人)
   fireTempest(player, enemies, pool) {
+    const valid = getValidEnemies(enemies);
+    if (valid.length === 0) return;
+
     if (window.soundSystem) window.soundSystem.playExplosion(true);
 
-    const strikes = Math.min(enemies.length, 6);
-    const shuffled = [...enemies].sort(() => 0.5 - Math.random()).slice(0, strikes);
+    const strikes = Math.min(valid.length, 6);
+    const shuffled = [...valid].sort(() => 0.5 - Math.random()).slice(0, strikes);
 
     for (const e of shuffled) {
+      if (e.isDead) continue;
       const hit = this.calcDamage(65, player);
       const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
       this.damageDealt += hit.damage;
@@ -289,10 +302,13 @@ class OrbitalSatellites extends BaseWeapon {
     super('orbital_satellites', '轨道卫星', '🪐');
     this.angle = 0;
     this.hitCooldowns = new WeakMap(); // 防止对同一个怪每一帧都算伤害
+    this.barrierCooldowns = new WeakMap(); // 进化形态力场连线伤害冷却
   }
 
   update(dt, player, enemies, pool) {
     if (this.level <= 0) return;
+    const valid = getValidEnemies(enemies);
+    if (valid.length === 0) return;
 
     const rotSpeed = (2.2 + (this.level >= 3 ? 0.8 : 0)) * (this.isEvolved ? 1.4 : 1.0);
     this.angle += dt * rotSpeed;
@@ -309,8 +325,8 @@ class OrbitalSatellites extends BaseWeapon {
       const ox = player.x + Math.cos(a) * radius;
       const oy = player.y + Math.sin(a) * radius;
 
-      // 碰撞检测
-      for (const e of enemies) {
+      // 卫星核心碰撞检测
+      for (const e of valid) {
         if (e.isDead) continue;
         const d = Math.hypot(e.x - ox, e.y - oy);
         if (d < e.radius + orbSize) {
@@ -323,7 +339,30 @@ class OrbitalSatellites extends BaseWeapon {
             if (isDead) this.kills++;
 
             if (window.soundSystem) window.soundSystem.playHit(hit.isCrit);
-            pool.spawnSparks(ox, oy, hit.isCrit ? '#ffaa00' : '#00f0ff', 4);
+            if (pool && pool.spawnSparks) pool.spawnSparks(ox, oy, hit.isCrit ? '#ffaa00' : '#00f0ff', 4);
+          }
+        }
+      }
+    }
+
+    // 进化形态：极光环垒 - 卫星之间的高能等离子护盾力场网 (Resonant Barrier)
+    if (this.isEvolved) {
+      for (const e of valid) {
+        if (e.isDead) continue;
+        const dToCenter = Math.hypot(e.x - player.x, e.y - player.y);
+        if (Math.abs(dToCenter - radius) < e.radius + 12) {
+          const lastBarrierHit = this.barrierCooldowns.get(e) || 0;
+          if (now - lastBarrierHit > 320) {
+            this.barrierCooldowns.set(e, now);
+            const hit = this.calcDamage(22, player);
+            const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
+            this.damageDealt += hit.damage;
+            if (isDead) this.kills++;
+            if (pool && pool.spawnSparks) pool.spawnSparks(e.x, e.y, '#ff007f', 3);
+
+            // 小幅阻退力场侵入者 (应用敌人击退抗性)
+            const ang = Math.atan2(e.y - player.y, e.x - player.x);
+            e.applyKnockback(Math.cos(ang) * 75, Math.sin(ang) * 75);
           }
         }
       }
@@ -337,11 +376,35 @@ class OrbitalSatellites extends BaseWeapon {
     const radius = (70 + (this.level - 1) * 8) * player.areaBonus;
     const orbSize = this.isEvolved ? 10 : 7;
 
-    // 轨道环微光
+    // 进化形态：绘制卫星之间的高能激光护盾网络 (多边形环垒力场)
+    if (this.isEvolved) {
+      ctx.save();
+      ctx.beginPath();
+      for (let i = 0; i < orbCount; i++) {
+        const a = this.angle + (i * Math.PI * 2) / orbCount;
+        const ox = player.x + Math.cos(a) * radius;
+        const oy = player.y + Math.sin(a) * radius;
+        if (i === 0) ctx.moveTo(ox, oy);
+        else ctx.lineTo(ox, oy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#ff007f';
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+
+      // 内环半透明能量力场面
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.05)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 基础轨道环微光
     ctx.save();
     ctx.beginPath();
     ctx.arc(player.x, player.y, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = this.isEvolved ? 'rgba(255, 0, 127, 0.18)' : 'rgba(0, 240, 255, 0.12)';
+    ctx.strokeStyle = this.isEvolved ? 'rgba(255, 0, 127, 0.22)' : 'rgba(0, 240, 255, 0.12)';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
@@ -404,16 +467,15 @@ class PlasmaCannon extends BaseWeapon {
           this.damageDealt += hit.damage;
           if (isDead) this.kills++;
 
-          // 击退
+          // 统一击退计算 (遵照敌人击退抗性)
           const kb = p.knockback || 110;
-          e.vx += Math.cos(p.angle) * kb;
-          e.vy += Math.sin(p.angle) * kb;
+          e.applyKnockback(Math.cos(p.angle) * kb, Math.sin(p.angle) * kb);
 
           if (p.isEvolved) {
-            pool.spawnShockwave(e.x, e.y, 45, '#39ff14');
-            pool.spawnSparks(p.x, p.y, '#39ff14', 8);
+            if (pool && pool.spawnShockwave) pool.spawnShockwave(e.x, e.y, 45, '#39ff14');
+            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#39ff14', 8);
           } else {
-            pool.spawnSparks(p.x, p.y, '#39ff14', 6);
+            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#39ff14', 6);
           }
 
           if (p.pierce <= 0) {
@@ -437,11 +499,13 @@ class PlasmaCannon extends BaseWeapon {
 
   fire(player, enemies, pool) {
     let targetAngle = player.facingAngle;
-    // 若附近有敌人，瞄准最近敌人
-    if (enemies.length > 0) {
+    const valid = getValidEnemies(enemies);
+
+    // 若附近有有效存活敌人，瞄准最近敌人
+    if (valid.length > 0) {
       let nearest = null;
       let minD = 350;
-      for (const e of enemies) {
+      for (const e of valid) {
         const d = Math.hypot(e.x - player.x, e.y - player.y);
         if (d < minD) {
           minD = d;
@@ -582,7 +646,7 @@ class BlackHoleGenerator extends BaseWeapon {
       h.rotation += dt * 5;
       h.tickTimer -= dt;
 
-      // 牵引范围内的敌人
+      // 牵引范围内的敌人 (遵照敌人击退/位移抗性)
       for (const e of enemies) {
         if (e.isDead) continue;
         const dx = h.x - e.x;
@@ -590,8 +654,7 @@ class BlackHoleGenerator extends BaseWeapon {
         const dist = Math.hypot(dx, dy);
         if (dist < h.radius && dist > 5) {
           const pullForce = (h.pullStrength * (1 - dist / h.radius)) * dt;
-          e.x += (dx / dist) * pullForce;
-          e.y += (dy / dist) * pullForce;
+          e.applyDisplacement((dx / dist) * pullForce, (dy / dist) * pullForce);
         }
       }
 
@@ -630,9 +693,10 @@ class BlackHoleGenerator extends BaseWeapon {
     let spawnX = player.x + (Math.random() - 0.5) * 160;
     let spawnY = player.y + (Math.random() - 0.5) * 160;
 
-    // 尽量投放到敌人聚集处
-    if (enemies.length > 0) {
-      const target = enemies[Math.floor(Math.random() * enemies.length)];
+    // 尽量投放到存活敌人聚集处
+    const valid = getValidEnemies(enemies);
+    if (valid.length > 0) {
+      const target = valid[Math.floor(Math.random() * valid.length)];
       spawnX = target.x;
       spawnY = target.y;
     }
@@ -658,7 +722,7 @@ class BlackHoleGenerator extends BaseWeapon {
 
   triggerSupernova(h, player, enemies, pool) {
     if (window.soundSystem) window.soundSystem.playExplosion(true);
-    pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f');
+    if (pool && pool.spawnShockwave) pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f');
 
     for (const e of enemies) {
       if (e.isDead) continue;
@@ -669,10 +733,9 @@ class BlackHoleGenerator extends BaseWeapon {
         this.damageDealt += hit.damage;
         if (isDead) this.kills++;
 
-        // 强击退
+        // 强击退 (应用抗性)
         const ang = Math.atan2(e.y - h.y, e.x - h.x);
-        e.vx += Math.cos(ang) * 220;
-        e.vy += Math.sin(ang) * 220;
+        e.applyKnockback(Math.cos(ang) * 220, Math.sin(ang) * 220);
       }
     }
   }
@@ -746,7 +809,7 @@ class PrismRay extends BaseWeapon {
       // 激光持续判定 (tick)
       b.tickTimer -= dt;
       if (b.tickTimer <= 0) {
-        b.tickTimer = 0.08;
+        b.tickTimer = b.isEvolved ? 0.10 : 0.08;
         const cos = Math.cos(b.angle);
         const sin = Math.sin(b.angle);
 
@@ -765,10 +828,10 @@ class PrismRay extends BaseWeapon {
               if (isDead) this.kills++;
 
               if (b.isEvolved) {
-                pool.spawnShockwave(e.x, e.y, 24, '#ff007f');
-                pool.spawnSparks(e.x, e.y, '#ff007f', 3);
+                if (pool && pool.spawnShockwave) pool.spawnShockwave(e.x, e.y, 24, '#ff007f');
+                if (pool && pool.spawnSparks) pool.spawnSparks(e.x, e.y, '#ff007f', 3);
               } else {
-                pool.spawnSparks(e.x, e.y, '#00f0ff', 2);
+                if (pool && pool.spawnSparks) pool.spawnSparks(e.x, e.y, '#00f0ff', 2);
               }
             }
           }
@@ -789,10 +852,12 @@ class PrismRay extends BaseWeapon {
 
   fire(player, enemies, pool) {
     let targetAngle = player.facingAngle;
-    if (enemies.length > 0) {
+    const valid = getValidEnemies(enemies);
+
+    if (valid.length > 0) {
       let nearest = null;
       let minD = 400;
-      for (const e of enemies) {
+      for (const e of valid) {
         const d = Math.hypot(e.x - player.x, e.y - player.y);
         if (d < minD) {
           minD = d;
@@ -806,10 +871,10 @@ class PrismRay extends BaseWeapon {
 
     if (this.isEvolved) {
       if (window.soundSystem) window.soundSystem.playShoot('laser');
-      // 超维裂隙：3 道旋转扫掠死光，持续 1.1s，宽度 36，每 tick 34 伤害
-      const duration = 1.1;
-      const width = 36 * player.areaBonus;
-      const baseDamage = 34;
+      // 超维裂隙：3 道旋转扫掠死光，持续 1.0s，宽度 34，每 tick 24 伤害 (0.10s 间隔，健康竞技级 DPS)
+      const duration = 1.0;
+      const width = 34 * player.areaBonus;
+      const baseDamage = 24;
       const beamCount = 3;
 
       for (let i = 0; i < beamCount; i++) {
@@ -919,3 +984,10 @@ window.WeaponRegistry = {
   black_hole: BlackHoleGenerator,
   prism_ray: PrismRay
 };
+window.PulseBlade = PulseBlade;
+window.ArcCore = ArcCore;
+window.OrbitalSatellites = OrbitalSatellites;
+window.PlasmaCannon = PlasmaCannon;
+window.BlackHoleGenerator = BlackHoleGenerator;
+window.PrismRay = PrismRay;
+window.getValidEnemies = getValidEnemies;

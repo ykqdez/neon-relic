@@ -290,10 +290,11 @@ class Game {
     return runes;
   }
 
-  resize() {
-    const dpr = window.devicePixelRatio || 1;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+  // 动态屏幕适配与高分屏优化
+  resize(customW = null, customH = null) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = customW !== null ? customW : window.innerWidth;
+    const h = customH !== null ? customH : window.innerHeight;
 
     this.canvas.width = w * dpr;
     this.canvas.height = h * dpr;
@@ -303,15 +304,40 @@ class Game {
     this.camera.width = w;
     this.camera.height = h;
 
-    // 响应式动态相机缩放 (解决 1080p 桌面画面过小与手机视野受限问题)
-    if (w > 1200) {
-      this.camera.zoom = 1.18; // 桌面端清晰聚焦
-    } else if (w >= 768) {
-      this.camera.zoom = 1.08; // 平板适配
-    } else {
-      // 手机端：拓宽横向视野，保持 470~520 世界单位预警宽度
+    // 综合考量视口短边、长宽比与设备特性，实现横竖屏自适应 FOV
+    const minDim = Math.min(w, h);
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const isMobile = (minDim < 540) || (isTouch && Math.max(w, h) < 1000 && minDim < 600);
+    const isLandscape = w > h;
+
+    if (isMobile && isLandscape) {
+      // 手机横屏 (如 844x390, 932x430)：以较短的垂直高度 h 为基准，确保垂直世界视野至少 500 单位
+      this.camera.zoom = Math.min(0.78, Math.max(0.65, h / 500));
+    } else if (isMobile && !isLandscape) {
+      // 手机竖屏 (如 390x844, 430x932)：以水平宽度 w 为基准，保持 460~500 世界单位预警宽度
       this.camera.zoom = Math.max(0.78, Math.min(0.86, w / 480));
+    } else if (minDim >= 600 && Math.max(w, h) <= 1366 && isTouch) {
+      // 平板设备
+      this.camera.zoom = 1.05;
+    } else if (w > 1200) {
+      // 桌面端宽屏
+      this.camera.zoom = 1.18;
+    } else {
+      // 默认适中
+      this.camera.zoom = 1.0;
     }
+  }
+
+  // 统一检查当前是否允许额外生成敌人 (严格限制于各难度上限)
+  canSpawnEnemies(count = 1) {
+    const isBossActive = !!this.activeBoss;
+    const max = this.diffConfig && this.diffConfig.maxEnemies !== undefined
+      ? this.diffConfig.maxEnemies
+      : (this.maxEnemies || 90);
+    const currentMax = isBossActive
+      ? Math.round(max * 0.75)
+      : max;
+    return this.enemies.length + count <= currentMax;
   }
 
   setDifficulty(dKey) {
@@ -539,22 +565,29 @@ class Game {
         // 掉落经验晶体
         this.spawnCrystal(e.x, e.y, e.expValue);
 
-        // 裂变怪特殊机制：生成 2 个小子体
+        // 裂变怪特殊机制：生成 2 个小子体 (严格遵守上限)
         if (e instanceof EnemyTypes.FissionCore && !e.isChild) {
-          this.enemies.push(new EnemyTypes.FissionCore(e.x - 12, e.y, 1, true));
-          this.enemies.push(new EnemyTypes.FissionCore(e.x + 12, e.y, 1, true));
+          if (this.canSpawnEnemies(1)) {
+            this.enemies.push(new EnemyTypes.FissionCore(e.x - 12, e.y, 1, true));
+          }
+          if (this.canSpawnEnemies(1)) {
+            this.enemies.push(new EnemyTypes.FissionCore(e.x + 12, e.y, 1, true));
+          }
         }
 
-        // 精英怪分裂词缀 splitter：死亡生成 2~3 个弱化子体 (子体非精英，不重复发放精英奖励)
+        // 精英怪分裂词缀 splitter：死亡生成 2~3 个弱化子体 (子体非精英，不重复发放精英奖励，严格遵守同屏上限与血量一致性)
         if (e.isElite && e.affix === 'splitter') {
           const splitCount = 2 + Math.floor(Math.random() * 2); // 2~3 个
           for (let s = 0; s < splitCount; s++) {
+            if (!this.canSpawnEnemies(1)) break;
             const angle = (s / splitCount) * Math.PI * 2;
             const sub = new EnemyTypes.RelicGolem(e.x + Math.cos(angle) * 24, e.y + Math.sin(angle) * 24, 0.45);
+            const subHp = Math.max(20, Math.round(e.maxHp * 0.22));
             sub.isElite = false;
             sub.affix = null;
             sub.radius = 16;
-            sub.hp = Math.round(e.maxHp * 0.22);
+            sub.maxHp = subHp;
+            sub.hp = subHp;
             sub.speed = e.speed * 1.25;
             sub.damage = Math.round(e.damage * 0.6);
             sub.expValue = 3;
@@ -633,12 +666,15 @@ class Game {
       document.getElementById('boss-hud').style.display = 'flex';
     }
 
-    // 精英怪定时生成 (Boss 存活期间暂停新增 Elite)
-    if (!isBossActive) {
+    // 精英怪定时生成 (Boss 存活期间或登场前 25 秒暂停新增 Elite，避免双重高压同台)
+    const bossNear = this.elapsedTime >= (this.bossTime - 25);
+    if (!isBossActive && !bossNear) {
       this.eliteTimer -= dt;
       if (this.eliteTimer <= 0) {
         this.eliteTimer = this.diffConfig.eliteInterval;
-        this.spawnElite();
+        if (this.canSpawnEnemies(1)) {
+          this.spawnElite();
+        }
       }
     }
 
@@ -670,11 +706,18 @@ class Game {
     const unlocks = this.diffConfig.unlockTimes;
     const t = this.elapsedTime;
 
-    // 依据相机缩放比例动态计算屏幕视野外的生成距离
+    // 依据当前相机视口矩形边界计算生成位置 (沿射线方向与屏幕外框求交，外扩 65~95 世界单位，自然进入屏幕)
+    const halfW = (this.camera.width / 2) / this.camera.zoom;
+    const halfH = (this.camera.height / 2) / this.camera.zoom;
     const angle = Math.random() * Math.PI * 2;
-    const dist = (Math.max(this.camera.width, this.camera.height) / this.camera.zoom) * 0.55 + 80;
-    const sx = this.player.x + Math.cos(angle) * dist;
-    const sy = this.player.y + Math.sin(angle) * dist;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const tX = Math.abs(cos) > 1e-5 ? halfW / Math.abs(cos) : Infinity;
+    const tY = Math.abs(sin) > 1e-5 ? halfH / Math.abs(sin) : Infinity;
+    const tBorder = Math.min(tX, tY);
+    const dist = tBorder + 65 + Math.random() * 30;
+    const sx = this.player.x + cos * dist;
+    const sy = this.player.y + sin * dist;
 
     // 根据已解锁敌人群系动态构建加权池并归一化抽取
     const activePool = [];
@@ -735,7 +778,12 @@ class Game {
     const affixes = ['berserk', 'shield', 'splitter'];
     const affix = affixes[Math.floor(Math.random() * affixes.length)];
 
-    const elite = new EnemyTypes.RelicGolem(sx, sy, this.diffConfig.eliteHpMult);
+    // 精英 HP 随时间增长：base HP × time HP scale × elite HP multiplier
+    const minutes = this.elapsedTime / 60;
+    const hpTimeScale = 1 + minutes * (this.diffConfig.hpScalePerMin || 0.16);
+    const eliteMult = hpTimeScale * this.diffConfig.eliteHpMult;
+
+    const elite = new EnemyTypes.RelicGolem(sx, sy, eliteMult);
     elite.isElite = true;
     elite.affix = affix;
     elite.radius = 32;
@@ -745,7 +793,8 @@ class Game {
       elite.speed *= 1.35;
       elite.color = '#ff0033';
     } else if (affix === 'shield') {
-      elite.shieldHp = this.diffConfig.eliteShieldHp;
+      elite.shieldHp = Math.round(this.diffConfig.eliteShieldHp * hpTimeScale);
+      elite.maxShield = elite.shieldHp;
       elite.color = '#00f0ff';
     } else if (affix === 'splitter') {
       elite.color = '#b026ff';
@@ -939,6 +988,21 @@ class Game {
     } else if (card.type === 'heal') {
       this.player.heal(this.player.maxHp * 0.4);
       this.spawnShockwave(this.player.x, this.player.y, 240, '#00f0ff');
+      // 真正实现全屏冲击波清退敌人 (对周身 260px 范围内的存活敌人施加小幅击退，遵照击退抗性)
+      const valid = this.enemies.filter(e => e && !e.isDead);
+      for (const e of valid) {
+        const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        if (d < 260 && d > 1) {
+          const ang = Math.atan2(e.y - this.player.y, e.x - this.player.x);
+          const force = 180 * (1 - d / 260);
+          if (typeof e.applyKnockback === 'function') {
+            e.applyKnockback(Math.cos(ang) * force, Math.sin(ang) * force);
+          } else {
+            e.vx += Math.cos(ang) * force;
+            e.vy += Math.sin(ang) * force;
+          }
+        }
+      }
     }
 
     // 触发品质专属附加加成 (如史诗/稀有赠送的生命恢复与按等级动态挂钩的即时经验)
@@ -1079,17 +1143,40 @@ class Game {
     }
   }
 
-  // 底部装备栏更新
+  // 底部装备栏更新 (同时展示已装备的武器与已获取的被动)
   updateHUDBuild() {
     const buildView = document.getElementById('build-quick-view');
     if (!buildView) return;
     buildView.innerHTML = '';
 
+    let hasWeapons = false;
     for (const w of Object.values(this.weapons)) {
       if (w.level > 0) {
+        hasWeapons = true;
         const chip = document.createElement('div');
-        chip.className = 'weapon-chip';
+        chip.className = `weapon-chip ${w.isEvolved ? 'evolved' : ''}`;
+        chip.title = `${w.name} Lv.${w.level}`;
         chip.innerHTML = `${w.icon}<span class="chip-level">${w.isEvolved ? '★' : w.level}</span>`;
+        buildView.appendChild(chip);
+      }
+    }
+
+    let hasPassives = false;
+    const passiveEntries = Object.entries(this.passives).filter(([_, p]) => p && p.level > 0);
+    if (hasWeapons && passiveEntries.length > 0) {
+      const divider = document.createElement('div');
+      divider.className = 'dock-divider';
+      buildView.appendChild(divider);
+    }
+
+    for (const [id, p] of passiveEntries) {
+      const def = this.upgradeSystem.passiveDefs[id];
+      if (def) {
+        hasPassives = true;
+        const chip = document.createElement('div');
+        chip.className = 'weapon-chip passive';
+        chip.title = `${def.name} Lv.${p.level}`;
+        chip.innerHTML = `${def.icon}<span class="chip-level">${p.level}</span>`;
         buildView.appendChild(chip);
       }
     }
@@ -1363,4 +1450,5 @@ class Game {
 
 window.addEventListener('DOMContentLoaded', () => {
   window.gameInstance = new Game();
+  window.game = window.gameInstance;
 });

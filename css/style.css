@@ -281,10 +281,11 @@ html, body {
   border-radius: 8px;
   pointer-events: auto;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+  max-width: calc(100vw - 24px);
 }
 
 .dock-title {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 800;
   color: var(--text-dim);
   letter-spacing: 1px;
@@ -292,34 +293,62 @@ html, body {
 
 .build-quick-view {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.18);
+  margin: 0 2px;
 }
 
 .weapon-chip {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   background: rgba(16, 26, 52, 0.85);
   border: 1px solid var(--neon-cyan);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   position: relative;
   box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+.weapon-chip.passive {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 6px rgba(176, 38, 255, 0.25);
+}
+
+.weapon-chip.evolved {
+  border-color: #ffd700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.45);
 }
 
 .weapon-chip .chip-level {
   position: absolute;
   bottom: -3px;
   right: -3px;
-  font-size: 0.52rem;
+  font-size: 0.50rem;
   background: var(--neon-purple);
   color: #fff;
   border-radius: 3px;
-  padding: 0 3px;
+  padding: 0 2.5px;
   font-weight: 800;
+  line-height: 1.1;
+}
+
+.weapon-chip.passive .chip-level {
+  background: #2575fc;
+}
+
+.weapon-chip.evolved .chip-level {
+  background: #ffd700;
+  color: #000;
 }
 
 /* Boss 血条 (紧随经验条下方) */
