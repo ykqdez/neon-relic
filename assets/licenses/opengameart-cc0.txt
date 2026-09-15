@@ -1,0 +1,17 @@
+Third-party assets distributed under Creative Commons CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+16x16 Explosion
+Author: BitingChaos
+Source: https://opengameart.org/content/16x16-explosion
+Files: sprites/explosion-01.png through sprites/explosion-05.png (unmodified)
+The author page identifies the five hand-drawn frames as CC0.
+
+5 Chiptunes (Action), Level 1
+Composer: Juhani Junkala, uploader SubspaceAudio
+Source: https://opengameart.org/content/5-chiptunes-action
+Download: https://opengameart.org/sites/default/files/level1.mp3
+Local file: audio/relic-run.mp3 (renamed, unmodified audio)
+The author page identifies the music collection as CC0.
+
+Sources checked and assets downloaded on 2026-09-16.

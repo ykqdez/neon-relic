@@ -1,0 +1,145 @@
+{
+  "downloaded": "2026-09-16",
+  "files": [
+    {
+      "path": "assets/audio/laser1.ogg",
+      "bytes": 9315,
+      "sha256": "0bf468769b48a834dc1c6e38e457f2c71159b010225a9aedf84316795e8cc3e5",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/laser5.ogg",
+      "bytes": 8484,
+      "sha256": "8d7b30b35112bedf4dd6f03796a5f33af85414b02947187e4063819fd80cf3e2",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/lowDown.ogg",
+      "bytes": 5956,
+      "sha256": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/pepSound1.ogg",
+      "bytes": 6019,
+      "sha256": "f2f44effce087e47683f0fea05a71002bd8dca78fb10bf93d9f0b38d49f9590e",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/phaserDown1.ogg",
+      "bytes": 7113,
+      "sha256": "d2d046cd0247045f8819905fc9719a7237ccbd590b3128ce58a61a81f50d208b",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/powerUp3.ogg",
+      "bytes": 9043,
+      "sha256": "59e7591f7a068882767bc1fd61edabf479b78787466d3a70bc49dfa0533777d2",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/powerUp8.ogg",
+      "bytes": 6363,
+      "sha256": "2a2adebaacbf07cc89c194e5d088c8e01cad8557800559d6cb5b6106b6739508",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/relic-run.mp3",
+      "bytes": 1608620,
+      "sha256": "559ad4eb2f936b7a3db0513aabf45926c842253a5721d23b3202a7a56a6b19da",
+      "source": "https://opengameart.org/content/5-chiptunes-action",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/spaceTrash1.ogg",
+      "bytes": 12132,
+      "sha256": "8f702781627c95cf9f91724dab3bcdb46bb87cc0ccf2a350748798dba6bc82aa",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/spaceTrash4.ogg",
+      "bytes": 12685,
+      "sha256": "d0c659b2c8108a7bccfeac94dbac6b770f89e4b71c0b4c6c3024941287094f34",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/threeTone1.ogg",
+      "bytes": 7361,
+      "sha256": "bdf21eb12e65507f091d074886fdac820e1ccae51d060caa168e5567acadb84b",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/zap1.ogg",
+      "bytes": 8126,
+      "sha256": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/zap2.ogg",
+      "bytes": 9819,
+      "sha256": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2",
+      "bytes": 661212,
+      "sha256": "de421b3da7b20e045f0712ee838f30c225f4610b348efb37e2b31baa98860cbf",
+      "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.01",
+      "license": "OFL-1.1"
+    },
+    {
+      "path": "assets/sprites/dungeon.png",
+      "bytes": 5294,
+      "sha256": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f",
+      "source": "https://kenney.nl/assets/tiny-dungeon",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/sprites/explosion-01.png",
+      "bytes": 244,
+      "sha256": "ff9cc38fdba93d5af30a52562dba3c8a177449bee31e243f000e9cfe45dcb355",
+      "source": "https://opengameart.org/content/16x16-explosion",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/sprites/explosion-02.png",
+      "bytes": 225,
+      "sha256": "5e36d46e3a7dddb1c46bcfec62c125cde4e253e18e3452dcf560b70a424ca976",
+      "source": "https://opengameart.org/content/16x16-explosion",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/sprites/explosion-03.png",
+      "bytes": 254,
+      "sha256": "407d6c15e8ff5d42217b95397140d6be370abb2845176222d9f4c53f34c21580",
+      "source": "https://opengameart.org/content/16x16-explosion",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/sprites/explosion-04.png",
+      "bytes": 260,
+      "sha256": "e2f7f2ca0d2e9f254a1c57420265f61c01c6acd845f4ca693fbdf367e833cbdd",
+      "source": "https://opengameart.org/content/16x16-explosion",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/sprites/explosion-05.png",
+      "bytes": 212,
+      "sha256": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
+      "source": "https://opengameart.org/content/16x16-explosion",
+      "license": "CC0-1.0"
+    }
+  ]
+}

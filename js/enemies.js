@@ -140,32 +140,7 @@ class SwarmDrone extends BaseEnemy {
   }
 
   render(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    const angle = this.animTime * 2.5;
-    ctx.rotate(angle);
-
-    // 锐利三角形轮廓
-    ctx.beginPath();
-    ctx.moveTo(this.radius * 1.2, 0);
-    ctx.lineTo(-this.radius * 0.8, -this.radius * 0.8);
-    ctx.lineTo(-this.radius * 0.4, 0);
-    ctx.lineTo(-this.radius * 0.8, this.radius * 0.8);
-    ctx.closePath();
-
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 10;
-    ctx.fill();
-
-    // 核心亮斑
-    ctx.beginPath();
-    ctx.arc(0, 0, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -211,32 +186,7 @@ class NeonScout extends BaseEnemy {
   }
 
   render(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.facing);
-
-    // 飞梭双翼箭头轮廓
-    ctx.beginPath();
-    ctx.moveTo(this.radius * 1.3, 0);
-    ctx.lineTo(-this.radius * 0.9, -this.radius * 0.9);
-    ctx.lineTo(-this.radius * 0.3, 0);
-    ctx.lineTo(-this.radius * 0.9, this.radius * 0.9);
-    ctx.closePath();
-
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 10;
-    ctx.fill();
-
-    // 能量尾迹线
-    ctx.beginPath();
-    ctx.moveTo(-this.radius * 0.3, 0);
-    ctx.lineTo(-this.radius * 1.4, 0);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -268,49 +218,7 @@ class RelicGolem extends BaseEnemy {
   }
 
   render(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    // 六边形重装外甲
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2;
-      const px = Math.cos(a) * this.radius;
-      const py = Math.sin(a) * this.radius;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : '#221406';
-    ctx.fill();
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 3.5;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 12;
-    ctx.stroke();
-
-    // 内层装甲缝隙
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2 + (Math.PI / 6);
-      const px = Math.cos(a) * (this.radius * 0.65);
-      const py = Math.sin(a) * (this.radius * 0.65);
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.strokeStyle = 'rgba(255, 170, 0, 0.5)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // 内部高能反应核
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
-    ctx.shadowBlur = 8;
-    ctx.fill();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -389,60 +297,7 @@ class PrismSniper extends BaseEnemy {
   }
 
   render(ctx) {
-    // 瞄准激光瞄准线 (锁定阶段变为高亮刺目实线，提示玩家走位闪避)
-    if (this.shootTimer <= this.aimDuration && !this.isDead) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + Math.cos(this.aimAngle) * 450, this.y + Math.sin(this.aimAngle) * 450);
-      if (this.isAimLocked) {
-        ctx.strokeStyle = 'rgba(255, 0, 100, 0.95)';
-        ctx.lineWidth = 2.4;
-        ctx.shadowColor = '#ff0055';
-        ctx.shadowBlur = 10;
-        ctx.setLineDash([]);
-      } else {
-        ctx.strokeStyle = 'rgba(255, 0, 80, 0.45)';
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([5, 5]);
-      }
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.aimAngle || 0);
-
-    // 前端延伸炮口
-    ctx.beginPath();
-    ctx.rect(this.radius * 0.5, -3, this.radius * 0.9, 6);
-    ctx.fillStyle = '#1c0828';
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 1.5;
-    ctx.fill();
-    ctx.stroke();
-
-    // 菱形机体身躯
-    ctx.beginPath();
-    ctx.moveTo(this.radius * 1.1, 0);
-    ctx.lineTo(0, -this.radius * 0.9);
-    ctx.lineTo(-this.radius * 1.1, 0);
-    ctx.lineTo(0, this.radius * 0.9);
-    ctx.closePath();
-
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 12;
-    ctx.fill();
-
-    // 瞄准镜高亮核心
-    ctx.beginPath();
-    ctx.arc(0, 0, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -474,49 +329,7 @@ class FissionCore extends BaseEnemy {
   }
 
   render(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    if (this.isChild) {
-      // 微型子核
-      ctx.beginPath();
-      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : this.color;
-      ctx.shadowColor = this.color;
-      ctx.shadowBlur = 8;
-      ctx.fill();
-    } else {
-      // 旋转双核结构 (两个互旋的原生质球)
-      const rot = this.animTime * 3.5;
-      const orbOffset = this.radius * 0.55;
-
-      ctx.beginPath();
-      ctx.ellipse(0, 0, this.radius * 1.2, this.radius * 0.7, rot, 0, Math.PI * 2);
-      ctx.strokeStyle = this.color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // 双核 A & B
-      const x1 = Math.cos(rot) * orbOffset;
-      const y1 = Math.sin(rot) * orbOffset;
-      ctx.beginPath();
-      ctx.arc(x1, y1, this.radius * 0.55, 0, Math.PI * 2);
-      ctx.arc(-x1, -y1, this.radius * 0.55, 0, Math.PI * 2);
-      ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : this.color;
-      ctx.shadowColor = this.color;
-      ctx.shadowBlur = 10;
-      ctx.fill();
-
-      // 连接能量索
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(-x1, -y1);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -581,47 +394,7 @@ class ChargeStriker extends BaseEnemy {
   }
 
   render(ctx) {
-    // 蓄力红线预警
-    if (this.state === 'charge_aim' && !this.isDead) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + Math.cos(this.dashAngle) * 260, this.y + Math.sin(this.dashAngle) * 260);
-      ctx.strokeStyle = '#ff0055';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([6, 6]);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    const angle = this.state === 'dashing' || this.state === 'charge_aim' ? this.dashAngle : this.animTime * 3;
-    ctx.rotate(angle);
-
-    // 尖长矛 / 尖锥轮廓
-    ctx.beginPath();
-    ctx.moveTo(this.radius * 1.8, 0);
-    ctx.lineTo(-this.radius * 0.8, -this.radius * 0.8);
-    ctx.lineTo(-this.radius * 0.3, 0);
-    ctx.lineTo(-this.radius * 0.8, this.radius * 0.8);
-    ctx.closePath();
-
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : (this.state === 'dashing' ? '#ffea00' : this.color);
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 12;
-    ctx.fill();
-
-    // 矛尖高能亮线
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(this.radius * 1.7, 0);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 
@@ -781,52 +554,7 @@ class BossTitan extends BaseEnemy {
   }
 
   render(ctx) {
-    // 渲染地面危险预警圈
-    for (const hz of this.hazardZones) {
-      const p = 1 - (hz.timer / hz.maxTimer);
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(hz.x, hz.y, hz.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 0, 85, ${0.15 + p * 0.35})`;
-      ctx.fill();
-      ctx.strokeStyle = '#ff0055';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    // 旋转外装甲齿轮
-    ctx.rotate(this.animTime * 0.8);
-    ctx.beginPath();
-    const teeth = 12;
-    for (let i = 0; i < teeth * 2; i++) {
-      const r = i % 2 === 0 ? this.radius : this.radius - 8;
-      const a = (i / (teeth * 2)) * Math.PI * 2;
-      const px = Math.cos(a) * r;
-      const py = Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fillStyle = this.hurtTimer > 0 ? '#ffffff' : '#140510';
-    ctx.fill();
-    ctx.strokeStyle = this.phase === 3 ? '#ff0055' : (this.phase === 2 ? '#ff5500' : '#00f0ff');
-    ctx.lineWidth = 4;
-    ctx.shadowColor = ctx.strokeStyle;
-    ctx.shadowBlur = 18;
-    ctx.stroke();
-
-    // 泰坦巨核
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius * 0.45, 0, Math.PI * 2);
-    ctx.fillStyle = this.phase === 3 ? '#ff0033' : '#ff00a0';
-    ctx.fill();
-
-    ctx.restore();
+    window.PixelArt.enemy(ctx, this);
   }
 }
 

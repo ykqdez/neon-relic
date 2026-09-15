@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "test": "node tests/verify.cjs",
+    "test:preview": "node tests/verify.cjs --preview",
     "test:integrity": "node tests/integrity.cjs",
     "test:growth": "node tests/verify.cjs --growth",
     "test:report": "node tests/build-report.cjs"

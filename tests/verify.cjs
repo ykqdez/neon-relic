@@ -32,7 +32,7 @@ function staticChecks() {
   report.workingTree = cp.spawnSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).stdout?.trim();
   for (const file of walk(root)) {
     const name = path.relative(root, file).replaceAll('\\', '/');
-    if (/\.(js|cjs|json|html|css)$/.test(file)) report.sha256[name] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    if (/\.(js|cjs|json|html|css)$/.test(file) || name.startsWith('assets/')) report.sha256[name] = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
     if (/\.(js|cjs)$/.test(file)) {
       const result = cp.spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
       check(result.status === 0, 'syntax: ' + name, result.stderr?.trim() || undefined);
@@ -43,6 +43,12 @@ function staticChecks() {
     }
   }
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const assets=JSON.parse(fs.readFileSync(path.join(root,'assets/manifest.json'),'utf8'));
+  for(const asset of assets.files) {
+    const file=path.resolve(root,asset.path);
+    const exists=file.startsWith(root+path.sep)&&fs.existsSync(file);
+    check(exists && crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')===asset.sha256,'asset integrity: '+asset.path);
+  }
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
   check(new Set(ids).size === ids.length, 'HTML IDs unique');
   for (const [, ref] of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
@@ -66,7 +72,8 @@ async function startBrowser() {
       const url = decodeURIComponent(req.url.split('?')[0]);
       const file = path.resolve(root, '.' + (url === '/' ? '/index.html' : url));
       if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
-      res.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/html; charset=utf-8');
+      const types={'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.mp3':'audio/mpeg','.woff2':'font/woff2','.json':'application/json'};
+      res.setHeader('Content-Type',types[path.extname(file)]||'text/html; charset=utf-8');
       res.end(fs.readFileSync(file));
     } catch { res.writeHead(404); res.end(); }
   });
@@ -138,13 +145,31 @@ async function main() {
   if (!ready) throw Error('Game startup timed out');
   report.browser = await ev('({userAgent:navigator.userAgent,initialState:game.state})');
   check(report.browser.initialState === 'ready', 'initial state ready');
-  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  await ev('auditSaved.sound.ready');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
   if (process.env.VERIFY_FAULT === 'case') cases(await ev('[(()=>{try{throw Error("VERIFY_CASE_SENTINEL")}catch(e){return {name:"injected",error:e.message}}})()]'), 'injected');
   const core = await ev('regressionChecks()');
   for (const row of core) check(row.passed, 'regression: ' + row.name, row.detail);
   save('regressions', core);
   if (process.argv.includes('--smoke')) { await sleep(100); return; }
+  const pixel=await ev('pixelChecks()');save('pixel',pixel);
+  for(const row of pixel)check(row.passed,'pixel: '+row.name,row.detail);
+  if(process.argv.includes('--preview')) {
+    const layouts=[];
+    for(const [width,height] of [[390,844],[960,640],[844,390],[320,568]]) {
+      await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<900});
+      for(const screen of ['start','battle','boss','upgrade','gear']) {
+        await ev(`pixelScene(${JSON.stringify(screen)})`);await sleep(100);
+        const shot=await cdp('Page.captureScreenshot',{format:'png'});
+        fs.writeFileSync(path.join(out,`pixel-${screen}-${width}.png`),Buffer.from(shot.data,'base64'));
+      }
+      const controls=await ev('measureControls()');
+      for(const c of controls)check(c.width>=44&&c.height>=44&&c.hittable,`preview control ${width}: ${c.id}`,c);
+      layouts.push({width,height,controls});
+    }
+    save('pixel-layouts',layouts);return;
+  }
   console.log('Running diagnostics and DPS matrix...');
   const focused = await ev('focusedRecheck()'); cases(focused, 'focused'); save('focused', focused);
   const logic = await ev('auditTests()'); cases(logic, 'logic'); save('logic', logic);
@@ -195,6 +220,7 @@ async function main() {
   await tap('#btn-start-game', "game.state==='playing'");
   await ev('window.soundSystem.isMuted=false');
   await tap('#btn-mute', 'window.soundSystem.isMuted');
+  check(await ev("document.querySelector('#btn-mute').textContent==='OFF' && document.querySelector('#btn-mute').getAttribute('aria-pressed')==='true'"), 'pixel mute button label and accessible state');
   await tap('#btn-pause', "game.state==='paused'");
   await tap('#btn-resume', "game.state==='playing'");
   await tap('#btn-toggle-build', "game.pauseReasons.has('build_detail')");

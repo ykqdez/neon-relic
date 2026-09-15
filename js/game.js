@@ -142,6 +142,13 @@ const DIFFICULTY_PRESETS = {
 };
 
 class Game {
+  // Audio follows state transitions immediately, including background pauses.
+  get state() { return this._state; }
+  set state(value) {
+    this._state = value;
+    window.soundSystem?.setGameState(value);
+  }
+
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -417,7 +424,8 @@ class Game {
     if (muteBtn) {
       muteBtn.addEventListener('click', () => {
         const isMuted = window.soundSystem.toggleMute();
-        muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        muteBtn.textContent = isMuted ? 'OFF' : 'SND';
+        muteBtn.setAttribute('aria-pressed', String(isMuted));
       });
     }
 
@@ -489,7 +497,7 @@ class Game {
         item.className = `bd-item ${w.isEvolved ? 'evolved' : ''}`;
         item.innerHTML = `
           <div class="bd-item-info">
-            <span class="bd-item-icon">${w.icon}</span>
+            <span class="bd-item-icon">${PixelArt.icon(w.id)}</span>
             <div>
               <div class="bd-item-name">${w.name} ${w.isEvolved ? '★ (EVOLVED)' : ''}</div>
               <div style="font-size:0.68rem;color:var(--text-dim);">${w.description || ''}</div>
@@ -521,7 +529,7 @@ class Game {
         item.className = 'bd-item';
         item.innerHTML = `
           <div class="bd-item-info">
-            <span class="bd-item-icon">${def.icon}</span>
+            <span class="bd-item-icon">${PixelArt.icon(id)}</span>
             <div>
               <div class="bd-item-name">${def.name}</div>
               <div style="font-size:0.68rem;color:var(--text-dim);">${def.desc || ''}</div>
@@ -1195,7 +1203,7 @@ class Game {
       const el = document.createElement('div');
       el.className = `upgrade-card rarity-${card.rarity}`;
       el.innerHTML = `
-        <div class="card-icon-box">${card.icon}</div>
+        <div class="card-icon-box">${PixelArt.icon(card.targetId || "heal")}</div>
         <div class="card-info">
           <div class="card-header-row">
             <span class="card-name">${card.name}</span>
@@ -1289,6 +1297,7 @@ class Game {
   gameOver(isVictory) {
     this.pauseReasons.clear();
     this.state = 'gameover';
+    window.soundSystem?.playResult(isVictory);
 
     let mvpWeapon = '脉冲刃';
     let maxDmg = 0;
@@ -1353,7 +1362,7 @@ class Game {
         const row = document.createElement('div');
         row.className = 'ws-row';
         row.innerHTML = `
-          <span class="ws-name">${w.icon} ${w.name}</span>
+          <span class="ws-name">${PixelArt.icon(w.id)} ${w.name}</span>
           <div class="ws-bar-bg"><div class="ws-bar-fill" style="width:${pct}%"></div></div>
           <span class="ws-val">${Math.round(w.damageDealt)} (${pct}%)</span>
         `;
@@ -1369,7 +1378,7 @@ class Game {
         if (w.level > 0) {
           const item = document.createElement('div');
           item.className = 'weapon-chip';
-          item.innerHTML = `${w.icon}<span class="chip-level">${w.isEvolved ? 'MAX' : w.level}</span>`;
+          item.innerHTML = `${PixelArt.icon(w.id)}<span class="chip-level">${w.isEvolved ? 'MAX' : w.level}</span>`;
           buildWrap.appendChild(item);
         }
       }
@@ -1378,7 +1387,7 @@ class Game {
           const def = this.upgradeSystem.passiveDefs[id];
           const item = document.createElement('div');
           item.className = 'weapon-chip';
-          item.innerHTML = `${def.icon}<span class="chip-level">${p.level}</span>`;
+          item.innerHTML = `${PixelArt.icon(id)}<span class="chip-level">${p.level}</span>`;
           buildWrap.appendChild(item);
         }
       }
@@ -1406,13 +1415,13 @@ class Game {
     hpFill.style.width = `${hpPercent}%`;
 
     if (hpRatio > 0.5) {
-      hpFill.style.background = '#00f0ff';
+      hpFill.style.background = '#93dfc7';
       hpFill.style.boxShadow = '0 0 8px rgba(0, 240, 255, 0.6)';
     } else if (hpRatio > 0.25) {
-      hpFill.style.background = '#ffaa00';
+      hpFill.style.background = '#e6ad64';
       hpFill.style.boxShadow = '0 0 8px rgba(255, 170, 0, 0.6)';
     } else {
-      hpFill.style.background = '#ff2255';
+      hpFill.style.background = '#ed6979';
       hpFill.style.boxShadow = '0 0 10px rgba(255, 34, 85, 0.8)';
     }
 
@@ -1453,7 +1462,7 @@ class Game {
         const chip = document.createElement('div');
         chip.className = `weapon-chip ${w.isEvolved ? 'evolved' : ''}`;
         chip.title = `${w.name} Lv.${w.level}`;
-        chip.innerHTML = `${w.icon}<span class="chip-level">${w.isEvolved ? '★' : w.level}</span>`;
+        chip.innerHTML = `${PixelArt.icon(w.id)}<span class="chip-level">${w.isEvolved ? '★' : w.level}</span>`;
         buildView.appendChild(chip);
       }
     }
@@ -1473,7 +1482,7 @@ class Game {
         const chip = document.createElement('div');
         chip.className = 'weapon-chip passive';
         chip.title = `${def.name} Lv.${p.level}`;
-        chip.innerHTML = `${def.icon}<span class="chip-level">${p.level}</span>`;
+        chip.innerHTML = `${PixelArt.icon(id)}<span class="chip-level">${p.level}</span>`;
         buildView.appendChild(chip);
       }
     }
@@ -1487,94 +1496,7 @@ class Game {
 
   // 渲染总流程
   render() {
-    const ctx = this.ctx;
-    const w = this.camera.width;
-    const h = this.camera.height;
-
-    ctx.clearRect(0, 0, w, h);
-
-    ctx.save();
-    // 相机视口偏移并叠加响应式缩放
-    ctx.translate(w / 2, h / 2);
-    ctx.scale(this.camera.zoom, this.camera.zoom);
-    ctx.translate(-this.camera.x, -this.camera.y);
-
-    // 1. 绘制竞技场地板霓虹遗迹网格与古代符文
-    this.renderArenaGrid(ctx);
-
-    // 2. 绘制经验晶体
-    this.renderCrystals(ctx);
-
-    // 3. 绘制敌人
-    for (const e of this.enemies) {
-      e.render(ctx);
-    }
-
-    // 4. 绘制敌方弹幕
-    for (const b of this.enemyBullets) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-      ctx.fillStyle = b.color;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 5. 绘制玩家
-    this.player.render(ctx);
-
-    // 6. 绘制武器特效
-    for (const weapon of Object.values(this.weapons)) {
-      if (weapon instanceof window.WeaponRegistry.orbital_satellites) {
-        weapon.render(ctx, this.player);
-      } else {
-        weapon.render(ctx);
-      }
-    }
-
-    // 7. 绘制粒子与冲击波
-    for (const sw of this.shockwaves) {
-      const alpha = sw.life / sw.maxLife;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = sw.color;
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = alpha;
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    for (const p of this.particles) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = p.life / p.maxLife;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 8. 绘制浮动伤害文字
-    for (const dtObj of this.damageTexts) {
-      const alpha = dtObj.life / dtObj.maxLife;
-      ctx.save();
-      ctx.font = dtObj.isCrit ? 'bold 17px sans-serif' : 'bold 12px sans-serif';
-      ctx.fillStyle = dtObj.color;
-      ctx.shadowColor = '#000000';
-      ctx.shadowBlur = 4;
-      ctx.globalAlpha = alpha;
-      ctx.textAlign = 'center';
-      ctx.fillText(dtObj.text, dtObj.x, dtObj.y);
-      ctx.restore();
-    }
-
-    ctx.restore();
-
-    // 9. 绘制屏幕边缘 Boss 与精英怪方向预警雷达指针 (强化手机端战场态势感知)
-    this.renderOffscreenIndicators(ctx, w, h);
+    window.PixelArt.renderGame(this);
   }
 
   renderOffscreenIndicators(ctx, w, h) {
@@ -1638,116 +1560,19 @@ class Game {
   }
 
   renderArenaGrid(ctx) {
-    const bound = this.arenaBound;
-    const gridSize = 90;
-
-    // 边界发光框
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(-bound.halfWidth, -bound.halfHeight, bound.halfWidth * 2, bound.halfHeight * 2);
-
-    // 内部网格细线与交叉点微光
-    ctx.strokeStyle = 'rgba(0, 140, 255, 0.08)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-
-    const startX = -bound.halfWidth;
-    const endX = bound.halfWidth;
-    const startY = -bound.halfHeight;
-    const endY = bound.halfHeight;
-
-    for (let x = startX; x <= endX; x += gridSize) {
-      ctx.moveTo(x, startY);
-      ctx.lineTo(x, endY);
-    }
-    for (let y = startY; y <= endY; y += gridSize) {
-      ctx.moveTo(startX, y);
-      ctx.lineTo(endX, y);
-    }
-    ctx.stroke();
-
-    // 散落古遗迹发光符文印记
-    for (const rune of this.arenaRunes) {
-      ctx.save();
-      ctx.translate(rune.x, rune.y);
-      ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
-      ctx.lineWidth = 1.5;
-
-      if (rune.type === 'circle') {
-        ctx.beginPath();
-        ctx.arc(0, 0, rune.size, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(0, 0, rune.size * 0.4, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (rune.type === 'diamond') {
-        ctx.beginPath();
-        ctx.moveTo(0, -rune.size);
-        ctx.lineTo(rune.size, 0);
-        ctx.lineTo(0, rune.size);
-        ctx.lineTo(-rune.size, 0);
-        ctx.closePath();
-        ctx.stroke();
-      } else {
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2;
-          const px = Math.cos(a) * rune.size;
-          const py = Math.sin(a) * rune.size;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 中央遗迹符文总阵
-    ctx.beginPath();
-    ctx.arc(0, 0, 220, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.14)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(0, 0, 110, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(176, 38, 255, 0.18)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.restore();
+    window.PixelArt.arena(ctx, this);
   }
 
   renderCrystals(ctx) {
-    for (const c of this.crystals) {
-      ctx.save();
-      ctx.translate(c.x, c.y);
-
-      // 菱形能量水晶
-      ctx.beginPath();
-      const r = c.value > 20 ? 6.5 : (c.value > 4 ? 5 : 4);
-      ctx.moveTo(0, -r * 1.3);
-      ctx.lineTo(r, 0);
-      ctx.lineTo(0, r * 1.3);
-      ctx.lineTo(-r, 0);
-      ctx.closePath();
-
-      const color = c.value >= 25 ? '#ffaa00' : (c.value >= 5 ? '#b026ff' : '#00f0ff');
-      ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 7;
-      ctx.fill();
-
-      ctx.restore();
-    }
+    window.PixelArt.crystals(ctx, this);
   }
 }
 
 window.Game = Game;
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  await window.PixelArt.ready;
   window.gameInstance = new Game();
   window.game = window.gameInstance;
+  document.getElementById('btn-start-game').disabled = false;
 });

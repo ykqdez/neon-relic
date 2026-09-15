@@ -10,7 +10,7 @@ let sourceHashes;
 for (const mode of ['control', 'async', 'case', 'json', 'asset']) {
   const fixture = path.join(runDir, mode);
   fs.mkdirSync(fixture);
-  for (const name of ['index.html', 'js', 'css']) fs.cpSync(path.join(root, name), path.join(fixture, name), { recursive: true });
+  for (const name of ['index.html', 'js', 'css', 'assets']) fs.cpSync(path.join(root, name), path.join(fixture, name), { recursive: true });
   if (mode === 'json') fs.writeFileSync(path.join(fixture, 'broken.json'), '{ INVALID_JSON');
   if (mode === 'asset') fs.appendFileSync(path.join(fixture, 'index.html'), '\n<script src="missing-regression-script.js"></script>\n');
   const output = path.join(runDir, mode + '-results');

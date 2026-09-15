@@ -158,8 +158,9 @@ window.measureControls = () => {
 
 window.checkSustainedAudio = async () => {
   const sound=auditSaved.sound, ctx=sound.ctx;await ctx.resume();sound.isMuted=false;
-  const original=ctx.createOscillator;let created=0,active=0,peak=0,disconnected=0;
-  ctx.createOscillator=function() {
+  await sound.ready;
+  const original=ctx.createBufferSource;let created=0,active=0,peak=0,disconnected=0;
+  ctx.createBufferSource=function() {
     const node=original.call(this);created++;active++;peak=Math.max(peak,active);
     node.addEventListener('ended',()=>active--);
     const disconnect=node.disconnect.bind(node);node.disconnect=(...args)=>{disconnected++;return disconnect(...args);};
@@ -168,6 +169,6 @@ window.checkSustainedAudio = async () => {
   try {
     const started=performance.now();let batches=0;
     while(performance.now()-started<60000){for(let j=0;j<100;j++)sound.playHit(batches%2===0);batches++;await new Promise(r=>setTimeout(r,5));}
-    await new Promise(r=>setTimeout(r,250));return {seconds:(performance.now()-started)/1000,batches,created,active,peak,disconnected};
-  } finally {ctx.createOscillator=original;sound.isMuted=true;}
+    await new Promise(r=>setTimeout(r,1200));return {seconds:(performance.now()-started)/1000,batches,created,active,peak,disconnected};
+  } finally {ctx.createBufferSource=original;sound.isMuted=true;}
 };

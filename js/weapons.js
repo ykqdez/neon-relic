@@ -114,30 +114,7 @@ class PulseBlade extends BaseWeapon {
   }
 
   render(ctx) {
-    for (const s of this.slashes) {
-      const progress = 1 - (s.life / s.maxLife);
-      ctx.save();
-      ctx.translate(s.x, s.y);
-      ctx.rotate(s.angle);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, s.radius, -Math.PI * 0.45, Math.PI * 0.45);
-      ctx.strokeStyle = s.isEvolved ? `rgba(255, 0, 127, ${1 - progress})` : `rgba(0, 240, 255, ${1 - progress})`;
-      ctx.lineWidth = s.isEvolved ? 4 : 2.5;
-      ctx.shadowColor = s.isEvolved ? '#ff007f' : '#00f0ff';
-      ctx.shadowBlur = 12;
-      ctx.stroke();
-
-      // 刃光十字
-      ctx.beginPath();
-      ctx.moveTo(-s.radius * 0.6, 0);
-      ctx.lineTo(s.radius * 0.8, 0);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.restore();
-    }
+    window.PixelArt.weapon(ctx, this);
   }
 
   evolve() {
@@ -269,30 +246,7 @@ class ArcCore extends BaseWeapon {
   }
 
   render(ctx) {
-    for (const c of this.chains) {
-      const alpha = c.life / c.maxLife;
-      ctx.save();
-      ctx.strokeStyle = c.color;
-      ctx.lineWidth = c.isBolt ? 3.5 : 2;
-      ctx.shadowColor = c.color;
-      ctx.shadowBlur = 10;
-      ctx.globalAlpha = alpha;
-
-      ctx.beginPath();
-      for (let i = 0; i < c.points.length; i++) {
-        const pt = c.points[i];
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else {
-          // 随机闪电折线抖动
-          const midX = (c.points[i - 1].x + pt.x) / 2 + (Math.random() - 0.5) * 12;
-          const midY = (c.points[i - 1].y + pt.y) / 2 + (Math.random() - 0.5) * 12;
-          ctx.lineTo(midX, midY);
-          ctx.lineTo(pt.x, pt.y);
-        }
-      }
-      ctx.stroke();
-      ctx.restore();
-    }
+    window.PixelArt.weapon(ctx, this);
   }
 
   evolve() {
@@ -397,63 +351,7 @@ class OrbitalSatellites extends BaseWeapon {
   }
 
   render(ctx, player) {
-    if (this.level <= 0) return;
-
-    const orbCount = this.isEvolved ? 6 : (2 + (this.level - 1));
-    const radius = (70 + (this.level - 1) * 8) * player.areaBonus;
-    const orbSize = this.isEvolved ? 10 : 7;
-
-    // 进化形态：绘制卫星之间的高能激光护盾网络 (多边形环垒力场)
-    if (this.isEvolved) {
-      ctx.save();
-      ctx.beginPath();
-      for (let i = 0; i < orbCount; i++) {
-        const a = this.angle + (i * Math.PI * 2) / orbCount;
-        const ox = player.x + Math.cos(a) * radius;
-        const oy = player.y + Math.sin(a) * radius;
-        if (i === 0) ctx.moveTo(ox, oy);
-        else ctx.lineTo(ox, oy);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = 'rgba(255, 0, 127, 0.45)';
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 12;
-      ctx.stroke();
-
-      // 内环半透明能量力场面
-      ctx.fillStyle = 'rgba(0, 240, 255, 0.05)';
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 基础轨道环微光
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = this.isEvolved ? 'rgba(255, 0, 127, 0.22)' : 'rgba(0, 240, 255, 0.12)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    for (let i = 0; i < orbCount; i++) {
-      const a = this.angle + (i * Math.PI * 2) / orbCount;
-      const ox = player.x + Math.cos(a) * radius;
-      const oy = player.y + Math.sin(a) * radius;
-
-      ctx.beginPath();
-      ctx.arc(ox, oy, orbSize, 0, Math.PI * 2);
-      ctx.fillStyle = this.isEvolved ? '#ff007f' : '#00f0ff';
-      ctx.shadowColor = this.isEvolved ? '#ff007f' : '#00f0ff';
-      ctx.shadowBlur = 10;
-      ctx.fill();
-
-      // 白色中心
-      ctx.beginPath();
-      ctx.arc(ox, oy, orbSize * 0.45, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-    }
-    ctx.restore();
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -602,52 +500,7 @@ class PlasmaCannon extends BaseWeapon {
   }
 
   render(ctx) {
-    for (const p of this.projectiles) {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.angle);
-
-      if (p.isEvolved) {
-        // 湮灭重炮反物质光晕
-        ctx.beginPath();
-        ctx.arc(0, 0, p.radius * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(57, 255, 20, 0.25)';
-        ctx.shadowColor = '#39ff14';
-        ctx.shadowBlur = 24;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.radius * 2.0, p.radius * 1.2, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#39ff14';
-        ctx.fill();
-
-        // 反物质黑核
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.radius * 1.0, p.radius * 0.6, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1f0a';
-        ctx.fill();
-
-        // 核心白炽亮点
-        ctx.beginPath();
-        ctx.arc(0, 0, p.radius * 0.4, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-      } else {
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.radius * 1.8, p.radius, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#39ff14';
-        ctx.shadowColor = '#39ff14';
-        ctx.shadowBlur = 12;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.radius * 0.9, p.radius * 0.5, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-      }
-
-      ctx.restore();
-    }
+    window.PixelArt.weapon(ctx, this);
   }
 
   evolve() {
@@ -775,41 +628,7 @@ class BlackHoleGenerator extends BaseWeapon {
   }
 
   render(ctx) {
-    for (const h of this.holes) {
-      ctx.save();
-      ctx.translate(h.x, h.y);
-
-      // 引力吸入光圈
-      ctx.beginPath();
-      ctx.arc(0, 0, h.radius, 0, Math.PI * 2);
-      ctx.strokeStyle = h.isEvolved ? 'rgba(255, 0, 127, 0.25)' : 'rgba(176, 38, 255, 0.2)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 8]);
-      ctx.stroke();
-
-      // 旋转漩涡线
-      ctx.rotate(h.rotation);
-      for (let arm = 0; arm < 3; arm++) {
-        ctx.beginPath();
-        ctx.arc(0, 0, h.radius * 0.7, arm * (Math.PI * 2 / 3), arm * (Math.PI * 2 / 3) + Math.PI * 0.5);
-        ctx.strokeStyle = h.isEvolved ? '#ff007f' : '#b026ff';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-      }
-
-      // 黑色核心球
-      ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
-      ctx.fillStyle = '#050711';
-      ctx.shadowColor = h.isEvolved ? '#ff007f' : '#b026ff';
-      ctx.shadowBlur = 15;
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.restore();
-    }
+    window.PixelArt.weapon(ctx, this);
   }
 
   evolve() {
@@ -978,49 +797,7 @@ class PrismRay extends BaseWeapon {
   }
 
   render(ctx) {
-    for (const b of this.beams) {
-      const alpha = Math.min(1.0, b.life / (b.maxLife * 0.8));
-      ctx.save();
-      ctx.translate(b.x, b.y);
-      ctx.rotate(b.angle);
-
-      if (b.isEvolved) {
-        // 超维裂隙：青洋红双色裂隙死光
-        const grad = ctx.createLinearGradient(0, -b.width / 2, 0, b.width / 2);
-        grad.addColorStop(0, `rgba(0, 240, 255, ${alpha * 0.7})`);
-        grad.addColorStop(0.5, `rgba(255, 0, 127, ${alpha * 0.9})`);
-        grad.addColorStop(1, `rgba(0, 240, 255, ${alpha * 0.7})`);
-
-        ctx.beginPath();
-        ctx.rect(0, -b.width / 2, b.length, b.width);
-        ctx.fillStyle = grad;
-        ctx.shadowColor = '#ff007f';
-        ctx.shadowBlur = 24;
-        ctx.fill();
-
-        // 核心高能白线
-        ctx.beginPath();
-        ctx.rect(0, -b.width * 0.15, b.length, b.width * 0.3);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
-        ctx.fill();
-      } else {
-        // 外围激光光晕
-        ctx.beginPath();
-        ctx.rect(0, -b.width / 2, b.length, b.width);
-        ctx.fillStyle = `rgba(0, 240, 255, ${alpha * 0.35})`;
-        ctx.shadowColor = '#00f0ff';
-        ctx.shadowBlur = 18;
-        ctx.fill();
-
-        // 核心高能白线
-        ctx.beginPath();
-        ctx.rect(0, -b.width * 0.2, b.length, b.width * 0.4);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-        ctx.fill();
-      }
-
-      ctx.restore();
-    }
+    window.PixelArt.weapon(ctx, this);
   }
 
   evolve() {

@@ -9,7 +9,7 @@ const report = read('verification_report'), integrity = read('integrity');
 if (report.status !== 'PASSED' || report.growthRuns !== 360 || !integrity.rows.every(r=>r.passed)) {
   throw Error('Run the complete --growth suite and integrity tests successfully before publishing');
 }
-const sourceHashes = Object.fromEntries(Object.entries(report.sha256).filter(([name]) => /\.(js|cjs|html|css)$/.test(name) || name==='package.json'));
+const sourceHashes = Object.fromEntries(Object.entries(report.sha256).filter(([name]) => /\.(js|cjs|html|css)$/.test(name) || name==='package.json' || name.startsWith('assets/')));
 for (const [name, expected] of Object.entries(sourceHashes)) {
   const actual = crypto.createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex');
   if (actual !== expected) throw Error('Source changed since verification: ' + name);
@@ -44,7 +44,7 @@ const meta={runId:report.runId,timestamp:report.timestamp,node:report.node,brows
   baseCommit:report.baseCommit,sourceHashes,command:'node tests/verify.cjs --growth',
   conditions:bench.method,notes:'baseCommit is the parent commit before local edits; sourceHashes identify the tested tree. Game-displayed seed is not a gameplay replay seed.'};
 const data={metadata:meta,verification:{status:report.status,totalAssertions:report.totalAssertions,failures:report.failures,
-  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),audio:report.audio,realtime:report.realtime,stress:extra.stress},
+  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),pixel:read('pixel'),audio:report.audio,realtime:report.realtime,stress:extra.stress},
   weapons:bench.all,sustained60s:focused.find(r=>r.name==='sustained_60s_fps').result,
   satelliteAreaCoverage:bench.areaCoverage,satellitePassiveInteractions:bench.passiveInteractions,
   flows:flows.map(({levels,...rest})=>rest),growth:{method:'390x844, 60Hz, seeds 1..30 per difficulty/strategy, up to 900 simulated seconds, real offered cards, identical movement policy, no granted equipment or invulnerability. Quantiles are conditional on reaching each milestone; unreached samples remain censored.',summary:growthSummary}};
@@ -61,6 +61,9 @@ fs.writeFileSync(path.join(root,'FIX_VERIFICATION.md'),`# 修复与验收结果\
 本轮自动断言 **${report.totalAssertions}/${report.totalAssertions} 通过**；浏览器错误 ${report.errors.length} 条。验证器自身的正常对照及四种故障注入均通过。此结论仅覆盖下列自动场景，不代表真机兼容性或游戏平衡全部验收。
 
 ## 本轮修复
+
+- 像素美术更新：本地 CC0 角色/怪物/装备图集、五帧爆炸、12 个采样音效、低音量循环 BGM，以及 OFL 中文像素字体。六武器渲染、地板、HUD 和所有弹窗统一像素风；不修改攻击与碰撞参数。素材来源与完整许可见 assets/CREDITS.md。
+- 新增资源哈希/解码、像素画布、渲染不消耗玩法随机数、BGM 跟随暂停/抽屉/静音、采样节点上限与回收回归。
 
 - R01：黑洞每帧仅扣一次 tick 时间；Lv5 单洞 3.4 秒内为 13 次命中、260 伤害。
 - R03：用户暂停、协议抽屉、升级选择和系统失焦分别记录；抽屉关闭及最后一次选卡不会清掉系统暂停，隐藏页面拒绝恢复。

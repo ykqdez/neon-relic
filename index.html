@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>《霓虹遗迹 Neon Relic》- 手机优先 Roguelite 生存</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/pixel.css">
 </head>
 <body>
   <div id="game-container">
@@ -50,8 +51,8 @@
 
           <!-- 右侧：静音与暂停按键 -->
           <div class="hud-top-right">
-            <button id="btn-mute" class="btn-icon" aria-label="声音开关" title="音效开关">🔊</button>
-            <button id="btn-pause" class="btn-icon" aria-label="暂停游戏" title="暂停游戏">⏸️</button>
+            <button id="btn-mute" class="btn-icon" aria-label="音效与背景音乐开关" aria-pressed="false" title="音效与背景音乐">SND</button>
+            <button id="btn-pause" class="btn-icon" aria-label="暂停游戏" title="暂停游戏">Ⅱ</button>
           </div>
         </div>
 
@@ -79,7 +80,7 @@
       <!-- 底部装备 Dock (紧凑排布，容器穿透，仅协议详情按钮接收点击) -->
       <div class="hud-bottom-bar">
         <div id="build-dock" class="build-dock">
-          <button id="btn-toggle-build" class="dock-title-btn" type="button" title="点击查看机体协议详情">PROTOCOLS ℹ️</button>
+          <button id="btn-toggle-build" class="dock-title-btn" type="button" title="点击查看机体协议详情">装备 / GEAR</button>
           <div id="build-quick-view" class="build-quick-view"></div>
         </div>
       </div>
@@ -89,9 +90,10 @@
     <div id="modal-start" class="modal-overlay active">
       <div class="modal-dialog start-dialog">
         <div class="game-logo">
-          <div class="logo-tag">ARENA SURVIVOR · ROGUELITE</div>
+          <div class="logo-tag">16-BIT RUINS · SURVIVOR</div>
           <h1 class="logo-title">NEON RELIC</h1>
           <div class="logo-cn">《霓虹遗迹》</div>
+          <div class="pixel-hero-scene" aria-hidden="true"><i class="pixel-icon scene-enemy" style="--sprite-x:0;--sprite-y:10"></i><i class="pixel-icon scene-hero" style="--sprite-x:1;--sprite-y:8"></i><i class="pixel-icon scene-enemy" style="--sprite-x:2;--sprite-y:9"></i></div>
         </div>
         
         <div class="start-guide">
@@ -119,8 +121,8 @@
         </div>
 
         <div class="start-records" id="start-records">
-          <div class="record-badge">🏆 最佳记录: <span id="record-best-time">00:00</span></div>
-          <div class="record-badge">👾 泰坦击杀: <span id="record-bosses">0</span> 次</div>
+          <div class="record-badge">最佳记录: <span id="record-best-time">00:00</span></div>
+          <div class="record-badge">泰坦击杀: <span id="record-bosses">0</span> 次</div>
         </div>
 
         <!-- 难度选择器 -->
@@ -134,7 +136,7 @@
           <div class="diff-desc" id="diff-desc">移动端专属调优：移速+自愈微流，死角视野拓宽，怪物解锁更平滑</div>
         </div>
 
-        <button id="btn-start-game" class="game-btn start-action-btn">
+        <button id="btn-start-game" class="game-btn start-action-btn" disabled>
           启动协议 INITIATE
         </button>
       </div>
@@ -230,6 +232,7 @@
   </div>
 
   <!-- 游戏系统脚本注入 (按依赖层级严格排序) -->
+  <script src="js/pixel-art.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/input.js"></script>
   <script src="js/player.js"></script>

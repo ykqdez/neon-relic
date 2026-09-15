@@ -1,30 +1,62 @@
 {
   "metadata": {
-    "runId": "81894891-a545-4353-a0dd-a660dcd694e1",
-    "timestamp": "2026-09-15T22:39:10.236Z",
+    "runId": "ad1cf29e-5089-4547-a5df-52e55cc4be09",
+    "timestamp": "2026-09-15T23:44:13.588Z",
     "node": "v24.19.0",
     "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
-    "baseCommit": "e43a156e7a783ce799b16dc29f8d5f24b5f826f7",
+    "baseCommit": "fe5777957adb570608b74e6b49e3f117fdbbe5d4",
     "sourceHashes": {
+      "assets/audio/laser1.ogg": "0bf468769b48a834dc1c6e38e457f2c71159b010225a9aedf84316795e8cc3e5",
+      "assets/audio/laser5.ogg": "8d7b30b35112bedf4dd6f03796a5f33af85414b02947187e4063819fd80cf3e2",
+      "assets/audio/lowDown.ogg": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+      "assets/audio/pepSound1.ogg": "f2f44effce087e47683f0fea05a71002bd8dca78fb10bf93d9f0b38d49f9590e",
+      "assets/audio/phaserDown1.ogg": "d2d046cd0247045f8819905fc9719a7237ccbd590b3128ce58a61a81f50d208b",
+      "assets/audio/powerUp3.ogg": "59e7591f7a068882767bc1fd61edabf479b78787466d3a70bc49dfa0533777d2",
+      "assets/audio/powerUp8.ogg": "2a2adebaacbf07cc89c194e5d088c8e01cad8557800559d6cb5b6106b6739508",
+      "assets/audio/relic-run.mp3": "559ad4eb2f936b7a3db0513aabf45926c842253a5721d23b3202a7a56a6b19da",
+      "assets/audio/spaceTrash1.ogg": "8f702781627c95cf9f91724dab3bcdb46bb87cc0ccf2a350748798dba6bc82aa",
+      "assets/audio/spaceTrash4.ogg": "d0c659b2c8108a7bccfeac94dbac6b770f89e4b71c0b4c6c3024941287094f34",
+      "assets/audio/threeTone1.ogg": "bdf21eb12e65507f091d074886fdac820e1ccae51d060caa168e5567acadb84b",
+      "assets/audio/zap1.ogg": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
+      "assets/audio/zap2.ogg": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
+      "assets/CREDITS.md": "8ebaf56daa1a36cebe1c6ae53f3c8fab77e53bd850f72cc8db7cefb096be02ab",
+      "assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2": "de421b3da7b20e045f0712ee838f30c225f4610b348efb37e2b31baa98860cbf",
+      "assets/licenses/fusion-pixel/LICENSES/ark-pixel/OFL.txt": "3ab41567e68e3988ba1ef16dd2644eca95ca5648ea12e7d46e6287fc0bbe5aee",
+      "assets/licenses/fusion-pixel/LICENSES/cubic-11/OFL.txt": "2b6e5938e5cffa0b9e183bd05f8c363e174e7ebed1a0556e2855fd1707fa2188",
+      "assets/licenses/fusion-pixel/LICENSES/galmuri/LICENSE.txt": "86a3ee9495f942f0243f18c103da9faca27adb88142613edb8bb852e56c892c1",
+      "assets/licenses/fusion-pixel/OFL.txt": "bc518cf64b8032c07690f33cc270c35c179255a6ac8efa7c165ebae7e8f76a63",
+      "assets/licenses/kenney-digital-audio.txt": "654d24e000d1c3b2a1d2264151f49e273e8a26d24e26e9bffc2aeb48cea93815",
+      "assets/licenses/kenney-tiny-dungeon.txt": "9f574a2f1f636a3db8a0665ba90212f34e2b5e61ecb533d77c05237766374111",
+      "assets/licenses/opengameart-cc0.txt": "f3ca365b73f1ec72746f68b414e62338972e692b7efc67c5d99cab3741f68865",
+      "assets/manifest.json": "7d3dc631ceff9dc10c5f0b6ba53d2ea83cfeb7b2cf9a09d7dac087eb52d26d7d",
+      "assets/sprites/dungeon.png": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f",
+      "assets/sprites/explosion-01.png": "ff9cc38fdba93d5af30a52562dba3c8a177449bee31e243f000e9cfe45dcb355",
+      "assets/sprites/explosion-02.png": "5e36d46e3a7dddb1c46bcfec62c125cde4e253e18e3452dcf560b70a424ca976",
+      "assets/sprites/explosion-03.png": "407d6c15e8ff5d42217b95397140d6be370abb2845176222d9f4c53f34c21580",
+      "assets/sprites/explosion-04.png": "e2f7f2ca0d2e9f254a1c57420265f61c01c6acd845f4ca693fbdf367e833cbdd",
+      "assets/sprites/explosion-05.png": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
+      "css/pixel.css": "7192f8e39cb1b698666f8b94227f661cb55de26ed872d36588a4d0b35b5a4383",
       "css/style.css": "8e40de08e4f6605cd57ce4a2688d695992fe4488de5b1c4cee0fbf484bc1cbcc",
-      "index.html": "efd07dff4e4b20298cbac20ac69960d7c312a375f44514fc913e1bc7052c5995",
-      "js/audio.js": "cdc9bb3b5573e9013053f82bf3d6ccf1a4962784afd2273f9e51a99887805b4d",
-      "js/enemies.js": "12064b4ac39784f2fdfe03c33155c6d8df9dfd27f722b04d50293e71bd8c7ebd",
-      "js/game.js": "0dca796e092574d013d5ed6d19e07f61ff6d05c803f899e5e1a711f754133ed9",
+      "index.html": "bf4fff27b2a0eefc5b0b35ae731aee5d27ae427fe7fd3175aff8e02a1ab85f1f",
+      "js/audio.js": "69bbb83921f25dd8c037a2fa8baf1aab7d01fa2111aec6ef1982339463368424",
+      "js/enemies.js": "e7dae2b2714f8c94c06c8e3c82b7924a51eb7dd0c2f6369efad6923eb206397b",
+      "js/game.js": "8caf9be5873f9c6c05b08afdd215cc7e732599a2b5301207a1902c873b2629c7",
       "js/input.js": "54ba1bc7075cca064011978bc12359ba4bea858ae9fcb2db0c5fe80d3ebf27cd",
-      "js/player.js": "4aca405dab5a51275fffb2e223fd8457adb77d54c9cd3ea2910d2f136fa8f1f4",
+      "js/pixel-art.js": "353e727caab3f82c70112374d0b9af7500087e2c28fb5e565a3f9f333fb1be53",
+      "js/player.js": "3f2c6af35e66eb27511a0b8c377405ec0569e35373bd0b4f8cddc3ef789d2976",
       "js/upgrades.js": "5500c6799fdbd3336a2bf19b5566a8a8f34c008606d75f857649bc36667d150d",
-      "js/weapons.js": "a8e1f1b9e3c9ffd0beb32de6df4655a96daff4cbfe9495fa3768c7d50bd0efcb",
-      "package.json": "9037e467ace151f4ab232f54c490c09c07a54020cf73f303e70762b5058d3d85",
-      "tests/build-report.cjs": "b1c80a86f6279d990ec71931c4d871cf36bf7679f63b686c46c06f6996f107cd",
-      "tests/checks.js": "adbb1d61a40f7b20476cfc219cc62932340f3f41222465b94fd853cdd0030d2f",
-      "tests/diagnostics.js": "5603771fe9fe4c4278f1e53064f86d3fb6b40dd278411fcdd86585518cf5b9cc",
+      "js/weapons.js": "a1a461b87a7d03d9eb9edccc09a0b0930e3617f5dc7af7e11bbb3095b5c304a0",
+      "package.json": "8301e0dca88e0582a63c143e143e97071c7103714941d8fb3ba94f7b4d4d5f1f",
+      "tests/build-report.cjs": "40c6e11dac44c059ac46dae6d2dbece372ea34fa5dba1485d84e59b0483908eb",
+      "tests/checks.js": "472d4fb513362b02d1ef564e7589fa16be12dab587584fa34b99f2edcc12f87f",
+      "tests/diagnostics.js": "28a19dff8e60c385d5e9bcbe48a3a243130009852dedf72e0d4278f9fc36fe0b",
       "tests/growth.js": "93bd2984bff01eaa2da0de3ef0f15de5aaec3595b0b13f65b0000d8214fa5f25",
-      "tests/integrity.cjs": "9d8eb1ddf71b2a1842272b1348026cdc407e8dec67d73e52eab827ed474bc64d",
+      "tests/integrity.cjs": "36c98df866fe97f267e22cc5d0f9bdf4d166c368ed05f17b7fe787c556d1968b",
       "tests/measurements.cjs": "2e8edb6f193b1dfa7e78880346957c59e4662404dd689423ea022726e300499a",
+      "tests/pixel-checks.js": "690fff478a3fed961179ec3e3441fee77e031cc117993e6859dff322c62745ea",
       "tests/regression-probes.js": "fec643abdcf384dc227956a9ebd9fa40cc2b1120fe27916312196592d512abde",
       "tests/scenarios.js": "fd266deed268753f3ca719f00459b40fe9fb317de869b6632fa4fd5a5eb63eb3",
-      "tests/verify.cjs": "ad28b431237d6e727c7764e930539dd86d7dc54a581c4d636341710a3429cd73"
+      "tests/verify.cjs": "e73a8089cef223898be01d12ec4664d26d8f785ec2eb0ebe58bfe582bb57d354"
     },
     "command": "node tests/verify.cjs --growth",
     "conditions": "10s; cold start; dt=1/fps; radius46 immortal stationary boss target; attackDamage1,area1,crit0,CDR0; evolved keeps level5 as selectUpgrade; seed12345; Date.now advanced by dt; dense 24 radius13 targets in 6x4 grid x60..210 y-45..45; no AI or displacement; moving target angular speed0.7 rad/s",
@@ -32,7 +64,7 @@
   },
   "verification": {
     "status": "PASSED",
-    "totalAssertions": 706,
+    "totalAssertions": 747,
     "failures": [],
     "integrity": [
       {
@@ -61,17 +93,89 @@
         "exit": 1
       }
     ],
+    "pixel": [
+      {
+        "passed": true,
+        "name": "all six sprite images decode",
+        "detail": []
+      },
+      {
+        "passed": true,
+        "name": "Chinese pixel font loaded"
+      },
+      {
+        "passed": true,
+        "name": "12 local sound samples decode",
+        "detail": []
+      },
+      {
+        "passed": true,
+        "name": "render does not consume gameplay randomness",
+        "detail": 0
+      },
+      {
+        "passed": true,
+        "name": "render does not change damage or HP"
+      },
+      {
+        "passed": true,
+        "name": "half-resolution nearest-neighbour canvas"
+      },
+      {
+        "passed": true,
+        "name": "health bar retains healthy / hurt / danger colors",
+        "detail": [
+          "rgb(147, 223, 199)",
+          "rgb(230, 173, 100)",
+          "rgb(237, 105, 121)"
+        ]
+      },
+      {
+        "passed": true,
+        "name": "BGM starts after unlock at low volume"
+      },
+      {
+        "passed": true,
+        "name": "game pause suspends BGM immediately"
+      },
+      {
+        "passed": true,
+        "name": "equipment drawer suspends BGM immediately"
+      },
+      {
+        "passed": true,
+        "name": "upgrade suspends BGM immediately"
+      },
+      {
+        "passed": true,
+        "name": "game over suspends BGM immediately"
+      },
+      {
+        "passed": true,
+        "name": "mute suspends BGM"
+      },
+      {
+        "passed": true,
+        "name": "sample voice budget",
+        "detail": 20
+      },
+      {
+        "passed": true,
+        "name": "sample voices release after playback",
+        "detail": 0
+      }
+    ],
     "audio": {
-      "seconds": 60.2545,
-      "batches": 10322,
-      "created": 1760,
+      "seconds": 61.20719999998808,
+      "batches": 10412,
+      "created": 359,
       "active": 0,
-      "peak": 3,
-      "disconnected": 1760
+      "peak": 4,
+      "disconnected": 359
     },
     "realtime": {
-      "frames": 719,
-      "elapsed": 2.999699999976153,
+      "frames": 722,
+      "elapsed": 2.9991999999761467,
       "finite": true,
       "soundState": "running"
     },
@@ -82,9 +186,9 @@
           1728,
           896
         ],
-        "meanMs": 0.46669444445106717,
-        "p95Ms": 0.6000000238418579,
-        "maxMs": 5,
+        "meanMs": 1.7720833333498902,
+        "p95Ms": 4.4000000059604645,
+        "maxMs": 9.099999994039536,
         "maxShock": 35,
         "maxParticles": 250,
         "damageTexts": 25
@@ -95,9 +199,9 @@
           390,
           844
         ],
-        "meanMs": 0.3986666666550769,
-        "p95Ms": 0.5,
-        "maxMs": 2,
+        "meanMs": 1.6187777777926788,
+        "p95Ms": 4.5,
+        "maxMs": 9.400000005960464,
         "maxShock": 20,
         "maxParticles": 120,
         "damageTexts": 25

@@ -1,0 +1,135 @@
+/* Pixel skin. Layout and hit targets still use the responsive rules in style.css. */
+@font-face {
+  font-family: 'Relic Pixel';
+  src: url('../assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+:root {
+  --bg-color: #121827;
+  --bg-panel: #202b3b;
+  --neon-cyan: #93dfc7;
+  --neon-magenta: #e28aa6;
+  --neon-purple: #baa4e6;
+  --neon-lime: #bddb89;
+  --neon-amber: #f0c27b;
+  --neon-blue: #99c4e2;
+  --text-main: #f2ecd6;
+  --text-dim: #9baeb7;
+  --border-glow: #607881;
+  --font-family: 'Relic Pixel', monospace;
+}
+html, body, button { font-family: var(--font-family); font-weight: 400; }
+#game-canvas { background: #151c2a; image-rendering: pixelated; }
+.pixel-icon {
+  --icon-size: 32px;
+  display: inline-block; flex: 0 0 auto; width: var(--icon-size); height: var(--icon-size);
+  background: url('../assets/sprites/dungeon.png') no-repeat;
+  background-size: calc(var(--icon-size) * 12) calc(var(--icon-size) * 11);
+  background-position: calc(var(--sprite-x) * var(--icon-size) * -1) calc(var(--sprite-y) * var(--icon-size) * -1);
+  image-rendering: pixelated; vertical-align: middle;
+}
+.modal-overlay { background: #0c1221d9; backdrop-filter: none; -webkit-backdrop-filter: none; transition: none; }
+.modal-dialog {
+  border: 3px solid #839c9e; border-radius: 0;
+  background: #202b3b;
+  box-shadow: 0 0 0 3px #111726, 0 0 0 5px #455b65, 8px 8px 0 #080e1bad, inset 0 0 0 3px #2c3b4c;
+  padding: 20px;
+  scrollbar-color: #728b91 #192130;
+}
+.modal-title { font-size: 24px; line-height: 1.25; font-weight: 400; letter-spacing: 0; text-shadow: 2px 2px #0c1927; color: #d5edce; }
+.modal-subtitle { font-size: 12px; line-height: 1.6; }
+.logo-tag { font-size: 12px; letter-spacing: 2px; color: #b4ccae; opacity: 1; }
+.logo-title { font-size: 48px; font-weight: 400; letter-spacing: 0; color: #e6ecc7; text-shadow: 3px 3px #427d75, 6px 6px #111928; }
+.logo-cn { font-size: 24px; color: #97cec3; letter-spacing: 4px; margin-top: 8px; }
+.pixel-hero-scene { display:flex; align-items:flex-end; justify-content:center; gap:36px; width:100%; height:80px; margin:6px 0 0; border-bottom:4px solid #53695e; background:repeating-linear-gradient(90deg,transparent 0 30px,#2c3b43 30px 32px) bottom/100% 12px no-repeat; }
+.scene-hero { --icon-size:64px; margin-bottom:4px; animation:pixel-bob .8s steps(2,end) infinite; }
+.scene-enemy { --icon-size:32px; margin-bottom:6px; opacity:.8; }
+@keyframes pixel-bob { 50% { transform:translateY(-4px); } }
+.start-dialog { gap:14px; }
+.start-guide, .record-panel, .diff-selector, .player-status-card, .exp-bar-wrap, .build-dock,
+.bd-item, .stat-box, .stat-item, .gameover-stats, .gameover-build, .final-build, .score-panel {
+  border-radius:0; background:#182231; border-color:#465967; box-shadow:inset 0 2px #304252;
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+}
+.start-guide { padding:12px; border:2px solid #465967; gap:10px; }
+.guide-h { font-size:12px; font-weight:400; color:#e7e7c9; }
+.guide-d { font-size:12px; color:#a8bac0; line-height:1.4; }
+.guide-icon { font-size:0; width:32px; min-width:32px; height:32px; background:url('../assets/sprites/dungeon.png') -256px -256px/384px 352px; image-rendering:pixelated; }
+.guide-item:nth-child(2) .guide-icon { background-position:-256px -128px; }
+.guide-item:nth-child(3) .guide-icon { background-position:-160px -160px; }
+.game-btn, .btn-icon, .dock-title-btn, .diff-btn {
+  font-family:var(--font-family); font-size:12px; font-weight:400; letter-spacing:0;
+  border:2px solid #789391; border-radius:0; color:#eff1d9; background:#334e51;
+  box-shadow:inset 0 2px #516e69, 0 3px #0d1724; text-shadow:1px 1px #14232c;
+  transition:background .1s; min-height:44px;
+}
+.game-btn:hover, .btn-icon:hover, .dock-title-btn:hover, .diff-btn:hover { background:#426663; box-shadow:inset 0 2px #799b88,0 3px #0d1724; transform:none; }
+.game-btn:active, .btn-icon:active, .diff-btn:active { transform:translateY(2px); box-shadow:inset 0 2px #243c41; }
+.game-btn:focus-visible, .btn-icon:focus-visible, .diff-btn:focus-visible, .dock-title-btn:focus-visible { outline:2px solid #ffe0a0; outline-offset:3px; }
+.diff-btn { background:#253440; border-color:#4b6470; color:#b3c4c4; padding:8px 4px; }
+.diff-btn.active { background:#486750; border-color:#b9d69b; color:#f4f0ce; box-shadow:inset 0 -3px #2a4639; }
+.btn-secondary { background:#343546; border-color:#7b7890; }
+.btn-icon { width:44px; height:44px; min-width:44px; font-size:12px; }
+.dock-title-btn { font-size:12px; padding:4px 8px; }
+.player-status-card { border:2px solid #556c74; }
+.level-badge, .bar-bg, .hp-fill, .exp-track, .exp-bar-fill, .boss-hp-bg, .boss-hp-fill, .boss-phase-tag,
+.card-icon-box, .card-rarity-badge, .weapon-chip, .chip-level { border-radius:0; text-shadow:none; box-shadow:none !important; }
+.bar-bg, .exp-track, .boss-hp-bg { background:#0e1625; border:1px solid #42525c; }
+.exp-bar-fill { background:repeating-linear-gradient(90deg,#8ebcc4 0 8px,#689da9 8px 10px); }
+.boss-hp-fill { background:repeating-linear-gradient(90deg,#e5927c 0 12px,#c7746f 12px 14px); }
+.hud-timer { font-size:24px; line-height:1; color:#ecead0; letter-spacing:1px; text-shadow:2px 2px #152233; }
+.hud-kill-count { font-size:12px; color:#d4ba8e; text-shadow:none; }
+.level-badge, .hp-numeric, .armor-numeric, .exp-numeric, .exp-label, .boss-phase-tag { font-size:12px; font-weight:400; }
+#boss-name { font-size:12px; text-shadow:1px 1px #1e1529; color:#e7b391; }
+.weapon-chip { background:#293544; border:1px solid #536575; font-size:0; }
+.weapon-chip .pixel-icon { --icon-size:24px; }
+.weapon-chip.evolved { background:#3f354e; border-color:#bca4d7; }
+.chip-level { background:#111e2a; font:12px var(--font-family); color:#e8e4c6; }
+.upgrade-card { border-radius:0; border-width:2px; border-left-width:5px; background:#24333f; box-shadow:3px 3px #101a28; transition:background .1s; }
+.upgrade-card:hover { background:#344b51; transform:none; box-shadow:3px 3px #101a28; }
+.rarity-common { border-color:#79918e; }
+.rarity-rare { border-color:#85b6cb; background:#253b4d; }
+.rarity-epic, .rarity-evolution { border-color:#b89bd1; background:#3b324a; }
+.card-icon-box { background:#111c2b; border:2px solid #586775; font-size:0; }
+.card-name { font-size:16px; font-weight:400; text-shadow:1px 1px #132131; }
+.card-desc { font-size:12px; line-height:1.4; }
+.card-rarity-badge { font-size:12px; font-weight:400; letter-spacing:0; padding:2px 4px; }
+.upgrade-card.rarity-common { border-color:#79918e; background:#24333f; box-shadow:3px 3px #101a28; }
+.upgrade-card.rarity-rare { border-color:#85b6cb; background:#253b4d; box-shadow:3px 3px #101a28; }
+.upgrade-card.rarity-epic { border-color:#d7b777; background:#413a35; box-shadow:3px 3px #101a28; }
+.upgrade-card.rarity-evolution { border-color:#b89bd1; background:#3b324a; box-shadow:3px 3px #101a28; animation:none; }
+#boss-hud { border:2px solid #b37c72; border-radius:0; background:#292638; box-shadow:2px 2px #0d1523; }
+.start-records, .difficulty-select-wrap, .stat-item, .final-build-box, .ws-bar-bg, .ws-bar-fill { border-radius:0; background-color:#182231; }
+.difficulty-select-wrap { border:2px solid #465967; }
+.diff-btn[data-diff="hard"].active { background:#614144; border-color:#e0a287; box-shadow:inset 0 -3px #3e2b37; }
+.game-btn:disabled { opacity:.5; cursor:wait; }
+.card-header-row { flex-wrap:wrap; }
+.bd-item-icon { display:flex; align-items:center; font-size:0; }
+.bd-item-name, .bd-section-title { font-size:12px; font-weight:400; }
+.bd-item-lvl, .bd-item-dps { font-family:var(--font-family); font-size:12px; }
+.joystick-base { border-radius:0; border:3px solid #80ae9b; background:#1e394766; box-shadow:none; }
+#joystick-knob { border-radius:0; background:#91cab5; border:3px solid #d5e7c2; box-shadow:3px 3px #182d3d; }
+@media (max-width:480px) {
+  .logo-title { font-size:36px; }
+  .logo-cn { font-size:24px; }
+  .modal-dialog { padding:16px; }
+  .start-dialog { gap:12px; }
+  .pixel-hero-scene { height:64px; }
+  .scene-hero { --icon-size:48px; }
+  .card-name { font-size:12px; }
+  .hud-top-row { gap:4px; }
+  .hud-top-left,.hud-top-right { gap:4px; }
+  .armor-numeric { display:none; }
+  .status-header { gap:4px; }
+}
+@media (max-height:500px) and (orientation:landscape) {
+  .pixel-hero-scene { display:none; }
+  .logo-title { font-size:36px; }
+  .logo-cn { font-size:12px; margin-top:4px; }
+  .start-dialog { gap:8px; }
+  .card-name,.card-desc,.card-rarity-badge { font-size:12px; }
+  #modal-upgrade .modal-dialog { width:min(94%,760px); }
+  .card-icon-box { min-width:36px; width:36px; height:36px; }
+}
+@media (prefers-reduced-motion:reduce) { .scene-hero { animation:none; } }
