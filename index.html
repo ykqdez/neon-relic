@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>《霓虹遗迹 Neon Relic》- 手机优先 Roguelite 生存</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- 主游戏画布 -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 动态虚拟摇杆 UI (在触摸时动态定位并显示) -->
+    <div id="joystick-container">
+      <div class="joystick-base">
+        <div id="joystick-knob" class="joystick-knob"></div>
+      </div>
+    </div>
+
+    <!-- HUD 抬头显示层 -->
+    <div id="hud-overlay">
+      <!-- 顶部信息容器 -->
+      <div class="hud-top-container">
+        <div class="hud-top-row">
+          <!-- 左侧：机体状态卡片 (HP / Lv / DEF) -->
+          <div class="hud-top-left">
+            <div class="player-status-card">
+              <div class="status-header">
+                <span id="hud-level" class="level-badge">Lv.1</span>
+                <span id="hp-text" class="hp-numeric">100 / 100</span>
+                <span id="armor-text" class="armor-numeric">DEF 0</span>
+              </div>
+              <div class="bar-bg">
+                <div id="hp-fill" class="hp-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 中央：生存倒计时 (主) 与 击杀数 (次) -->
+          <div class="hud-center">
+            <div id="hud-timer" class="hud-timer">00:00</div>
+            <div id="hud-kill-count" class="hud-kill-count">KILLS 0</div>
+          </div>
+
+          <!-- 右侧：静音与暂停按键 -->
+          <div class="hud-top-right">
+            <button id="btn-mute" class="btn-icon" aria-label="声音开关" title="音效开关">🔊</button>
+            <button id="btn-pause" class="btn-icon" aria-label="暂停游戏" title="暂停游戏">⏸️</button>
+          </div>
+        </div>
+
+        <!-- 紧凑经验条：紧贴顶部 HUD 下方居中，绝不阻挡战场 -->
+        <div class="exp-bar-wrap">
+          <span class="exp-label">EXP</span>
+          <div class="exp-track">
+            <div id="exp-bar-fill" class="exp-bar-fill"></div>
+          </div>
+          <span id="exp-text" class="exp-numeric">0 / 12</span>
+        </div>
+      </div>
+
+      <!-- Boss 专属血条 (出现在经验条下方) -->
+      <div id="boss-hud">
+        <div class="boss-title-row">
+          <span id="boss-name">⚠️ 遗迹泰坦 AETHEL-TITAN</span>
+          <span id="boss-phase-tag" class="boss-phase-tag">PHASE 1</span>
+        </div>
+        <div class="boss-hp-bg">
+          <div id="boss-hp-fill" class="boss-hp-fill"></div>
+        </div>
+      </div>
+
+      <!-- 底部装备 Dock (紧凑排布，避开左侧摇杆区域) -->
+      <div class="hud-bottom-bar">
+        <div id="build-dock" class="build-dock">
+          <div class="dock-title">PROTOCOLS</div>
+          <div id="build-quick-view" class="build-quick-view"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 0: 开始界面 (游戏就绪弹窗) -->
+    <div id="modal-start" class="modal-overlay active">
+      <div class="modal-dialog start-dialog">
+        <div class="game-logo">
+          <div class="logo-tag">ARENA SURVIVOR · ROGUELITE</div>
+          <h1 class="logo-title">NEON RELIC</h1>
+          <div class="logo-cn">《霓虹遗迹》</div>
+        </div>
+        
+        <div class="start-guide">
+          <div class="guide-item">
+            <span class="guide-icon">🕹️</span>
+            <div class="guide-text">
+              <div class="guide-h">走位操控</div>
+              <div class="guide-d">WASD / 方向键 · 手机端屏幕左下触控摇杆</div>
+            </div>
+          </div>
+          <div class="guide-item">
+            <span class="guide-icon">🎯</span>
+            <div class="guide-text">
+              <div class="guide-h">自动索敌</div>
+              <div class="guide-d">武器全自动打击最近敌群，专注走位躲避</div>
+            </div>
+          </div>
+          <div class="guide-item">
+            <span class="guide-icon">🧬</span>
+            <div class="guide-text">
+              <div class="guide-h">武器进化</div>
+              <div class="guide-d">5级武器 + 指定被动芯片 = 突破终极形态</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="start-records" id="start-records">
+          <div class="record-badge">🏆 最佳记录: <span id="record-best-time">00:00</span></div>
+          <div class="record-badge">👾 泰坦击杀: <span id="record-bosses">0</span> 次</div>
+        </div>
+
+        <button id="btn-start-game" class="game-btn start-action-btn">
+          启动协议 INITIATE
+        </button>
+      </div>
+    </div>
+
+    <!-- 模态框 1: 三选一升级弹窗 -->
+    <div id="modal-upgrade" class="modal-overlay">
+      <div class="modal-dialog">
+        <h2 class="modal-title">核心超频 LEVEL UP</h2>
+        <p class="modal-subtitle">从以下遗迹矩阵中选择一项强化协议：</p>
+        <div id="upgrade-cards-list" class="upgrade-cards-list"></div>
+      </div>
+    </div>
+
+    <!-- 模态框 2: 暂停菜单 -->
+    <div id="modal-pause" class="modal-overlay">
+      <div class="modal-dialog">
+        <h2 class="modal-title">系统挂起 PAUSED</h2>
+        <p class="modal-subtitle">机体处于低功耗等待中</p>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+          <button id="btn-resume" class="game-btn">继续战斗 RESUME</button>
+          <button id="btn-restart" class="game-btn btn-secondary">重新启动 RESTART</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 3: 游戏结束战报 -->
+    <div id="modal-gameover" class="modal-overlay">
+      <div class="modal-dialog">
+        <h2 id="gameover-title" class="modal-title">核心过载 DEFEAT</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">存活时间</span>
+            <span id="stat-time" class="stat-val">00:00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">机体等级</span>
+            <span id="stat-level" class="stat-val">Lv.1</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">歼灭敌群</span>
+            <span id="stat-kills" class="stat-val">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">总伤害量</span>
+            <span id="stat-damage" class="stat-val">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">最高单次命中</span>
+            <span id="stat-highest-hit" class="stat-val">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">MVP 武器</span>
+            <span id="stat-mvp" class="stat-val" style="color:var(--neon-amber);">脉冲刃</span>
+          </div>
+        </div>
+
+        <!-- 最终装备构筑 -->
+        <div class="final-build-box">
+          <span class="final-build-label">最终协议构筑 (FINAL BUILD)：</span>
+          <div id="final-build-items" class="final-build-items"></div>
+        </div>
+
+        <div id="gameover-seed" class="seed-banner">SEED: ------</div>
+
+        <button id="btn-gameover-restart" class="game-btn" style="margin-top:8px;">再战一局 REBOOT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏系统脚本注入 (按依赖层级严格排序) -->
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

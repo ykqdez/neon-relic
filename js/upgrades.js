@@ -1,0 +1,197 @@
+/**
+ * 《霓虹遗迹 Neon Relic》- 升级、被动芯片与肉鸽三选一抽卡系统
+ * 8 大被动能力、6 大武器、3 大终极武器进化判定与品质权重
+ */
+
+class UpgradeSystem {
+  constructor() {
+    // 8 种被动能力定义
+    this.passiveDefs = {
+      armor: {
+        id: 'armor',
+        name: '纳米装甲',
+        icon: '🛡️',
+        desc: '每级提高 5 点护甲，按收益递减公式减免所受伤害',
+        maxLevel: 5
+      },
+      pickup: {
+        id: 'pickup',
+        name: '磁能发生器',
+        icon: '🧲',
+        desc: '每级扩大 25% 能量晶体自动吸附范围',
+        maxLevel: 5
+      },
+      haste: {
+        id: 'haste',
+        name: '超频芯片',
+        icon: '⚡',
+        desc: '每级降低 9% 全武器技能冷却时间 (与电弧核心形成共鸣)',
+        maxLevel: 5
+      },
+      crit: {
+        id: 'crit',
+        name: '聚焦透镜',
+        icon: '🎯',
+        desc: '每级提升 6% 暴击几率与 15% 暴击伤害 (与脉冲刃形成共鸣)',
+        maxLevel: 5
+      },
+      hp: {
+        id: 'hp',
+        name: '量子核心',
+        icon: '❤️',
+        desc: '每级提升 20% 生命上限，并获得每秒自愈微流',
+        maxLevel: 5
+      },
+      speed: {
+        id: 'speed',
+        name: '光子喷流',
+        icon: '👟',
+        desc: '每级提升 8% 移动速度，走位更加敏捷',
+        maxLevel: 5
+      },
+      exp: {
+        id: 'exp',
+        name: '数据解析器',
+        icon: '💾',
+        desc: '每级提升 15% 经验晶体获取效率',
+        maxLevel: 5
+      },
+      area: {
+        id: 'area',
+        name: '能量扩增器',
+        icon: '🔮',
+        desc: '每级提升 16% 技能特效范围与打击半径 (与黑洞形成共鸣)',
+        maxLevel: 5
+      }
+    };
+
+    // 进化组合映射 (武器ID -> 所需被动ID)
+    this.evolutionRecipes = {
+      arc_core: 'haste',          // 电弧核心 + 超频芯片 -> 天罚风暴
+      pulse_blade: 'crit',        // 脉冲刃 + 聚焦透镜 -> 光子幻刃
+      black_hole: 'area',         // 黑洞发生器 + 能量扩增器 -> 坍缩超新星
+      orbital_satellites: 'armor',// 轨道卫星 + 纳米装甲 -> 极光环垒
+      plasma_cannon: 'speed',     // 等离子炮 + 光子喷流 -> 湮灭重炮
+      prism_ray: 'exp'            // 棱镜射线 + 数据解析器 -> 超维裂隙
+    };
+  }
+
+  // 生成 3 张升级卡
+  generateChoices(weapons, passives) {
+    const candidates = [];
+
+    // 1. 检查是否有满足条件的“超级武器进化”
+    for (const [wId, reqPassive] of Object.entries(this.evolutionRecipes)) {
+      const weapon = weapons[wId];
+      const passive = passives[reqPassive];
+      if (weapon && weapon.level >= 5 && !weapon.isEvolved && passive && passive.level >= 1) {
+        let evoName = '超级进化';
+        let evoDesc = '机体核心突破！形态彻底蜕变！';
+        if (wId === 'arc_core') {
+          evoName = '天罚风暴 (进化)';
+          evoDesc = '电弧升华为全屏天罚落雷，击中伴随毁灭冲击波！';
+        } else if (wId === 'pulse_blade') {
+          evoName = '光子幻刃 (进化)';
+          evoDesc = '斩击撕裂虚空形成残影，暴风骤雨般多重高暴击切割！';
+        } else if (wId === 'black_hole') {
+          evoName = '坍缩超新星 (进化)';
+          evoDesc = '引力奇点牵引范围暴增，消失时引发毁灭性超新星大爆炸！';
+        } else if (wId === 'orbital_satellites') {
+          evoName = '极光环垒 (进化)';
+          evoDesc = '轨道卫星增加至 6 颗，极速环绕并形成近身绞杀力场！';
+        } else if (wId === 'plasma_cannon') {
+          evoName = '湮灭重炮 (进化)';
+          evoDesc = '多联装高速贯穿等离子光柱，极致击退毁灭敌群！';
+        } else if (wId === 'prism_ray') {
+          evoName = '超维裂隙 (进化)';
+          evoDesc = '并联高能直射死光，持续灼烧全图直线路径！';
+        }
+
+        candidates.push({
+          type: 'evolution',
+          targetId: wId,
+          name: evoName,
+          icon: weapon.icon,
+          levelTag: 'EVOLUTION',
+          desc: evoDesc,
+          rarity: 'evolution'
+        });
+      }
+    }
+
+    // 2. 武器候选池
+    for (const [wId, weapon] of Object.entries(weapons)) {
+      if (weapon.level < 5 && !weapon.isEvolved) {
+        const nextLv = weapon.level + 1;
+        const isNew = weapon.level === 0;
+        candidates.push({
+          type: 'weapon',
+          targetId: wId,
+          name: weapon.name,
+          icon: weapon.icon,
+          levelTag: isNew ? 'NEW!' : `Lv.${weapon.level} ➔ Lv.${nextLv}`,
+          desc: isNew ? `装配新武器：${weapon.name}` : `强化伤害与冷却，提升武器效能`,
+          rarity: this.rollRarity(isNew ? 0.3 : 0.15)
+        });
+      }
+    }
+
+    // 3. 被动芯片候选池
+    for (const [pId, def] of Object.entries(this.passiveDefs)) {
+      const curLv = passives[pId] ? passives[pId].level : 0;
+      if (curLv < def.maxLevel) {
+        const nextLv = curLv + 1;
+        const isNew = curLv === 0;
+        candidates.push({
+          type: 'passive',
+          targetId: pId,
+          name: def.name,
+          icon: def.icon,
+          levelTag: isNew ? 'NEW!' : `Lv.${curLv} ➔ Lv.${nextLv}`,
+          desc: def.desc,
+          rarity: this.rollRarity(isNew ? 0.25 : 0.1)
+        });
+      }
+    }
+
+    // 如果所有武器和被动全满，提供应急维生
+    if (candidates.length === 0) {
+      return [
+        {
+          type: 'heal',
+          targetId: 'heal',
+          name: '能量过载矩阵',
+          icon: '✨',
+          levelTag: 'OVERDRIVE',
+          desc: '瞬间回复 40% 最大生命值，并产生全屏冲击波清退敌人',
+          rarity: 'epic'
+        }
+      ];
+    }
+
+    // 洗牌并抽选 3 个不重复项 (若存在进化项，保证其出现)
+    const shuffled = [...candidates].sort(() => 0.5 - Math.random());
+    const result = [];
+
+    // 优先插入 1 个进化项（若有）
+    const evoIdx = shuffled.findIndex(c => c.type === 'evolution');
+    if (evoIdx !== -1) {
+      result.push(shuffled.splice(evoIdx, 1)[0]);
+    }
+
+    while (result.length < 3 && shuffled.length > 0) {
+      result.push(shuffled.shift());
+    }
+
+    return result;
+  }
+
+  rollRarity(bonus = 0) {
+    const r = Math.random() - bonus;
+    if (r < 0.12) return 'epic';
+    if (r < 0.38) return 'rare';
+    return 'common';
+  }
+}
+
+window.UpgradeSystem = UpgradeSystem;
