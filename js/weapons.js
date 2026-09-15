@@ -57,7 +57,8 @@ class PulseBlade extends BaseWeapon {
 
     this.timer -= dt;
     if (this.timer <= 0) {
-      this.timer = this.getEffectiveCd(player);
+      const cd = this.getEffectiveCd(player);
+      this.timer = Math.max(this.timer + cd, -cd);
       this.fire(player, enemies, pool);
     }
   }
@@ -165,7 +166,8 @@ class ArcCore extends BaseWeapon {
 
     this.timer -= dt;
     if (this.timer <= 0) {
-      this.timer = this.getEffectiveCd(player);
+      const cd = this.getEffectiveCd(player);
+      this.timer = Math.max(this.timer + cd, -cd);
       this.fire(player, enemies, pool);
     }
   }
@@ -226,7 +228,7 @@ class ArcCore extends BaseWeapon {
     }
   }
 
-  // 进化形态：全屏天罚落雷 (严格排除已死亡敌人)
+  // 进化形态：全屏天罚落雷 (严格排除已死亡敌人，使用 Fisher-Yates 无偏选择)
   fireTempest(player, enemies, pool) {
     const valid = getValidEnemies(enemies);
     if (valid.length === 0) return;
@@ -234,9 +236,14 @@ class ArcCore extends BaseWeapon {
     if (window.soundSystem) window.soundSystem.playExplosion(true);
 
     const strikes = Math.min(valid.length, 6);
-    const shuffled = [...valid].sort(() => 0.5 - Math.random()).slice(0, strikes);
+    const shuffled = [...valid];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const targets = shuffled.slice(0, strikes);
 
-    for (const e of shuffled) {
+    for (const e of targets) {
       if (e.isDead) continue;
       const hit = this.calcDamage(65, player);
       const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
@@ -301,13 +308,28 @@ class OrbitalSatellites extends BaseWeapon {
   constructor() {
     super('orbital_satellites', '轨道卫星', '🪐');
     this.angle = 0;
-    this.hitCooldowns = new WeakMap(); // 防止对同一个怪每一帧都算伤害
-    this.barrierCooldowns = new WeakMap(); // 进化形态力场连线伤害冷却
+    this.hitCooldowns = new Map(); // 防止对同一个怪每一帧都算伤害 (基于逻辑帧 dt 统一递减)
+    this.barrierCooldowns = new Map(); // 进化形态力场连线伤害冷却 (基于逻辑帧 dt 统一递减)
+    this.coreContacts = new Set();
+    this.barrierContacts = new Set();
   }
 
   update(dt, player, enemies, pool) {
     if (this.level <= 0) return;
+
+    // 统一战斗时钟：每个逻辑步在顶层推进一次命中与力场冷却，不随卫星数量或碰撞重复扣减
     const valid = getValidEnemies(enemies);
+    const living = new Set(valid);
+    for (const cooldowns of [this.hitCooldowns, this.barrierCooldowns]) {
+      for (const [e, cd] of cooldowns) {
+        if (!living.has(e)) cooldowns.delete(e);
+        else cooldowns.set(e, Math.max(-dt, cd - dt));
+      }
+    }
+    const previousCoreContacts = this.coreContacts;
+    const previousBarrierContacts = this.barrierContacts;
+    this.coreContacts = new Set();
+    this.barrierContacts = new Set();
     if (valid.length === 0) return;
 
     const rotSpeed = (2.2 + (this.level >= 3 ? 0.8 : 0)) * (this.isEvolved ? 1.4 : 1.0);
@@ -318,7 +340,9 @@ class OrbitalSatellites extends BaseWeapon {
     const orbSize = this.isEvolved ? 10 : 7;
     const baseDamage = this.isEvolved ? 32 : (14 + (this.level - 1) * 4);
 
-    const now = Date.now();
+    const cdr = player.cooldownReduction || 0;
+    const hitInterval = Math.max(0.12, 0.28 * (1 - cdr));
+    const barrierInterval = Math.max(0.14, 0.32 * (1 - cdr));
 
     for (let i = 0; i < orbCount; i++) {
       const a = this.angle + (i * Math.PI * 2) / orbCount;
@@ -330,9 +354,11 @@ class OrbitalSatellites extends BaseWeapon {
         if (e.isDead) continue;
         const d = Math.hypot(e.x - ox, e.y - oy);
         if (d < e.radius + orbSize) {
-          const lastHit = this.hitCooldowns.get(e) || 0;
-          if (now - lastHit > 280) { // 0.28 秒攻击间隔
-            this.hitCooldowns.set(e, now);
+          this.coreContacts.add(e);
+          const remaining = this.hitCooldowns.get(e) || 0;
+          if (remaining <= 1e-9) {
+            // 连续接触保留跨帧余量；离开后重入不补算空档伤害。
+            this.hitCooldowns.set(e, hitInterval + (previousCoreContacts.has(e) ? remaining : 0));
             const hit = this.calcDamage(baseDamage, player);
             const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
             this.damageDealt += hit.damage;
@@ -351,9 +377,10 @@ class OrbitalSatellites extends BaseWeapon {
         if (e.isDead) continue;
         const dToCenter = Math.hypot(e.x - player.x, e.y - player.y);
         if (Math.abs(dToCenter - radius) < e.radius + 12) {
-          const lastBarrierHit = this.barrierCooldowns.get(e) || 0;
-          if (now - lastBarrierHit > 320) {
-            this.barrierCooldowns.set(e, now);
+          this.barrierContacts.add(e);
+          const remaining = this.barrierCooldowns.get(e) || 0;
+          if (remaining <= 1e-9) {
+            this.barrierCooldowns.set(e, barrierInterval + (previousBarrierContacts.has(e) ? remaining : 0));
             const hit = this.calcDamage(22, player);
             const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
             this.damageDealt += hit.damage;
@@ -492,7 +519,8 @@ class PlasmaCannon extends BaseWeapon {
 
     this.timer -= dt;
     if (this.timer <= 0) {
-      this.timer = this.getEffectiveCd(player);
+      const cd = this.getEffectiveCd(player);
+      this.timer = Math.max(this.timer + cd, -cd);
       this.fire(player, enemies, pool);
     }
   }
@@ -643,9 +671,9 @@ class BlackHoleGenerator extends BaseWeapon {
 
     for (let i = this.holes.length - 1; i >= 0; i--) {
       const h = this.holes[i];
-      h.life -= dt;
-      h.rotation += dt * 5;
-      h.tickTimer -= dt;
+      const activeDt = Math.min(dt, Math.max(0, h.life));
+      h.life = Math.max(0, h.life - dt);
+      h.rotation += activeDt * 5;
 
       // 牵引范围内的敌人 (遵照敌人击退/位移抗性)
       for (const e of enemies) {
@@ -654,14 +682,17 @@ class BlackHoleGenerator extends BaseWeapon {
         const dy = h.y - e.y;
         const dist = Math.hypot(dx, dy);
         if (dist < h.radius && dist > 5) {
-          const pullForce = (h.pullStrength * (1 - dist / h.radius)) * dt;
+          const pullForce = (h.pullStrength * (1 - dist / h.radius)) * activeDt;
           e.applyDisplacement((dx / dist) * pullForce, (dy / dist) * pullForce);
         }
       }
 
-      // 周期性 DoT 伤害
-      if (h.tickTimer <= 0) {
-        h.tickTimer = 0.25;
+      // 周期性 DoT 伤害 (累加器，单帧最多补偿 4 次)
+      h.tickTimer -= activeDt;
+      let ticks = 0;
+      while (activeDt > 0 && h.tickTimer <= 1e-9 && ticks < 4) {
+        h.tickTimer += 0.25;
+        ticks++;
         for (const e of enemies) {
           if (e.isDead) continue;
           const dist = Math.hypot(e.x - h.x, e.y - h.y);
@@ -673,6 +704,7 @@ class BlackHoleGenerator extends BaseWeapon {
           }
         }
       }
+      if (h.tickTimer <= 0) h.tickTimer = 0.25;
 
       // 消失时若是进化形态，释放超新星大爆炸
       if (h.life <= 0) {
@@ -685,7 +717,8 @@ class BlackHoleGenerator extends BaseWeapon {
 
     this.timer -= dt;
     if (this.timer <= 0) {
-      this.timer = this.getEffectiveCd(player);
+      const cd = this.getEffectiveCd(player);
+      this.timer = Math.max(this.timer + cd, -cd);
       this.fire(player, enemies, pool);
     }
   }
@@ -723,7 +756,7 @@ class BlackHoleGenerator extends BaseWeapon {
 
   triggerSupernova(h, player, enemies, pool) {
     if (window.soundSystem) window.soundSystem.playExplosion(true);
-    if (pool && pool.spawnShockwave) pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f');
+    if (pool && pool.spawnShockwave) pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f', true);
 
     for (const e of enemies) {
       if (e.isDead) continue;
@@ -800,19 +833,24 @@ class PrismRay extends BaseWeapon {
 
     for (let i = this.beams.length - 1; i >= 0; i--) {
       const b = this.beams[i];
-      b.life -= dt;
+      const activeDt = Math.min(dt, Math.max(0, b.life));
+      b.life = Math.max(0, b.life - dt);
 
       // 进化形态动态扫掠旋转
       if (b.rotSpeed) {
-        b.angle += b.rotSpeed * dt;
+        b.angle += b.rotSpeed * activeDt;
       }
 
-      // 激光持续判定 (tick)
-      b.tickTimer -= dt;
-      if (b.tickTimer <= 0) {
-        b.tickTimer = 0.08;
-        const cos = Math.cos(b.angle);
-        const sin = Math.sin(b.angle);
+      // 激光持续判定 (tick 累加器，单帧最多补偿 4 次)
+      b.tickTimer -= activeDt;
+      let ticks = 0;
+      while (activeDt > 0 && b.tickTimer <= 1e-9 && ticks < 4) {
+        // 按 tick 的实际角度判断扫掠命中，避免使用帧末角度。
+        const tickAngle = b.angle + (b.rotSpeed || 0) * b.tickTimer;
+        b.tickTimer += 0.08;
+        ticks++;
+        const cos = Math.cos(tickAngle);
+        const sin = Math.sin(tickAngle);
 
         for (const e of enemies) {
           if (e.isDead) continue;
@@ -838,6 +876,7 @@ class PrismRay extends BaseWeapon {
           }
         }
       }
+      if (b.tickTimer <= 0) b.tickTimer = 0.08;
 
       if (b.life <= 0) {
         this.beams.splice(i, 1);
@@ -846,7 +885,8 @@ class PrismRay extends BaseWeapon {
 
     this.timer -= dt;
     if (this.timer <= 0) {
-      this.timer = this.getEffectiveCd(player);
+      const cd = this.getEffectiveCd(player);
+      this.timer = Math.max(this.timer + cd, -cd);
       this.fire(player, enemies, pool);
     }
   }

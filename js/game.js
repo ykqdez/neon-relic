@@ -215,6 +215,10 @@ class Game {
     this.damageTexts = [];
     this.shockwaves = [];
 
+    // 暂停原因集合管理 (A02) 与 恢复无敌冷却预算 (A06)
+    this.pauseReasons = new Set();
+    this.lastPauseGraceTime = -999;
+
     // 相机视口与动态响应式缩放
     this.camera = { x: 0, y: 0, width: 800, height: 600, zoom: 1.0 };
 
@@ -231,14 +235,10 @@ class Game {
 
     // 切后台自动暂停
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.state === 'playing') {
-        this.openPauseModal();
-      }
+      if (document.hidden) this.pauseForSystem();
     });
     window.addEventListener('blur', () => {
-      if (this.state === 'playing') {
-        this.openPauseModal();
-      }
+      this.pauseForSystem();
     });
 
     // 初始化 UI 监听
@@ -353,14 +353,14 @@ class Game {
 
   // 统一检查当前是否允许额外生成敌人 (严格限制于各难度上限，仅统计存活实体)
   canSpawnEnemies(count = 1) {
-    const isBossActive = !!this.activeBoss;
+    const isBossActive = !!(this.activeBoss && !this.activeBoss.isDead);
     const max = this.diffConfig && this.diffConfig.maxEnemies !== undefined
       ? this.diffConfig.maxEnemies
       : (this.maxEnemies || 90);
     const currentMax = isBossActive
       ? Math.round(max * 0.75)
       : max;
-    const livingCount = this.enemies.reduce((acc, e) => acc + (e.isDead ? 0 : 1), 0);
+    const livingCount = this.enemies.reduce((acc, e) => acc + (e && !e.isDead ? 1 : 0), 0);
     return livingCount + count <= currentMax;
   }
 
@@ -453,9 +453,9 @@ class Game {
   }
 
   openBuildDetailModal() {
-    if (this.state === 'playing') {
-      this.state = 'paused';
-    }
+    if (this.state === 'ready' || this.state === 'upgrade' || this.state === 'gameover') return;
+    this.pauseReasons.add('build_detail');
+    this.state = 'paused';
     this.renderBuildDetailContent();
     const modal = document.getElementById('modal-build-detail');
     if (modal) modal.classList.add('active');
@@ -464,8 +464,9 @@ class Game {
   closeBuildDetailModal() {
     const modal = document.getElementById('modal-build-detail');
     if (modal) modal.classList.remove('active');
-    if (this.state === 'paused') {
-      this.resumeGame();
+    this.pauseReasons.delete('build_detail');
+    if (this.pauseReasons.size === 0 && this.state === 'paused') {
+      this.resumeGame(false);
     }
   }
 
@@ -538,6 +539,7 @@ class Game {
     if (window.soundSystem) window.soundSystem.unlock();
     const startModal = document.getElementById('modal-start');
     if (startModal) startModal.classList.remove('active');
+    this.pauseReasons.clear();
     this.state = 'playing';
     this.lastTime = performance.now();
   }
@@ -552,6 +554,15 @@ class Game {
   }
 
   togglePause() {
+    if (this.state === 'ready' || this.state === 'upgrade' || this.state === 'gameover') return;
+
+    // 优先处理顶层抽屉：若协议详情遮罩处于打开状态，按下暂停键或 Esc 优先关闭顶层抽屉
+    const modalBuildDetail = document.getElementById('modal-build-detail');
+    if (modalBuildDetail && modalBuildDetail.classList.contains('active')) {
+      this.closeBuildDetailModal();
+      return;
+    }
+
     if (this.state === 'playing') {
       this.openPauseModal();
     } else if (this.state === 'paused') {
@@ -560,15 +571,52 @@ class Game {
   }
 
   openPauseModal() {
+    if (this.state === 'ready' || this.state === 'upgrade' || this.state === 'gameover') return;
+    this.pauseReasons.add('user_pause');
     this.state = 'paused';
-    document.getElementById('modal-pause').classList.add('active');
+    const modalPause = document.getElementById('modal-pause');
+    if (modalPause) modalPause.classList.add('active');
   }
 
-  resumeGame() {
-    document.getElementById('modal-pause').classList.remove('active');
+  pauseForSystem() {
+    if (this.state === 'ready' || this.state === 'gameover') return;
+    this.pauseReasons.add('system_blur');
+    // 升级选择完成后再显示暂停层，保留尚未消费的选择。
+    if (this.state !== 'upgrade') {
+      this.state = 'paused';
+      document.getElementById('modal-pause')?.classList.add('active');
+    }
+  }
+
+  resumeGame(explicit = true) {
+    if (this.state === 'ready' || this.state === 'upgrade' || this.state === 'gameover') return;
+    if (document.hidden) {
+      this.pauseForSystem();
+      return;
+    }
+    if (explicit) {
+      this.pauseReasons.delete('user_pause');
+      this.pauseReasons.delete('system_blur');
+    }
+    if (this.pauseReasons.size > 0 || this.state === 'playing') return;
+    const modalPause = document.getElementById('modal-pause');
+    if (modalPause) modalPause.classList.remove('active');
+    const modalBuildDetail = document.getElementById('modal-build-detail');
+    if (modalBuildDetail) modalBuildDetail.classList.remove('active');
+
     this.state = 'playing';
     this.lastTime = performance.now();
-    this.player.grantInvulnerability(this.diffConfig.pauseGracePeriod);
+
+    // A06 防作弊与恢复保护预算：
+    // 1. 若当前玩家已有无敌 (invulnerableTimer > 0)，不予发放新护盾，不延长现有无敌
+    // 2. 要求至少经历 5.0 秒有效战斗时间 (elapsedTime - lastPauseGraceTime >= 5.0) 方可再次触发主动暂停护盾
+    if (this.player && this.player.invulnerableTimer <= 0) {
+      if (this.elapsedTime - this.lastPauseGraceTime >= 5.0) {
+        this.lastPauseGraceTime = this.elapsedTime;
+        const grace = this.diffConfig ? this.diffConfig.pauseGracePeriod : 0.35;
+        this.player.grantInvulnerability(grace);
+      }
+    }
   }
 
   restart() {
@@ -579,6 +627,9 @@ class Game {
     const modalBuildDetail = document.getElementById('modal-build-detail');
     if (modalBuildDetail) modalBuildDetail.classList.remove('active');
 
+    this.pauseReasons.clear();
+    this.lastPauseGraceTime = -999;
+
     // 重新实例化
     this.seed = this.generateSeed();
     this.initPrng(this.seed);
@@ -588,6 +639,17 @@ class Game {
     this.stats = { kills: 0, totalDamage: 0, highestHit: 0, bossKills: 0 };
 
     this.player = new Player(0, 0, this.diffConfig);
+
+    // A04: 相机坐标即刻对齐玩家中心，不产生幽灵位移
+    if (this.camera) {
+      this.camera.x = this.player.x;
+      this.camera.y = this.player.y;
+    }
+
+    // A04: 输入系统彻底重置
+    if (this.input && typeof this.input.reset === 'function') {
+      this.input.reset();
+    }
 
     this.weapons = {};
     for (const [id, Cls] of Object.entries(window.WeaponRegistry)) {
@@ -615,6 +677,8 @@ class Game {
     if (this.vignetteEl) this.vignetteEl.classList.remove('active');
     document.getElementById('boss-hud').style.display = 'none';
     this.updateHUDBuild();
+    // A04: 首帧即刻更新 HUD (显示 00:00, Lv1, 满血)
+    this.updateHUD();
   }
 
   // 主循环
@@ -780,6 +844,51 @@ class Game {
     if (this.elapsedTime >= this.bossTime && !this.bossSpawned) {
       this.bossSpawned = true;
       if (window.soundSystem) window.soundSystem.playBossAlert();
+
+      // A08: 计算 Boss 阶段容量硬上限 (休闲 72 / 标准 105 / 极境 135)
+      const max = this.diffConfig && this.diffConfig.maxEnemies !== undefined
+        ? this.diffConfig.maxEnemies
+        : (this.maxEnemies || 90);
+      const bossCap = Math.round(max * 0.75);
+      const targetLivingNonBoss = bossCap - 1; // 为 Boss 预留 1 个槽位
+
+      // 1. 存活与死亡实体隔离：保留所有未结算死亡实体 (isDead: true)，仅对存活实体进行裁减
+      const deadEnemies = this.enemies.filter(e => e.isDead);
+      let livingEnemies = this.enemies.filter(e => !e.isDead);
+
+      // 2. 优先清理距离玩家 > 350px 的存活非精英杂兵 (移除不计击杀、不掉经验)
+      if (livingEnemies.length > targetLivingNonBoss) {
+        livingEnemies = livingEnemies.filter(e => {
+          if (e.isElite) return true;
+          const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+          return d <= 350;
+        });
+      }
+
+      // 3. 若存活非 Boss 实体仍超出容量目标：按距玩家距离由远及近裁减非精英杂兵
+      if (livingEnemies.length > targetLivingNonBoss) {
+        const elites = livingEnemies.filter(e => e.isElite);
+        const nonElites = livingEnemies.filter(e => !e.isElite);
+        nonElites.sort((a, b) => {
+          const da = Math.hypot(a.x - this.player.x, a.y - this.player.y);
+          const db = Math.hypot(b.x - this.player.x, b.y - this.player.y);
+          return db - da; // 降序：距离远的排在前面
+        });
+        const canKeepNonElites = Math.max(0, targetLivingNonBoss - elites.length);
+        const keptNonElites = nonElites.slice(nonElites.length - canKeepNonElites);
+        livingEnemies = [...elites, ...keptNonElites];
+      }
+
+      // 4. 兜底策略：若非精英全部清理后仍超标（极端精英同屏），按距离裁减最远精英以确保硬上限
+      if (livingEnemies.length > targetLivingNonBoss) {
+        livingEnemies.sort((a, b) => {
+          const da = Math.hypot(a.x - this.player.x, a.y - this.player.y);
+          const db = Math.hypot(b.x - this.player.x, b.y - this.player.y);
+          return db - da;
+        });
+        livingEnemies = livingEnemies.slice(livingEnemies.length - targetLivingNonBoss);
+      }
+
       const { x: bx, y: by } = this.getOffscreenSpawnPosition(140, 180);
       this.activeBoss = new EnemyTypes.BossTitan(
         bx,
@@ -787,20 +896,14 @@ class Game {
         1,
         this.diffConfig
       );
-      this.enemies.push(this.activeBoss);
+
+      // 合并保留实体与 Boss
+      this.enemies = [...deadEnemies, ...livingEnemies, this.activeBoss];
+
       const bossHud = document.getElementById('boss-hud');
       if (bossHud) bossHud.style.display = 'flex';
 
-      // 战场边缘清理：清理距离玩家 > 350px 的非精英小怪，将压力降低到容量的 60%~75%
-      const targetRetainCount = Math.round(this.diffConfig.maxEnemies * 0.65);
-      if (this.enemies.length > targetRetainCount) {
-        this.enemies = this.enemies.filter(e => {
-          if (e === this.activeBoss || e.isElite) return true;
-          const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-          return d <= 350;
-        });
-      }
-      this.spawnShockwave(this.player.x, this.player.y, 350, '#ff007f');
+      this.spawnShockwave(this.player.x, this.player.y, 350, '#ff007f', true);
       this.spawnTimer = 2.5; // Boss 登场震撼期延迟后续小怪波次刷新
     }
 
@@ -989,13 +1092,8 @@ class Game {
     }
   }
 
-  // 浮动伤害数字
+  // 浮动伤害数字 (仅负责视觉渲染，统计数据已由 takeDamage 统一完成)
   spawnDamageText(x, y, amount, isCrit, color) {
-    if (amount > this.stats.highestHit) {
-      this.stats.highestHit = amount;
-    }
-    this.stats.totalDamage += amount;
-
     if (this.damageTexts.length >= 25) {
       this.damageTexts.shift();
     }
@@ -1032,14 +1130,30 @@ class Game {
     }
   }
 
-  // 冲击波光圈
-  spawnShockwave(x, y, maxRadius, color) {
+  // 冲击波光圈 (分级淘汰预算：保护 Boss 入场/践踏与超新星等重要事件)
+  spawnShockwave(x, y, maxRadius, color, priority = false) {
+    const isMobile = this.isMobileDevice || (this.camera && this.camera.width < 768);
+    const maxShockwaves = isMobile ? 20 : 35;
+
+    if (this.shockwaves.length >= maxShockwaves) {
+      // 优先淘汰非高优先级的次级冲击波
+      const nonPriorityIdx = this.shockwaves.findIndex(sw => !sw.priority);
+      if (nonPriorityIdx !== -1) {
+        this.shockwaves.splice(nonPriorityIdx, 1);
+      } else if (priority) {
+        this.shockwaves.shift();
+      } else {
+        return;
+      }
+    }
+
     this.shockwaves.push({
       x: x,
       y: y,
       radius: 5,
       maxRadius: maxRadius,
       color: color,
+      priority: priority,
       life: 0.35,
       maxLife: 0.35
     });
@@ -1071,6 +1185,7 @@ class Game {
 
   // 肉鸽三选一升级弹窗 (升级队列机制)
   openUpgradeModal() {
+    this.pauseReasons.add('upgrade');
     this.state = 'upgrade';
     const choices = this.upgradeSystem.generateChoices(this.weapons, this.passives);
     const container = document.getElementById('upgrade-cards-list');
@@ -1093,7 +1208,7 @@ class Game {
 
       el.addEventListener('click', () => {
         this.selectUpgrade(card);
-      });
+      }, { once: true });
       container.appendChild(el);
     });
 
@@ -1160,7 +1275,10 @@ class Game {
       this.openUpgradeModal();
     } else {
       document.getElementById('modal-upgrade').classList.remove('active');
-      this.state = 'playing';
+      this.pauseReasons.delete('upgrade');
+      if (document.hidden) this.pauseReasons.add('system_blur');
+      this.state = this.pauseReasons.size > 0 ? 'paused' : 'playing';
+      if (this.state === 'paused') document.getElementById('modal-pause')?.classList.add('active');
       this.lastTime = performance.now();
       // 赋予升级弹窗关闭后的防秒杀安全缓冲时间 (默认休闲模式0.85s)
       this.player.grantInvulnerability(this.diffConfig.upgradeGracePeriod);
@@ -1169,6 +1287,7 @@ class Game {
 
   // 游戏结束与战报
   gameOver(isVictory) {
+    this.pauseReasons.clear();
     this.state = 'gameover';
 
     let mvpWeapon = '脉冲刃';

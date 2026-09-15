@@ -112,17 +112,28 @@ class SoundSystem {
     osc.stop(now + 0.13);
   }
 
-  // 4. 击中敌人反馈 (加入高频限流，防止多怪同屏引发音频节点爆炸)
+  // 4. 击中敌人反馈：暴击 25ms / 普通 35ms 限流，结束时断开音频节点。
   playHit(isCrit = false) {
     if (this.isMuted || !this.ctx) return;
     const tNow = performance.now();
-    if (!isCrit && tNow - this.lastSoundTimes.hit < 35) return;
+    const minInterval = isCrit ? 25 : 35;
+    const lastTime = isCrit ? (this.lastSoundTimes.critHit || this.lastSoundTimes.hit || 0) : (this.lastSoundTimes.hit || 0);
+    if (tNow - lastTime < minInterval) return;
+
     this.lastSoundTimes.hit = tNow;
+    if (isCrit) this.lastSoundTimes.critHit = tNow;
 
     this.unlock();
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    };
 
     osc.type = isCrit ? 'square' : 'triangle';
     const startFreq = isCrit ? 520 : 340;

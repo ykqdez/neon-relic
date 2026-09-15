@@ -35,6 +35,14 @@ class BaseEnemy {
   takeDamage(amount, isCrit, pool) {
     if (this.isDead) return true;
 
+    // 伤害统计从浮字渲染中彻底剥离：在存活校验后，基于单次总命中 amount 统一记账
+    if (pool && pool.stats) {
+      if (amount > pool.stats.highestHit) {
+        pool.stats.highestHit = amount;
+      }
+      pool.stats.totalDamage += amount;
+    }
+
     let remaining = amount;
     // 护盾词缀优先吸收伤害 (支持溢出伤害 overflow damage)
     if (this.shieldHp > 0) {
@@ -663,7 +671,7 @@ class BossTitan extends BaseEnemy {
       hz.timer -= dt;
       if (hz.timer <= 0) {
         // 危险区引爆 (应用统一敌方伤害倍率)
-        pool.spawnShockwave(hz.x, hz.y, hz.radius, '#ff0055');
+        pool.spawnShockwave(hz.x, hz.y, hz.radius, '#ff0055', true);
         const pDist = Math.hypot(player.x - hz.x, player.y - hz.y);
         if (pDist < hz.radius + player.radius) {
           const dmgMult = (this.diffConfig && this.diffConfig.enemyDamageMult !== undefined) ? this.diffConfig.enemyDamageMult : 1.0;

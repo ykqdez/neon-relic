@@ -126,7 +126,7 @@ class UpgradeSystem {
         const isNew = weapon.level === 0;
         const rarity = this.rollRarity(isNew);
         let bonus = null;
-        let desc = isNew ? `装配新武器：${weapon.name}` : `强化伤害与冷却，提升武器效能`;
+        let desc = isNew ? `装配新武器：${weapon.name}` : `提升武器等级，强化对应攻击能力`;
         if (rarity === 'rare') {
           bonus = { healPercent: 0.08, expPercent: 0 };
           desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';
@@ -192,18 +192,40 @@ class UpgradeSystem {
       ];
     }
 
-    // 洗牌并抽选 3 个不重复项 (若存在进化项，保证其出现)
-    const shuffled = [...candidates].sort(() => 0.5 - Math.random());
+    // Fisher-Yates 无偏抽样：优先保证 1 个进化项（若有，多个进化项间公平等权），其余槽位无偏洗牌
+    const evolutions = candidates.filter(c => c.type === 'evolution');
     const result = [];
 
-    // 优先插入 1 个进化项（若有）
-    const evoIdx = shuffled.findIndex(c => c.type === 'evolution');
-    if (evoIdx !== -1) {
-      result.push(shuffled.splice(evoIdx, 1)[0]);
-    }
+    if (evolutions.length > 0) {
+      // 进化项之间公平随机选 1 个
+      const evoShuffled = [...evolutions];
+      for (let i = evoShuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [evoShuffled[i], evoShuffled[j]] = [evoShuffled[j], evoShuffled[i]];
+      }
+      const guaranteedEvo = evoShuffled[0];
+      result.push(guaranteedEvo);
 
-    while (result.length < 3 && shuffled.length > 0) {
-      result.push(shuffled.shift());
+      // 其余候选（包含未选中的其他进化项）进入后续抽选池
+      const remainingCandidates = candidates.filter(c => c !== guaranteedEvo);
+      const otherShuffled = [...remainingCandidates];
+      for (let i = otherShuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [otherShuffled[i], otherShuffled[j]] = [otherShuffled[j], otherShuffled[i]];
+      }
+
+      while (result.length < 3 && otherShuffled.length > 0) {
+        result.push(otherShuffled.shift());
+      }
+    } else {
+      const allShuffled = [...candidates];
+      for (let i = allShuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allShuffled[i], allShuffled[j]] = [allShuffled[j], allShuffled[i]];
+      }
+      while (result.length < 3 && allShuffled.length > 0) {
+        result.push(allShuffled.shift());
+      }
     }
 
     return result;

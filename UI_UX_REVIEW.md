@@ -1,5 +1,7 @@
 # 《霓虹遗迹 Neon Relic》UI/UX 与玩法逻辑整改复盘报告 (UI_UX_REVIEW.md)
 
+> 历史记录：本文对应此前版本，包含已变化的布局数值，不能作为当前版本或真机性能的验收依据。当前可复现结果见 [FIX_VERIFICATION.md](FIX_VERIFICATION.md) 与 [test_notes.md](test_notes.md)。
+
 本报告详细记录了针对《霓虹遗迹 Neon Relic》进行的一轮全面 UI/UX 视觉层级重构与游戏核心逻辑整改。
 
 ---

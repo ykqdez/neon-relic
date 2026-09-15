@@ -1,50 +1,52 @@
-# 《霓虹遗迹 Neon Relic》测试与验证备忘录 (Test Notes)
+# 可复现验证说明
 
-本文档记录了《霓虹遗迹 Neon Relic》在开发各阶段的测试用例、自动化与真机/无头浏览器验证结果。
+## 运行
 
----
+需要 Node.js 22+、Microsoft Edge 或 Chromium/Chrome，无 npm 依赖。Windows 常用浏览器路径会自动发现；其他路径设置 `EDGE_PATH` 或 `CHROME_PATH`。在项目根目录运行：
 
-## 一、自动化与运行时测试 (Headless CDP Automation)
+```powershell
+node tests/verify.cjs
+```
 
-通过 Microsoft Edge 无头浏览器配合 Chrome DevTools Protocol (CDP) WebSocket 进行了全链路自动化系统测试：
+此命令执行静态检查、逻辑回归、六武器矩阵、12 局流程、8 视口、坐标触控、60 秒音效压力测试和真实 RAF 冒烟测试。退出码 0 表示所有已执行断言通过；任何失败或浏览器异常返回 1。通常需要约 1–2 分钟。
 
-| 测试项 | 验证内容 | 测试结果 | 备注 |
-| :--- | :--- | :---: | :--- |
-| **T1. 引擎初始化** | `window.gameInstance` 全局实例构建及状态机初始为 `playing` | ✅ PASS | 画布挂载正常，视网膜 DPR 缩放正确 |
-| **T2. 玩家实体与属性** | 初始 HP 100/100，基础移速 175，等级 Lv.1，经验 0/12 | ✅ PASS | 护甲减免公式 `DR = Armor / (Armor + 40)` 计算正常 |
-| **T3. 武器库注册** | 6 大武器 (`pulse_blade`, `arc_core`, `orbital_satellites`, `plasma_cannon`, `black_hole`, `prism_ray`) 正确挂载 | ✅ PASS | 初始解锁脉冲刃 Lv.1 |
-| **T4. 输入与移动系统** | 设置输入向量 `(1, 0)`，玩家坐标正常位移，边界限制生效 | ✅ PASS | 键盘 WASD / 虚拟摇杆双向桥接正常 |
-| **T5. 索敌与伤害计算** | 脉冲刃自动锁定范围内敌人并造成伤害，血量正确削减 | ✅ PASS | 浮动伤害数字、受击闪红与打击粒子正常触发 |
-| **T6. 经验与三选一** | 增加经验触发升级，游戏平滑挂起，弹出 3 张升级卡片 | ✅ PASS | 稀有度权重与等级状态渲染正确 |
-| **T7. 升级卡点击与生效** | 选取卡片后属性立即刷新，弹窗淡出，游戏无缝恢复 | ✅ PASS | 武器/芯片等级成功递增 |
-| **T8. 挂起与生命周期** | `togglePause()` 与 `resumeGame()` 状态切换 | ✅ PASS | 切后台/锁屏自动暂停无死锁 |
-| **T9. 多阶段 Boss 机制** | 遗迹泰坦 100%~66% 环形弹幕，66%~33% 践踏召唤，33%~0% 危险红圈与暴怒 | ✅ PASS | 阶段随 HP 阈值动态切换 |
-| **T10. 武器终极进化** | 满级脉冲刃 + 聚焦透镜，正确刷出「光子幻刃 (进化)」卡片 | ✅ PASS | 进化后攻击形态与音效彻底蜕变 |
+完整交付验证和报告生成：
 
----
+```powershell
+node tests/verify.cjs --growth
+node tests/integrity.cjs
+node tests/build-report.cjs
+```
 
-## 二、移动端适配与防误触测试 (Mobile & Touch Verification)
+`--growth` 额外运行 360 局，需数分钟。逐条检查退出码；报告生成器只接受通过且源码哈希匹配的完整运行。也可使用 package.json 对应的 `npm test`、`npm run test:growth`、`npm run test:integrity`、`npm run test:report`。
 
-1. **视网膜高分屏 (Retina / OLED) 适配**：
-   - 使用 `window.devicePixelRatio` 对 Canvas 内部物理像素进行缩放：`canvas.width = w * dpr; ctx.scale(dpr, dpr);`。
-   - 在高 DPI 手机屏幕上矢量几何图形、字体与特效均极其锐利，无模糊毛边。
-2. **手势与下拉刷新拦截**：
-   - CSS 配置：`touch-action: none; overscroll-behavior: none; user-select: none;`。
-   - JavaScript 在 `touchmove` 事件中添加 `{ passive: false }` 并调用 `e.preventDefault()`，彻底杜绝微信、Safari 等移动浏览器的“橡皮筋下拉刷新”与页面意外滑动。
-3. **触控目标规范 (44x44px)**：
-   - 暂停按钮、声音切换按钮、卡片点击区域均严格保证 $\ge 44 \times 44\text{ px}$ 触控范围。
-4. **横竖屏自适应**：
-   - 响应 `resize` 与 `orientationchange` 事件，自动重新计算视口宽高与相机视锥，玩家始终处于屏幕中心，不会被拉伸变形或掉出地图边界。
+## 参数与隔离
 
----
+- `PROJECT_ROOT`：待测项目根目录；默认当前脚本的父目录。
+- `OUTPUT_DIR`：结果目录；默认项目内 `test-results/`，已被 Git 忽略。
+- `EDGE_PATH` / `CHROME_PATH`：浏览器完整路径。
+- 每次运行使用独立浏览器 profile、随机调试端口、本地 HTTP 服务，无外部账户/网络依赖。运行结束关闭本次启动的浏览器。
+- `--smoke` 仅用于快速静态/核心回归，不替代完整验收。
+- `VERIFY_FAULT` 是测试驱动的故障注入开关；日常验证不要设置。`integrity.cjs` 会在系统临时目录创建隔离副本，测试正常对照、异步异常、用例抛错、坏 JSON 和缺失资源，不改动生产文件。
+- 校验数据记录运行 ID、父 Git 提交、实际工作区源码 SHA-256、浏览器 UA、Node 版本。提交前运行的父提交不能单独代表被测代码，应结合源码哈希。
 
-## 三、性能与同屏敌人压力测试 (Performance & Pooling)
+## 产物
 
-- **对象池复用**：
-  - 粒子池：上限 250，超时自动回收。
-  - 浮动伤害数字：上限 50，先入先出队列。
-  - 经验晶体：上限 180，超过时自动将附近低价值绿色晶体聚合为紫色/金色高价值晶体，彻底消除碎片数量堆积。
-  - 敌人数上限：硬上限 150，确保即使在百怪同屏大后期，移动端仍能保持稳定 60 FPS。
-- **Web Audio API**：
-  - 纯代码算法合成，零网络请求与音频文件解码开销；
-  - 采用轻触解锁机制，完美规避移动端浏览器 Autoplay 限制。
+`test-results/` 中包含 `verification_report.json`（真实断言计数及错误）、`regressions.json`、`focused.json`、`logic.json`、`extra.json`、`dps.json`、`flows.json`、`growth.json`、`layouts.json`、`integrity.json` 和截图。
+
+`build-report.cjs` 从这些数据生成当前版本的 `CURRENT_BENCHMARK.json`、`FIX_VERIFICATION.md`、`BALANCE_REVIEW.md`。原始随机样本和全部成长轨迹保存在本地结果目录；提交内保留数值矩阵和成长统计。旧 JSON 报告及外部审计目录是历史记录。
+
+## 口径
+
+- 初始状态 `ready`，开始后 `playing`。系统失焦不自动恢复，需用户明确继续；隐藏页面拒绝恢复。
+- 伤害累计字段是 `stats.totalDamage`，为命中总量（包括护盾和溢出伤害）；`highestHit` 记录单次完整命中，与浮字绘制无关。
+- 浮字上限统一 25；粒子移动预算 120、桌面 250；冲击波移动 20、桌面 35。池满时优先淘汰普通特效；全高优先级池拒绝普通新项。
+- 黑洞/光束 tick 结算包含寿命端点，排除端点之后；生产单帧 dt 上限 0.1 秒。每帧最多补 4 次 tick，极端超范围 dt 不承诺完全补偿。
+- 10 秒 DPS 使用真实武器类和 evolve()，固定冷启动、逻辑时钟、种子与靶条件；移动靶/群体靶单列。60 秒持续接触验证独立检查计时，不混入小靶旋转采样误差。
+- 成长模拟实际点选当前发出的卡，不重新抽卡挑最优。比较均衡、存活、输出、进化四种策略；未到达里程碑的样本单列，不混进时间中位数。
+- 压测 CPU 数值是逻辑更新和 Canvas 提交耗时，不能等同于 GPU 完成或真机 FPS。音效检查使用真实 AudioContext 和 ended/disconnect 事件。
+- 未执行 iOS/Android 真机、GPU 性能和长时间内存验收；游戏界面 seed 暂不保证回放，因为 Math.random 仍混用于玩法与表现。
+
+## 后续设计项
+
+卫星维持环形覆盖；范围升级可扩大内圈空区，具体热区和超频/范围组合见当前基准。相机明显滞后时的刷怪落点仍可能在实际视口内，诊断保留该结果。上述事项不应写成已完成的全盘覆盖或全场景离屏保证。

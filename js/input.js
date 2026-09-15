@@ -29,7 +29,31 @@ class InputManager {
     this.initTouch();
   }
 
+  // A04: 统一重置全部输入状态 (键盘按键、移动向量、摇杆与触摸追踪)
+  reset() {
+    this.keys.up = false;
+    this.keys.down = false;
+    this.keys.left = false;
+    this.keys.right = false;
+    this.touchId = null;
+    this.vector.x = 0;
+    this.vector.y = 0;
+    this.vector.magnitude = 0;
+    if (this.joystickContainer) {
+      this.joystickContainer.style.display = 'none';
+    }
+    if (this.joystickKnob) {
+      this.joystickKnob.style.transform = 'translate(0px, 0px)';
+    }
+  }
+
   initKeyboard() {
+    // 窗口失焦或切后台时即刻清理输入残留 (A04)
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.reset();
+    });
+
     window.addEventListener('keydown', (e) => {
       // 首次按键尝试激活音频
       if (window.soundSystem) window.soundSystem.unlock();
@@ -53,6 +77,7 @@ class InputManager {
           break;
         case 'Escape':
         case 'KeyP':
+          if (e.repeat) return; // A04: 忽略长按 P/Esc 自动重复
           if (window.gameInstance) window.gameInstance.togglePause();
           break;
       }
