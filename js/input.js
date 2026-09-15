@@ -181,14 +181,16 @@ class InputManager {
     }
   }
 
-  // 手机端专用非线性映射：6px死区，8~28px迅速获得强机动力，无需大拇指生硬推满45px
+  // 手机端专用非线性映射：6px死区，6~14px平滑慢走微操，14~28px提速至满速，无需大拇指生硬推满45px
   computeMagnitude(dist) {
-    if (dist < 6) return 0;
-    if (dist < 16) {
-      return 0.72 + ((dist - 6) / 10) * 0.12;
+    if (dist <= 6) return 0;
+    if (dist <= 14) {
+      // 0~0.60 缓和线性起步，便于在首领危险圈边缘细致微操
+      return ((dist - 6) / 8) * 0.60;
     }
-    if (dist < 28) {
-      return 0.84 + ((dist - 16) / 12) * 0.16;
+    if (dist <= 28) {
+      // 0.60~1.0 快速响应提速
+      return 0.60 + ((dist - 14) / 14) * 0.40;
     }
     return 1.0;
   }

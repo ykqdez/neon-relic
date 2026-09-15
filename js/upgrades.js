@@ -185,7 +185,7 @@ class UpgradeSystem {
           name: '能量过载矩阵',
           icon: '✨',
           levelTag: 'OVERDRIVE',
-          desc: '瞬间回复 40% 最大生命值，并产生全屏冲击波清退敌人',
+          desc: '立即恢复 40% 最大生命值，释放周身脉冲冲击波 (半径260) 强力击退敌群，并立即获得 +20% 当前升级所需经验值',
           rarity: 'epic',
           bonus: { healPercent: 0, expPercent: 0.20 }
         }

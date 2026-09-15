@@ -1,0 +1,188 @@
+{
+  "boss_single_target_dps": {
+    "prism": {
+      "dist_100": {
+        "lv5": 217.6,
+        "evo": 352,
+        "ratio": 1.6176470588235294,
+        "pass": true
+      },
+      "dist_200": {
+        "lv5": 217.6,
+        "evo": 262.4,
+        "ratio": 1.2058823529411764,
+        "pass": true
+      },
+      "dist_300": {
+        "lv5": 217.6,
+        "evo": 240,
+        "ratio": 1.1029411764705883,
+        "pass": true
+      }
+    },
+    "plasma": {
+      "dist_100": {
+        "lv5": 149.4,
+        "evo": 165.6,
+        "ratio": 1.108433734939759,
+        "pass": true
+      },
+      "dist_200": {
+        "lv5": 149.4,
+        "evo": 165.6,
+        "ratio": 1.108433734939759,
+        "pass": true
+      },
+      "dist_300": {
+        "lv5": 149.4,
+        "evo": 165.6,
+        "ratio": 1.108433734939759,
+        "pass": true
+      }
+    }
+  },
+  "dense_swarm_aoe_dps": {
+    "pulse_blade": {
+      "lv5_dps": 220.4,
+      "evo_dps": 435.2,
+      "ratio": 1.9745916515426496,
+      "pass": true
+    },
+    "plasma_cannon": {
+      "lv5_dps": 1270.2,
+      "evo_dps": 1932,
+      "ratio": 1.5210203117619272,
+      "pass": true
+    },
+    "arc_core": {
+      "lv5_dps": 266.8,
+      "evo_dps": 331.8,
+      "ratio": 1.2436281859070464,
+      "pass": true
+    },
+    "orbital_satellites": {
+      "lv5_dps": 129,
+      "evo_dps": 286.4,
+      "ratio": 2.22015503875969,
+      "pass": true
+    },
+    "black_hole_generator": {
+      "lv5_dps": 2352,
+      "evo_dps": 3377.6,
+      "ratio": 1.4360544217687075,
+      "pass": true
+    },
+    "prism_ray": {
+      "lv5_dps": 2169.2,
+      "evo_dps": 6026.6,
+      "ratio": 2.778259266088881,
+      "pass": true
+    }
+  },
+  "viewports": [
+    {
+      "viewport": "iPhone SE / Narrow (320x568)",
+      "docWidth": 320,
+      "winWidth": 320,
+      "noHorizontalScroll": true,
+      "expBottom": 74,
+      "bossTop": 84,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "Android Budget (360x800)",
+      "docWidth": 360,
+      "winWidth": 360,
+      "noHorizontalScroll": true,
+      "expBottom": 66.515625,
+      "bossTop": 76.515625,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "iPhone 13/14 (390x844)",
+      "docWidth": 390,
+      "winWidth": 390,
+      "noHorizontalScroll": true,
+      "expBottom": 70,
+      "bossTop": 80,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "iPhone Pro Max (430x932)",
+      "docWidth": 430,
+      "winWidth": 430,
+      "noHorizontalScroll": true,
+      "expBottom": 70,
+      "bossTop": 80,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "Mobile Landscape (844x390)",
+      "docWidth": 844,
+      "winWidth": 844,
+      "noHorizontalScroll": true,
+      "expBottom": 64,
+      "bossTop": 70,
+      "gap": 6,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "Landscape Max (932x430)",
+      "docWidth": 932,
+      "winWidth": 932,
+      "noHorizontalScroll": true,
+      "expBottom": 64,
+      "bossTop": 70,
+      "gap": 6,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "iPad Portrait (768x1024)",
+      "docWidth": 768,
+      "winWidth": 768,
+      "noHorizontalScroll": true,
+      "expBottom": 70,
+      "bossTop": 80,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    },
+    {
+      "viewport": "Desktop Screen (1728x896)",
+      "docWidth": 1728,
+      "winWidth": 1728,
+      "noHorizontalScroll": true,
+      "expBottom": 70,
+      "bossTop": 80,
+      "gap": 10,
+      "noOverlap": true,
+      "toggleBtnClickable": true,
+      "dockPassThrough": true,
+      "pass": true
+    }
+  ]
+}

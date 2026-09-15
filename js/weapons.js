@@ -520,8 +520,9 @@ class PlasmaCannon extends BaseWeapon {
     if (this.isEvolved) {
       if (window.soundSystem) window.soundSystem.playShoot('plasma');
       // 湮灭重炮：3 枚高密反物质能量弹，无限穿透，强击退 320，触敌生成冲击波
+      // 散角收束至 0.11，保证远距离 (300) 侧弹全量命中半径 46 的首领靶标
       const shotCount = 3;
-      const spread = 0.22;
+      const spread = 0.11;
       const baseDamage = 92;
       const speed = 400;
 
@@ -809,7 +810,7 @@ class PrismRay extends BaseWeapon {
       // 激光持续判定 (tick)
       b.tickTimer -= dt;
       if (b.tickTimer <= 0) {
-        b.tickTimer = b.isEvolved ? 0.10 : 0.08;
+        b.tickTimer = 0.08;
         const cos = Math.cos(b.angle);
         const sin = Math.sin(b.angle);
 
@@ -871,23 +872,37 @@ class PrismRay extends BaseWeapon {
 
     if (this.isEvolved) {
       if (window.soundSystem) window.soundSystem.playShoot('laser');
-      // 超维裂隙：3 道旋转扫掠死光，持续 1.0s，宽度 34，每 tick 24 伤害 (0.10s 间隔，健康竞技级 DPS)
+      // 超维裂隙：3 道高能裂隙死光，持续 1.0s
+      // 中央主光束锁定目标 (rotSpeed = 0)，左右两翼光束负责扇形扫场 (rotSpeed = ±1.3)
       const duration = 1.0;
-      const width = 34 * player.areaBonus;
-      const baseDamage = 24;
+      const width = 36 * player.areaBonus;
       const beamCount = 3;
 
       for (let i = 0; i < beamCount; i++) {
-        const baseOffset = (i - 1) * 0.45;
-        const rotDir = (i === 0) ? -1 : (i === 2 ? 1 : 0.4);
+        let baseOffset = 0;
+        let rotSpeed = 0;
+        let damage = 50; // 中央锁定主光束：单体高能输出，确保 100/200/300 距离中心光束自身 DPS 达 260+，彻底根除负进化
+
+        if (i === 0) {
+          // 左翼扫掠死光
+          baseOffset = -0.28;
+          rotSpeed = -1.0;
+          damage = 28;
+        } else if (i === 2) {
+          // 右翼扫掠死光
+          baseOffset = +0.28;
+          rotSpeed = +1.0;
+          damage = 28;
+        }
+
         this.beams.push({
           x: player.x,
           y: player.y,
           angle: targetAngle + baseOffset,
-          rotSpeed: 1.6 * rotDir,
-          width: width,
+          rotSpeed: rotSpeed,
+          width: i === 1 ? width : width * 0.85,
           length: 850,
-          damage: baseDamage,
+          damage: damage,
           life: duration,
           maxLife: duration,
           tickTimer: 0,

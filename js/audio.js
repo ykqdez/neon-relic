@@ -8,6 +8,12 @@ class SoundSystem {
     this.ctx = null;
     this.isMuted = false;
     this.hasUnlocked = false;
+    this.lastSoundTimes = {
+      hit: 0,
+      gem: 0,
+      slash: 0,
+      explosion: 0
+    };
     this.initAudioContext();
   }
 
@@ -106,9 +112,13 @@ class SoundSystem {
     osc.stop(now + 0.13);
   }
 
-  // 4. 击中敌人反馈
+  // 4. 击中敌人反馈 (加入高频限流，防止多怪同屏引发音频节点爆炸)
   playHit(isCrit = false) {
     if (this.isMuted || !this.ctx) return;
+    const tNow = performance.now();
+    if (!isCrit && tNow - this.lastSoundTimes.hit < 35) return;
+    this.lastSoundTimes.hit = tNow;
+
     this.unlock();
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -129,9 +139,13 @@ class SoundSystem {
     osc.stop(now + 0.07);
   }
 
-  // 5. 敌人爆炸声 (程序化白噪音 + 降频滤波)
+  // 5. 敌人爆炸声 (程序化白噪音 + 降频滤波，加入限流)
   playExplosion(isLarge = false) {
     if (this.isMuted || !this.ctx) return;
+    const tNow = performance.now();
+    if (!isLarge && tNow - this.lastSoundTimes.explosion < 45) return;
+    this.lastSoundTimes.explosion = tNow;
+
     this.unlock();
     const now = this.ctx.currentTime;
     const duration = isLarge ? 0.35 : 0.2;
@@ -163,9 +177,13 @@ class SoundSystem {
     noise.start(now);
   }
 
-  // 6. 经验晶体拾取叮咚声
+  // 6. 经验晶体拾取叮咚声 (加入微小限流)
   playGem(val = 1) {
     if (this.isMuted || !this.ctx) return;
+    const tNow = performance.now();
+    if (tNow - this.lastSoundTimes.gem < 28) return;
+    this.lastSoundTimes.gem = tNow;
+
     this.unlock();
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();

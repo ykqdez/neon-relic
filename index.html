@@ -63,23 +63,23 @@
           </div>
           <span id="exp-text" class="exp-numeric">0 / 12</span>
         </div>
+
+        <!-- Boss 专属血条 (自适应流式排在经验条下方，间距 6px，彻底杜绝重叠) -->
+        <div id="boss-hud">
+          <div class="boss-title-row">
+            <span id="boss-name">⚠️ 遗迹泰坦 AETHEL-TITAN</span>
+            <span id="boss-phase-tag" class="boss-phase-tag">PHASE 1</span>
+          </div>
+          <div class="boss-hp-bg">
+            <div id="boss-hp-fill" class="boss-hp-fill"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Boss 专属血条 (出现在经验条下方) -->
-      <div id="boss-hud">
-        <div class="boss-title-row">
-          <span id="boss-name">⚠️ 遗迹泰坦 AETHEL-TITAN</span>
-          <span id="boss-phase-tag" class="boss-phase-tag">PHASE 1</span>
-        </div>
-        <div class="boss-hp-bg">
-          <div id="boss-hp-fill" class="boss-hp-fill"></div>
-        </div>
-      </div>
-
-      <!-- 底部装备 Dock (紧凑排布，避开左侧摇杆区域) -->
+      <!-- 底部装备 Dock (紧凑排布，容器穿透，仅协议详情按钮接收点击) -->
       <div class="hud-bottom-bar">
         <div id="build-dock" class="build-dock">
-          <div class="dock-title">PROTOCOLS</div>
+          <button id="btn-toggle-build" class="dock-title-btn" type="button" title="点击查看机体协议详情">PROTOCOLS ℹ️</button>
           <div id="build-quick-view" class="build-quick-view"></div>
         </div>
       </div>
@@ -187,9 +187,23 @@
             <span id="stat-highest-hit" class="stat-val">0</span>
           </div>
           <div class="stat-item">
-            <span class="stat-label">MVP 武器</span>
-            <span id="stat-mvp" class="stat-val" style="color:var(--neon-amber);">脉冲刃</span>
+            <span class="stat-label">难度设定</span>
+            <span id="stat-difficulty" class="stat-val" style="color:var(--neon-cyan);">标准 NORMAL</span>
           </div>
+          <div class="stat-item">
+            <span class="stat-label">历史最高等级</span>
+            <span id="stat-best-level" class="stat-val">Lv.1</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">历史累计歼敌</span>
+            <span id="stat-total-kills" class="stat-val">0</span>
+          </div>
+        </div>
+
+        <!-- 战术武器伤害分布占比 -->
+        <div class="final-build-box" style="margin-top:8px;">
+          <span class="final-build-label">战术武器伤害分布 (WEAPON STATS)：</span>
+          <div id="gameover-weapon-stats" class="gameover-weapon-stats"></div>
         </div>
 
         <!-- 最终装备构筑 -->
@@ -199,6 +213,18 @@
         </div>
 
         <button id="btn-gameover-restart" class="game-btn" style="margin-top:8px;">再战一局 REBOOT</button>
+      </div>
+    </div>
+
+    <!-- 模态框 4: 当前机体构筑协议详情 (轻触 PROTOCOLS 展开) -->
+    <div id="modal-build-detail" class="modal-overlay">
+      <div class="modal-dialog build-detail-dialog">
+        <div class="modal-header-row">
+          <h2 class="modal-title" style="color:var(--neon-cyan);font-size:1.05rem;">机体协议配置 PROTOCOLS</h2>
+          <button id="btn-close-build-detail" class="btn-icon" aria-label="关闭" style="width:36px;height:36px;min-width:36px;min-height:36px;font-size:0.9rem;">✕</button>
+        </div>
+        <div id="build-detail-content" class="build-detail-content"></div>
+        <button id="btn-done-build-detail" class="game-btn" style="margin-top:10px;">返回战场 RESUME</button>
       </div>
     </div>
   </div>

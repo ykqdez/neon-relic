@@ -42,6 +42,7 @@ const DIFFICULTY_PRESETS = {
     scoutSpeed: 135,
     sniperBulletSpeed: 210,
     sniperAimTime: 1.3,
+    sniperLockTime: 0.50,
     strikerDashSpeed: 310,
     strikerAimTime: 1.1,
     bossHp: 1900,
@@ -86,6 +87,7 @@ const DIFFICULTY_PRESETS = {
     scoutSpeed: 160,
     sniperBulletSpeed: 270,
     sniperAimTime: 1.0,
+    sniperLockTime: 0.35,
     strikerDashSpeed: 390,
     strikerAimTime: 0.8,
     bossHp: 2800,
@@ -130,6 +132,7 @@ const DIFFICULTY_PRESETS = {
     scoutSpeed: 175,
     sniperBulletSpeed: 300,
     sniperAimTime: 0.8,
+    sniperLockTime: 0.18,
     strikerDashSpeed: 420,
     strikerAimTime: 0.65,
     bossHp: 3600,
@@ -150,6 +153,7 @@ class Game {
     const savedDiff = localStorage.getItem('nr_difficulty');
     this.difficulty = (savedDiff && DIFFICULTY_PRESETS[savedDiff]) ? savedDiff : (isTouchDevice ? 'casual' : 'normal');
     this.diffConfig = DIFFICULTY_PRESETS[this.difficulty];
+    this.isMobileDevice = isTouchDevice;
 
     // 随机种子生成器
     this.seed = this.generateSeed();
@@ -328,7 +332,26 @@ class Game {
     }
   }
 
-  // 统一检查当前是否允许额外生成敌人 (严格限制于各难度上限)
+  // 依据当前相机视口矩形边界计算离屏生成位置 (沿射线方向与屏幕外框求交并外扩 padding 世界单位，确保在屏幕外平滑进场)
+  getOffscreenSpawnPosition(minPadding = 65, maxPadding = 95) {
+    const zoom = (this.camera && this.camera.zoom) ? this.camera.zoom : 1.0;
+    const halfW = (this.camera.width / 2) / zoom;
+    const halfH = (this.camera.height / 2) / zoom;
+    const angle = Math.random() * Math.PI * 2;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const tX = Math.abs(cos) > 1e-5 ? halfW / Math.abs(cos) : Infinity;
+    const tY = Math.abs(sin) > 1e-5 ? halfH / Math.abs(sin) : Infinity;
+    const tBorder = Math.min(tX, tY);
+    const padding = minPadding + Math.random() * (maxPadding - minPadding);
+    const dist = tBorder + padding;
+    return {
+      x: this.player.x + cos * dist,
+      y: this.player.y + sin * dist
+    };
+  }
+
+  // 统一检查当前是否允许额外生成敌人 (严格限制于各难度上限，仅统计存活实体)
   canSpawnEnemies(count = 1) {
     const isBossActive = !!this.activeBoss;
     const max = this.diffConfig && this.diffConfig.maxEnemies !== undefined
@@ -337,7 +360,8 @@ class Game {
     const currentMax = isBossActive
       ? Math.round(max * 0.75)
       : max;
-    return this.enemies.length + count <= currentMax;
+    const livingCount = this.enemies.reduce((acc, e) => acc + (e.isDead ? 0 : 1), 0);
+    return livingCount + count <= currentMax;
   }
 
   setDifficulty(dKey) {
@@ -409,6 +433,105 @@ class Game {
     const doRestart = () => this.restart();
     if (restartBtn) restartBtn.addEventListener('click', doRestart);
     if (goRestartBtn) goRestartBtn.addEventListener('click', doRestart);
+
+    // 机体协议抽屉 (展开/关闭)
+    const toggleBuildBtn = document.getElementById('btn-toggle-build');
+    if (toggleBuildBtn) {
+      toggleBuildBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openBuildDetailModal();
+      });
+    }
+    const closeBuildBtn = document.getElementById('btn-close-build-detail');
+    if (closeBuildBtn) {
+      closeBuildBtn.addEventListener('click', () => this.closeBuildDetailModal());
+    }
+    const doneBuildBtn = document.getElementById('btn-done-build-detail');
+    if (doneBuildBtn) {
+      doneBuildBtn.addEventListener('click', () => this.closeBuildDetailModal());
+    }
+  }
+
+  openBuildDetailModal() {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+    }
+    this.renderBuildDetailContent();
+    const modal = document.getElementById('modal-build-detail');
+    if (modal) modal.classList.add('active');
+  }
+
+  closeBuildDetailModal() {
+    const modal = document.getElementById('modal-build-detail');
+    if (modal) modal.classList.remove('active');
+    if (this.state === 'paused') {
+      this.resumeGame();
+    }
+  }
+
+  renderBuildDetailContent() {
+    const container = document.getElementById('build-detail-content');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // 1. 战术武器清单
+    const wSection = document.createElement('div');
+    wSection.className = 'bd-section';
+    wSection.innerHTML = '<div class="bd-section-title">已装载战术武器 (WEAPONS)</div>';
+
+    const activeWeapons = Object.values(this.weapons).filter(w => w.level > 0);
+    if (activeWeapons.length === 0) {
+      wSection.innerHTML += '<div style="color:var(--text-dim);font-size:0.75rem;padding:4px;">暂无装备武器</div>';
+    } else {
+      for (const w of activeWeapons) {
+        const item = document.createElement('div');
+        item.className = `bd-item ${w.isEvolved ? 'evolved' : ''}`;
+        item.innerHTML = `
+          <div class="bd-item-info">
+            <span class="bd-item-icon">${w.icon}</span>
+            <div>
+              <div class="bd-item-name">${w.name} ${w.isEvolved ? '★ (EVOLVED)' : ''}</div>
+              <div style="font-size:0.68rem;color:var(--text-dim);">${w.description || ''}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+            <span class="bd-item-lvl">${w.isEvolved ? 'EVO' : `Lv.${w.level}`}</span>
+            <span class="bd-item-dps">${Math.round(w.damageDealt)} DMG</span>
+          </div>
+        `;
+        wSection.appendChild(item);
+      }
+    }
+    container.appendChild(wSection);
+
+    // 2. 机体强化被动
+    const pSection = document.createElement('div');
+    pSection.className = 'bd-section';
+    pSection.innerHTML = '<div class="bd-section-title">已生效强化被动 (PASSIVE PROTOCOLS)</div>';
+
+    const activePassives = Object.entries(this.passives).filter(([_, p]) => p && p.level > 0);
+    if (activePassives.length === 0) {
+      pSection.innerHTML += '<div style="color:var(--text-dim);font-size:0.75rem;padding:4px;">暂无激活被动</div>';
+    } else {
+      for (const [id, p] of activePassives) {
+        const def = this.upgradeSystem.passiveDefs[id];
+        if (!def) continue;
+        const item = document.createElement('div');
+        item.className = 'bd-item';
+        item.innerHTML = `
+          <div class="bd-item-info">
+            <span class="bd-item-icon">${def.icon}</span>
+            <div>
+              <div class="bd-item-name">${def.name}</div>
+              <div style="font-size:0.68rem;color:var(--text-dim);">${def.desc || ''}</div>
+            </div>
+          </div>
+          <span class="bd-item-lvl">Lv.${p.level}</span>
+        `;
+        pSection.appendChild(item);
+      }
+    }
+    container.appendChild(pSection);
   }
 
   startGame() {
@@ -453,6 +576,8 @@ class Game {
     document.getElementById('modal-pause').classList.remove('active');
     document.getElementById('modal-gameover').classList.remove('active');
     document.getElementById('modal-upgrade').classList.remove('active');
+    const modalBuildDetail = document.getElementById('modal-build-detail');
+    if (modalBuildDetail) modalBuildDetail.classList.remove('active');
 
     // 重新实例化
     this.seed = this.generateSeed();
@@ -651,19 +776,32 @@ class Game {
   updateSpawns(dt) {
     const isBossActive = this.activeBoss && !this.activeBoss.isDead;
 
-    // 8 分钟 Boss 登场判定
+    // 8 分钟 Boss 登场判定与战场边缘杂兵清理
     if (this.elapsedTime >= this.bossTime && !this.bossSpawned) {
       this.bossSpawned = true;
       if (window.soundSystem) window.soundSystem.playBossAlert();
-      const bAngle = Math.random() * Math.PI * 2;
+      const { x: bx, y: by } = this.getOffscreenSpawnPosition(140, 180);
       this.activeBoss = new EnemyTypes.BossTitan(
-        this.player.x + Math.cos(bAngle) * 450,
-        this.player.y + Math.sin(bAngle) * 450,
+        bx,
+        by,
         1,
         this.diffConfig
       );
       this.enemies.push(this.activeBoss);
-      document.getElementById('boss-hud').style.display = 'flex';
+      const bossHud = document.getElementById('boss-hud');
+      if (bossHud) bossHud.style.display = 'flex';
+
+      // 战场边缘清理：清理距离玩家 > 350px 的非精英小怪，将压力降低到容量的 60%~75%
+      const targetRetainCount = Math.round(this.diffConfig.maxEnemies * 0.65);
+      if (this.enemies.length > targetRetainCount) {
+        this.enemies = this.enemies.filter(e => {
+          if (e === this.activeBoss || e.isElite) return true;
+          const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+          return d <= 350;
+        });
+      }
+      this.spawnShockwave(this.player.x, this.player.y, 350, '#ff007f');
+      this.spawnTimer = 2.5; // Boss 登场震撼期延迟后续小怪波次刷新
     }
 
     // 精英怪定时生成 (Boss 存活期间或登场前 25 秒暂停新增 Elite，避免双重高压同台)
@@ -678,7 +816,7 @@ class Game {
       }
     }
 
-    // 常规怪刷新 (Boss 存活期间刷新速率降低约 38%，杂兵上限临时降低 25%)
+    // 常规怪刷新 (Boss 存活期间刷新速率降低约 38%，杂兵上限临时降低 25%；Boss 登场前 25 秒降速 25%)
     this.spawnTimer -= dt;
     const progress = Math.min(1, this.elapsedTime / 480);
     let interval = Math.max(
@@ -687,13 +825,15 @@ class Game {
     );
     if (isBossActive) {
       interval *= 1.62;
+    } else if (bossNear) {
+      interval *= 1.25;
     }
 
     const currentMaxEnemies = isBossActive
       ? Math.round(this.diffConfig.maxEnemies * 0.75)
       : this.diffConfig.maxEnemies;
 
-    if (this.spawnTimer <= 0 && this.enemies.length < currentMaxEnemies) {
+    if (this.spawnTimer <= 0 && this.canSpawnEnemies(1)) {
       this.spawnTimer = interval;
       this.spawnWave();
     }
@@ -706,18 +846,8 @@ class Game {
     const unlocks = this.diffConfig.unlockTimes;
     const t = this.elapsedTime;
 
-    // 依据当前相机视口矩形边界计算生成位置 (沿射线方向与屏幕外框求交，外扩 65~95 世界单位，自然进入屏幕)
-    const halfW = (this.camera.width / 2) / this.camera.zoom;
-    const halfH = (this.camera.height / 2) / this.camera.zoom;
-    const angle = Math.random() * Math.PI * 2;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    const tX = Math.abs(cos) > 1e-5 ? halfW / Math.abs(cos) : Infinity;
-    const tY = Math.abs(sin) > 1e-5 ? halfH / Math.abs(sin) : Infinity;
-    const tBorder = Math.min(tX, tY);
-    const dist = tBorder + 65 + Math.random() * 30;
-    const sx = this.player.x + cos * dist;
-    const sy = this.player.y + sin * dist;
+    // 依据当前相机视口矩形边界统一计算离屏生成位置 (外扩 65~95 世界单位，自然进入屏幕)
+    const { x: sx, y: sy } = this.getOffscreenSpawnPosition(65, 95);
 
     // 根据已解锁敌人群系动态构建加权池并归一化抽取
     const activePool = [];
@@ -771,9 +901,8 @@ class Game {
   }
 
   spawnElite() {
-    const angle = Math.random() * Math.PI * 2;
-    const sx = this.player.x + Math.cos(angle) * 420;
-    const sy = this.player.y + Math.sin(angle) * 420;
+    // 依据当前相机视口矩形边界计算离屏生成位置 (外扩 100~140 世界单位)
+    const { x: sx, y: sy } = this.getOffscreenSpawnPosition(100, 140);
 
     const affixes = ['berserk', 'shield', 'splitter'];
     const affix = affixes[Math.floor(Math.random() * affixes.length)];
@@ -867,7 +996,7 @@ class Game {
     }
     this.stats.totalDamage += amount;
 
-    if (this.damageTexts.length > 50) {
+    if (this.damageTexts.length >= 25) {
       this.damageTexts.shift();
     }
 
@@ -882,10 +1011,12 @@ class Game {
     });
   }
 
-  // 粒子火花
+  // 粒子火花 (手机端预算 120，桌面端预算 250)
   spawnSparks(x, y, color, count = 6) {
+    const isMobile = this.isMobileDevice || (this.camera && this.camera.width < 768);
+    const maxParticles = isMobile ? 120 : 250;
     for (let i = 0; i < count; i++) {
-      if (this.particles.length > 250) this.particles.shift();
+      if (this.particles.length >= maxParticles) this.particles.shift();
       const a = Math.random() * Math.PI * 2;
       const spd = 60 + Math.random() * 120;
       this.particles.push({
@@ -1053,37 +1184,84 @@ class Game {
     if (this.elapsedTime > prevBestTime) {
       localStorage.setItem('nr_best_time', this.elapsedTime.toFixed(1));
     }
-    const totalBossKills = parseInt(localStorage.getItem('nr_boss_kills') || '0') + (isVictory ? 1 : 0);
+    const totalBossKills = parseInt(localStorage.getItem('nr_boss_kills') || '0', 10) + (isVictory ? 1 : 0);
     localStorage.setItem('nr_boss_kills', totalBossKills.toString());
 
-    document.getElementById('gameover-title').textContent = isVictory ? '遗迹征服！VICTORY' : '核心过载 DEFEAT';
-    document.getElementById('gameover-title').style.color = isVictory ? '#00f0ff' : '#ff0055';
-    document.getElementById('stat-time').textContent = this.formatTime(this.elapsedTime);
-    document.getElementById('stat-level').textContent = `Lv.${this.player.level}`;
-    document.getElementById('stat-kills').textContent = this.stats.kills;
-    document.getElementById('stat-damage').textContent = Math.round(this.stats.totalDamage);
-    document.getElementById('stat-highest-hit').textContent = this.stats.highestHit;
-    document.getElementById('stat-mvp').textContent = mvpWeapon;
+    const prevBestLevel = parseInt(localStorage.getItem('nr_best_level') || '1', 10);
+    const bestLevel = Math.max(prevBestLevel, this.player.level);
+    localStorage.setItem('nr_best_level', bestLevel.toString());
+
+    const prevTotalKills = parseInt(localStorage.getItem('nr_total_kills') || '0', 10);
+    const newTotalKills = prevTotalKills + (this.stats.kills || 0);
+    localStorage.setItem('nr_total_kills', newTotalKills.toString());
+
+    const titleEl = document.getElementById('gameover-title');
+    if (titleEl) {
+      titleEl.textContent = isVictory ? '遗迹征服！VICTORY' : '核心过载 DEFEAT';
+      titleEl.style.color = isVictory ? '#00f0ff' : '#ff0055';
+    }
+    const statTimeEl = document.getElementById('stat-time');
+    if (statTimeEl) statTimeEl.textContent = this.formatTime(this.elapsedTime);
+    const statLevelEl = document.getElementById('stat-level');
+    if (statLevelEl) statLevelEl.textContent = `Lv.${this.player.level}`;
+    const statKillsEl = document.getElementById('stat-kills');
+    if (statKillsEl) statKillsEl.textContent = this.stats.kills;
+    const statDamageEl = document.getElementById('stat-damage');
+    if (statDamageEl) statDamageEl.textContent = Math.round(this.stats.totalDamage);
+    const statHitEl = document.getElementById('stat-highest-hit');
+    if (statHitEl) statHitEl.textContent = this.stats.highestHit;
+    const statMvpEl = document.getElementById('stat-mvp');
+    if (statMvpEl) statMvpEl.textContent = mvpWeapon;
+    const statDiffEl = document.getElementById('stat-difficulty');
+    if (statDiffEl) statDiffEl.textContent = this.diffConfig ? this.diffConfig.name : this.difficulty.toUpperCase();
+    const statBestLevelEl = document.getElementById('stat-best-level');
+    if (statBestLevelEl) statBestLevelEl.textContent = `Lv.${bestLevel}`;
+    const statTotalKillsEl = document.getElementById('stat-total-kills');
+    if (statTotalKillsEl) statTotalKillsEl.textContent = newTotalKills;
+
     const seedEl = document.getElementById('gameover-seed');
     if (seedEl) seedEl.style.display = 'none';
 
-    const buildWrap = document.getElementById('final-build-items');
-    buildWrap.innerHTML = '';
-    for (const w of Object.values(this.weapons)) {
-      if (w.level > 0) {
-        const item = document.createElement('div');
-        item.className = 'weapon-chip';
-        item.innerHTML = `${w.icon}<span class="chip-level">${w.isEvolved ? 'MAX' : w.level}</span>`;
-        buildWrap.appendChild(item);
+    // 战术武器伤害分布占比
+    const wStatsEl = document.getElementById('gameover-weapon-stats');
+    if (wStatsEl) {
+      wStatsEl.innerHTML = '';
+      const totalDmg = Math.max(1, this.stats.totalDamage || 1);
+      const activeWeapons = Object.values(this.weapons).filter(w => w.level > 0);
+      activeWeapons.sort((a, b) => b.damageDealt - a.damageDealt);
+      for (const w of activeWeapons) {
+        const pct = Math.min(100, Math.round((w.damageDealt / totalDmg) * 100));
+        const row = document.createElement('div');
+        row.className = 'ws-row';
+        row.innerHTML = `
+          <span class="ws-name">${w.icon} ${w.name}</span>
+          <div class="ws-bar-bg"><div class="ws-bar-fill" style="width:${pct}%"></div></div>
+          <span class="ws-val">${Math.round(w.damageDealt)} (${pct}%)</span>
+        `;
+        wStatsEl.appendChild(row);
       }
     }
-    for (const [id, p] of Object.entries(this.passives)) {
-      if (p.level > 0) {
-        const def = this.upgradeSystem.passiveDefs[id];
-        const item = document.createElement('div');
-        item.className = 'weapon-chip';
-        item.innerHTML = `${def.icon}<span class="chip-level">${p.level}</span>`;
-        buildWrap.appendChild(item);
+
+    // 最终协议构筑
+    const buildWrap = document.getElementById('final-build-items');
+    if (buildWrap) {
+      buildWrap.innerHTML = '';
+      for (const w of Object.values(this.weapons)) {
+        if (w.level > 0) {
+          const item = document.createElement('div');
+          item.className = 'weapon-chip';
+          item.innerHTML = `${w.icon}<span class="chip-level">${w.isEvolved ? 'MAX' : w.level}</span>`;
+          buildWrap.appendChild(item);
+        }
+      }
+      for (const [id, p] of Object.entries(this.passives)) {
+        if (p.level > 0) {
+          const def = this.upgradeSystem.passiveDefs[id];
+          const item = document.createElement('div');
+          item.className = 'weapon-chip';
+          item.innerHTML = `${def.icon}<span class="chip-level">${p.level}</span>`;
+          buildWrap.appendChild(item);
+        }
       }
     }
 
@@ -1447,6 +1625,8 @@ class Game {
     }
   }
 }
+
+window.Game = Game;
 
 window.addEventListener('DOMContentLoaded', () => {
   window.gameInstance = new Game();

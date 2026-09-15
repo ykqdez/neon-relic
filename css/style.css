@@ -279,9 +279,35 @@ html, body {
   -webkit-backdrop-filter: blur(8px);
   padding: 4px 8px;
   border-radius: 8px;
-  pointer-events: auto;
+  pointer-events: none;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
   max-width: calc(100vw - 24px);
+}
+
+.dock-title-btn {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 4px;
+  padding: 3px 7px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dock-title-btn:hover {
+  background: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.dock-title-btn:active {
+  transform: scale(0.95);
 }
 
 .dock-title {
@@ -317,6 +343,7 @@ html, body {
   font-size: 0.75rem;
   position: relative;
   box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+  pointer-events: none;
 }
 
 .weapon-chip.passive {
@@ -351,13 +378,11 @@ html, body {
   color: #000;
 }
 
-/* Boss 血条 (紧随经验条下方) */
+/* Boss 血条 (自适应流式排在经验条下方，间距 6px，彻底杜绝重叠) */
 #boss-hud {
-  position: absolute;
-  top: calc(var(--safe-top) + 68px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(520px, 88vw);
+  position: relative;
+  margin-top: 6px;
+  width: min(480px, 84vw);
   background: rgba(14, 18, 32, 0.92);
   border: 1px solid var(--neon-magenta);
   box-shadow: 0 0 15px rgba(255, 0, 127, 0.35);
@@ -366,6 +391,7 @@ html, body {
   display: none;
   flex-direction: column;
   gap: 4px;
+  pointer-events: auto;
   z-index: 15;
 }
 
@@ -789,42 +815,153 @@ html, body {
   letter-spacing: 1px;
 }
 
-/* 横屏手机优化适配 */
-@media (orientation: landscape) and (max-height: 500px) {
-  .hud-top-container {
-    gap: 2px;
-  }
-  .exp-bar-wrap {
-    height: 12px;
-  }
-  #boss-hud {
-    top: calc(var(--safe-top) + 54px);
-    padding: 4px 8px;
-  }
-  .modal-dialog {
-    max-height: 94vh;
-    padding: 12px;
-    gap: 8px;
-  }
-  .upgrade-cards-list {
-    flex-direction: row;
-    gap: 8px;
-  }
-  .upgrade-card {
-    flex: 1;
-    min-height: 50px;
-    padding: 8px;
-    gap: 6px;
-  }
-  .card-icon-box {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    font-size: 1.1rem;
-  }
-  .card-desc {
-    font-size: 0.7rem;
-  }
+/* 机体协议详情抽屉弹窗 */
+.build-detail-dialog {
+  max-width: 480px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.build-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: 4px;
+}
+
+.bd-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.bd-section-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 3px;
+}
+
+.bd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(14, 22, 44, 0.7);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  gap: 8px;
+}
+
+.bd-item.evolved {
+  border-color: #ffd700;
+  background: rgba(30, 26, 12, 0.8);
+}
+
+.bd-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bd-item-icon {
+  font-size: 1.1rem;
+}
+
+.bd-item-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bd-item-lvl {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.bd-item.evolved .bd-item-lvl {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.2);
+}
+
+.bd-item-dps {
+  font-size: 0.74rem;
+  color: var(--neon-amber);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* 战术武器伤害分布占比条 */
+.gameover-weapon-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ws-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+}
+
+.ws-name {
+  width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.ws-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ws-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+  border-radius: 3px;
+}
+
+.ws-val {
+  min-width: 65px;
+  text-align: right;
+  color: var(--neon-cyan);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.start-action-btn {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  width: 100%;
 }
 
 /* 屏幕受创边缘红晕提示 */
@@ -903,4 +1040,88 @@ html, body {
   color: #8fa3bf;
   line-height: 1.35;
   min-height: 28px;
+}
+
+/* 超窄屏幕 (如 320px SE / Fold 外屏) 适配 */
+@media (max-width: 360px) {
+  .modal-dialog {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .start-dialog {
+    padding: 14px 10px;
+    gap: 10px;
+  }
+  .logo-title {
+    font-size: 1.6rem;
+  }
+  .logo-cn {
+    font-size: 0.95rem;
+  }
+  .start-guide {
+    padding: 8px;
+    gap: 6px;
+  }
+  .guide-item {
+    gap: 8px;
+  }
+  .guide-h {
+    font-size: 0.78rem;
+  }
+  .guide-d {
+    font-size: 0.68rem;
+  }
+  .player-status-card {
+    min-width: 100px;
+    padding: 3px 6px;
+  }
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+}
+
+/* 横屏手机优化适配 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hud-top-container {
+    gap: 2px;
+  }
+  .exp-bar-wrap {
+    height: 12px;
+  }
+  #boss-hud {
+    margin-top: 4px;
+    padding: 4px 8px;
+    width: min(420px, 75vw);
+  }
+  .modal-dialog {
+    max-height: 94vh;
+    padding: 12px;
+    gap: 8px;
+  }
+  .start-dialog {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .upgrade-cards-list {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .upgrade-card {
+    flex: 1;
+    min-height: 50px;
+    padding: 8px;
+    gap: 6px;
+  }
+  .card-icon-box {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 1.1rem;
+  }
+  .card-desc {
+    font-size: 0.7rem;
+  }
 }

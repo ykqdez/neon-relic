@@ -333,23 +333,37 @@ class PrismSniper extends BaseEnemy {
     const dy = player.y - this.y;
     const dist = Math.hypot(dx, dy);
 
-    // 维持安全交火距离
-    if (dist < 190) {
-      this.x -= (dx / dist) * this.speed * dt;
-      this.y -= (dy / dist) * this.speed * dt;
-    } else if (dist > 280) {
-      this.x += (dx / dist) * this.speed * dt;
-      this.y += (dy / dist) * this.speed * dt;
+    // 维持安全交火距离 (添加 dist > 1e-4 严格守卫，防止重合时产生 NaN)
+    if (dist > 1e-4) {
+      if (dist < 190) {
+        this.x -= (dx / dist) * this.speed * dt;
+        this.y -= (dy / dist) * this.speed * dt;
+      } else if (dist > 280) {
+        this.x += (dx / dist) * this.speed * dt;
+        this.y += (dy / dist) * this.speed * dt;
+      }
     }
 
     this.shootTimer -= dt;
     if (this.shootTimer <= this.aimDuration) {
-      this.aimAngle = Math.atan2(dy, dx);
+      // 瞄准锁定时间 (Dodge Window)：开火前固定时间停止跟踪，给予玩家走位闪避的窗口
+      const lockWindow = (this.diffConfig && this.diffConfig.sniperLockTime !== undefined)
+        ? this.diffConfig.sniperLockTime
+        : 0.35;
+
+      if (this.shootTimer > lockWindow) {
+        this.aimAngle = Math.atan2(dy, dx);
+        this.isAimLocked = false;
+      } else {
+        // 进入锁定倒计时，冻结瞄准角，不再随玩家位移旋转
+        this.isAimLocked = true;
+      }
       this.aimTimer += dt;
 
       if (this.shootTimer <= 0) {
         this.shootTimer = 3.2;
         this.aimTimer = 0;
+        this.isAimLocked = false;
         if (bullets) {
           bullets.push({
             x: this.x + Math.cos(this.aimAngle) * (this.radius * 1.5),
@@ -367,15 +381,23 @@ class PrismSniper extends BaseEnemy {
   }
 
   render(ctx) {
-    // 瞄准激光瞄准线
+    // 瞄准激光瞄准线 (锁定阶段变为高亮刺目实线，提示玩家走位闪避)
     if (this.shootTimer <= this.aimDuration && !this.isDead) {
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + Math.cos(this.aimAngle) * 380, this.y + Math.sin(this.aimAngle) * 380);
-      ctx.strokeStyle = `rgba(255, 0, 80, ${this.shootTimer < 0.3 ? 0.95 : 0.45})`;
-      ctx.lineWidth = this.shootTimer < 0.3 ? 2 : 1.2;
-      ctx.setLineDash([5, 5]);
+      ctx.lineTo(this.x + Math.cos(this.aimAngle) * 450, this.y + Math.sin(this.aimAngle) * 450);
+      if (this.isAimLocked) {
+        ctx.strokeStyle = 'rgba(255, 0, 100, 0.95)';
+        ctx.lineWidth = 2.4;
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 10;
+        ctx.setLineDash([]);
+      } else {
+        ctx.strokeStyle = 'rgba(255, 0, 80, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 5]);
+      }
       ctx.stroke();
       ctx.restore();
     }
