@@ -50,12 +50,39 @@ def generate():
         env = min(1, t / .002) * math.exp(-t * 23) * min(1, (.18-t) / .04)
         samples.append((crack * .65 + tone) * env)
     write_pcm('enemy-shatter', samples)
+    # Contact shield: brief, soft mechanical tap, without a laser pitch sweep.
+    samples = []
+    smooth = 0
+    for i in range(round(.12 * 44100)):
+        t = i / 44100
+        smooth = .86 * smooth + .14 * rng.uniform(-1, 1)
+        env = min(1, t/.004) * math.exp(-t*42) * min(1, (.12-t)/.02)
+        samples.append((.7*math.sin(2*math.pi*310*t)+.2*math.sin(2*math.pi*625*t)+smooth*.6)*env)
+    write_pcm('orbital-contact', samples)
+    # Blade: moving air and a short metallic edge, not a projectile chirp.
+    samples = []
+    smooth = 0
+    for i in range(round(.18 * 44100)):
+        t = i / 44100
+        noise = rng.uniform(-1, 1)
+        smooth = .8*smooth + .2*noise
+        env = math.sin(math.pi*t/.18)**2 * math.exp(-t*8)
+        samples.append(((noise-smooth)*.6 + .12*math.sin(2*math.pi*1450*t))*env)
+    write_pcm('blade-swish', samples)
+    # Beam: restrained sustained energy, a different envelope from the plasma shot.
+    samples = []
+    for i in range(round(.48 * 44100)):
+        t = i / 44100
+        env = min(1,t/.018)*min(1,(.48-t)/.12)*math.exp(-t*2)
+        tone = math.sin(2*math.pi*220*t)+.3*math.sin(2*math.pi*441*t)+.1*math.sin(2*math.pi*880*t)
+        samples.append(tone*(.9+.1*math.sin(2*math.pi*28*t))*env)
+    write_pcm('prism-beam', samples)
     manifest_path = ROOT / 'assets/manifest.json'
     manifest = json.loads(manifest_path.read_text(encoding='utf8'))
     records = {entry['path']: entry for entry in manifest['files']}
     for source in sorted(AUDIO.glob('*.wav')):
         rel = source.relative_to(ROOT).as_posix()
-        if source.stem in ['plasma-shot', 'enemy-shatter']:
+        if source.stem in ['plasma-shot', 'enemy-shatter', 'orbital-contact', 'blade-swish', 'prism-beam']:
             origin, license_id = 'tools/build_audio.py', 'CC0-1.0'
         elif source.stem == 'lightning-crack':
             origin, license_id = 'https://opengameart.org/content/thunder', 'CC-BY-3.0'

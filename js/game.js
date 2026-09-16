@@ -25,7 +25,9 @@ const DIFFICULTY_PRESETS = {
       golem: 14,
       fission: 14,
       sniper: 12,
-      striker: 12
+      striker: 10,
+      priest: 8,
+      sentry: 8
     },
     unlockTimes: {
       drone: 0,
@@ -33,7 +35,9 @@ const DIFFICULTY_PRESETS = {
       golem: 90,
       fission: 150,
       sniper: 240,
-      striker: 330
+      striker: 330,
+      priest: 120,
+      sentry: 200
     },
     firstEliteTime: 145,
     eliteInterval: 100,
@@ -70,7 +74,9 @@ const DIFFICULTY_PRESETS = {
       golem: 16,
       fission: 15,
       sniper: 14,
-      striker: 13
+      striker: 11,
+      priest: 9,
+      sentry: 9
     },
     unlockTimes: {
       drone: 0,
@@ -78,7 +84,9 @@ const DIFFICULTY_PRESETS = {
       golem: 60,
       fission: 130,
       sniper: 220,
-      striker: 300
+      striker: 300,
+      priest: 95,
+      sentry: 170
     },
     firstEliteTime: 90,
     eliteInterval: 80,
@@ -115,7 +123,9 @@ const DIFFICULTY_PRESETS = {
       golem: 18,
       fission: 16,
       sniper: 16,
-      striker: 16
+      striker: 14,
+      priest: 10,
+      sentry: 10
     },
     unlockTimes: {
       drone: 0,
@@ -123,7 +133,9 @@ const DIFFICULTY_PRESETS = {
       golem: 45,
       fission: 100,
       sniper: 180,
-      striker: 240
+      striker: 240,
+      priest: 75,
+      sentry: 140
     },
     firstEliteTime: 75,
     eliteInterval: 65,
@@ -745,7 +757,7 @@ class Game {
       if (e.isBoss) {
         e.update(dt, this.player, this.enemies, this.enemyBullets, this);
       } else {
-        e.update(dt, this.player, this.enemies, this.enemyBullets);
+        e.update(dt, this.player, this.enemies, this.enemyBullets, this);
       }
 
       // 触碰玩家造成接触伤害 (只有活着的敌人才能造成伤害，应用统一敌方伤害倍率)
@@ -966,7 +978,10 @@ class Game {
     const activePool = [];
     let totalWeight = 0;
     const weights = this.diffConfig.enemyWeights || { drone: 30, scout: 18, golem: 14, fission: 14, sniper: 12, striker: 12 };
+    const specialistTypes={sniper:EnemyTypes.PrismSniper,priest:EnemyTypes.RepairPriest,sentry:EnemyTypes.BurstSentry};
+    const caps={sniper:3,priest:2,sentry:2};
     for (const [type, weight] of Object.entries(weights)) {
+      if(specialistTypes[type] && this.enemies.filter(e=>!e.isDead&&e instanceof specialistTypes[type]).length>=caps[type])continue;
       if (t >= (unlocks[type] ?? 0)) {
         activePool.push({ type, weight });
         totalWeight += weight;
@@ -989,6 +1004,12 @@ class Game {
 
     let enemy = null;
     switch (chosenType) {
+      case 'priest':
+        enemy = new EnemyTypes.RepairPriest(sx,sy,hpMult);
+        break;
+      case 'sentry':
+        enemy = new EnemyTypes.BurstSentry(sx,sy,hpMult,this.diffConfig);
+        break;
       case 'striker':
         enemy = new EnemyTypes.ChargeStriker(sx, sy, hpMult, this.diffConfig);
         break;

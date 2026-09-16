@@ -44,7 +44,7 @@ const meta={runId:report.runId,timestamp:report.timestamp,node:report.node,brows
   baseCommit:report.baseCommit,sourceHashes,command:'node tests/verify.cjs --growth'+(report.noOgg?' --no-ogg':''),
   conditions:bench.method,notes:'baseCommit is the parent commit before local edits; sourceHashes identify the tested tree. Game-displayed seed is not a gameplay replay seed.'};
 const data={metadata:meta,verification:{status:report.status,totalAssertions:report.totalAssertions,failures:report.failures,
-  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),pixel:read('pixel'),experience:read('experience'),audio:report.audio,realtime:report.realtime,stress:extra.stress},
+  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),pixel:read('pixel'),experience:read('experience'),combat:read('combat'),audio:report.audio,realtime:report.realtime,stress:extra.stress},
   weapons:bench.all,sustained60s:focused.find(r=>r.name==='sustained_60s_fps').result,
   satelliteAreaCoverage:bench.areaCoverage,satellitePassiveInteractions:bench.passiveInteractions,
   flows:flows.map(({levels,...rest})=>rest),growth:{method:'390x844, 60Hz, seeds 1..30 per difficulty/strategy, up to 900 simulated seconds, real offered cards, identical movement policy, no granted equipment or invulnerability. Quantiles are conditional on reaching each milestone; unreached samples remain censored.',summary:growthSummary}};
@@ -62,12 +62,14 @@ fs.writeFileSync(path.join(root,'FIX_VERIFICATION.md'),`# 修复与验收结果\
 
 ## 本轮修复
 
+- 战斗重调：卫星固定 54 轨道、近身击退与限频挡弹，范围扩大接触面；射线 Lv2–5 和进化伤害回调。加入修复祭司、扇射哨兵及特殊怪数量/同时预警预算。狙击锁定起点固定，屏外取消攻击，开火后休整。设计依据与参数见 docs/COMBAT_DESIGN.md。
+- 卫星换轻护盾撞击声与环绕尾迹，脉冲刃换挥切声，射线换短持续能量声；卫星空转不发声，实际接触/挡弹共享 230ms 限频。
 - 等离子炮改为带亮核/能量外壳/尾迹/炮口闪光/命中扩散的能量弹，使用新能量脉冲发射声；敌人使用独立碎裂死亡声，普通/精英/Boss 分级音高音量。
-- 手机音频：15 项音效使用 PCM WAV，BGM 通过独立 GainNode 控制 4% 音量；可信触屏/点击/按键及继续游戏可重新解锁上下文，加载失败可重试。验证包含禁用 OGG 解码、触控恢复后攻击发声；未进行 iPhone 真机验收。
+- 手机音频：18 项音效使用 PCM WAV，BGM 通过独立 GainNode 控制 4% 音量；可信触屏/点击/按键及继续游戏可重新解锁上下文，加载失败可重试。验证包含禁用 OGG 解码、触控恢复后攻击发声；未进行 iPhone 真机验收。
 - 升级与进化选卡静音，BGM 连续播放；失焦后完成选卡仍保留暂停。脉冲刃增加角色到目标的动态刃光与拖尾，保持原有瞬时伤害。
 - 电弧改用 CC BY 3.0 雷击采样。普通战斗/重要提示分组，武器合计 8 声上限，普通组 12 声、重要组 4 声；重要提示压低战斗组，音效动态压缩。回归包含实际混音峰值检查，具体证据见 CURRENT_BENCHMARK.json 的 experience。
 - 声音调整：BGM 从 13% 降至 4%；六武器分别使用独立攻击采样和限频组，补齐黑洞生成、卫星核心/力场接触音效，进化保留对应音色并降低音高。齐射只触发一次发射音；每种武器最多同时播放 2 个攻击采样。
-- 像素美术更新：本地 CC0 角色/怪物/装备图集、五帧爆炸、15 个采样音效、低音量循环 BGM，以及 OFL 中文像素字体。六武器渲染、地板、HUD 和所有弹窗统一像素风；不修改攻击与碰撞参数。素材来源与完整许可见 assets/CREDITS.md。
+- 像素美术：本地 CC0 角色/怪物/装备图集、五帧爆炸、18 个采样音效、低音量循环 BGM，以及 OFL 中文像素字体。六武器渲染、地板、HUD 和所有弹窗统一像素风。素材来源与完整许可见 assets/CREDITS.md。
 - 新增资源哈希/解码、像素画布、渲染不消耗玩法随机数、BGM 跟随暂停/抽屉/静音、采样节点上限与回收回归。
 
 - R01：黑洞每帧仅扣一次 tick 时间；Lv5 单洞 3.4 秒内为 13 次命中、260 伤害。
@@ -102,7 +104,7 @@ ${dpsTable}
 
 ## 边界与未验收项
 
-- 卫星保留环形定位；范围 Lv5 将轨道 102 推至 183.6，距离 100 的进化靶 DPS ${areaAt100.evolved}→${areaAt100.evolvedArea5}。这是已记录的设计取舍，未实施全盘覆盖重构。
+- 卫星固定轨道，保留环形而非全盘伤害；远距离小怪仍需其他武器处理。距离 100 的进化大靶 DPS ${areaAt100.evolved}，范围 Lv5 后 ${areaAt100.evolvedArea5}。挡弹只作用于投射物，不阻挡接触伤害或 Boss 地面危险区。
 - 成长数据是固定机器人策略结果，不代表人类胜率；首进化分位数仅统计实际到达者，未到达者单列。
 - 未执行 iOS Safari、Android 真机及低端设备 GPU/长期内存测试；模拟 CPU 提交时间不能换算为实际显示帧率。
 - 画面/音效与战斗仍共用 Math.random；测试固定时钟、种子和调用路径，游戏界面 seed 不承诺回放。
@@ -123,12 +125,12 @@ ${dpsTable}
 
 ## 卫星设计决定
 
-保留卫星核心碰撞和进化环形力场，保留范围增大时轨道外移；不额外提高转速、不扩大为全盘伤害，以维持环形防护和走位定位。范围对近靶存在反向收益，README 已明确说明。
+卫星定位为近身防御：固定轨道避免等级/范围升级把保护推离玩家。核心命中增加小幅击退，有限频率抵消外来子弹；依然需要走位和远程火力。设计依据与前后对比见 [战斗设计](docs/COMBAT_DESIGN.md)。
 
-- Lv5 轨道半径：102；范围 Lv5：183.6。距离 100、靶半径 46：进化 DPS ${satellite.evolvedAt100}，范围 Lv5 后 ${areaAt100.evolvedArea5}。
+- 轨道半径固定 54；基础数量 3/3/4/4/5，进化 6。核心接触半径 12/13.5/15/16.5/18，进化 20，乘范围倍率。距离 100、靶半径 46：进化 DPS ${satellite.evolvedAt100}，范围 Lv5 后 ${areaAt100.evolvedArea5}。
 - 超频影响命中间隔：核心 0.28→0.168 秒；力场 0.32→0.192 秒；只对实际接触结算。
 - JSON 的 satelliteAreaCoverage 提供半径 13/24/46、距离 0/40/70/100/140/180/220/260 的基础和进化覆盖；satellitePassiveInteractions 提供范围 Lv0–5 × 超频 Lv0–5 的组合。
-- 是否进一步改善近圈覆盖属于下一轮平衡选择；本轮不以提高所有距离 DPS 为验收条件。
+- 共享挡弹冷却 Lv1–5 为 0.9/0.8/0.7/0.6/0.5 秒，进化 0.3 秒；不随超频进一步缩短。新增 16 只实际移动小怪、静止玩家、10 秒的近身压力基准，详见 JSON verification.combat；接触时间不是扣血量或玩家胜率。
 
 ## 360 局成长模拟
 

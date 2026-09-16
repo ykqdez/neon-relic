@@ -38,9 +38,9 @@ window.regressionChecks = () => {
     const w = new PrismRay(); w.level = 5; w.evolve();
     const e = dummy(100,0); w.fire(g.player,[e],quietPool()); w.timer=999;
     const b=w.beams[1]; w.beams=[b]; b.tickTimer=0; b.life=.1;
-    w.update(.1,g.player,[e],quietPool()); assert(w.damageDealt===100,'two active ticks');
+    w.update(.1,g.player,[e],quietPool()); assert(w.damageDealt===72,'two active ticks');
     w.beams=[{...b,life:0,tickTimer:0}]; w.update(.1,g.player,[e],quietPool());
-    assert(w.damageDealt===100,'zero lifetime must not hit');
+    assert(w.damageDealt===72,'zero lifetime must not hit');
   });
   test('beam jitter equals regular simulation for locked target', () => {
     function run(jitter) {
@@ -49,7 +49,7 @@ window.regressionChecks = () => {
       for(let t=0,i=0;t<1.2;i++){const dt=jitter?[.1,.01,.063,.027][i%4]:1/60;w.update(dt,g.player,[e],quietPool());t+=dt;}
       return w.damageDealt;
     }
-    assert(run(true)===650 && run(false)===650,'13 central ticks over 1 second');
+    assert(run(true)===468 && run(false)===468,'13 central ticks over 1 second');
   });
   test('manual pause survives drawer close', () => {
     const g=resetAudit();g.openPauseModal();g.openBuildDetailModal();g.closeBuildDetailModal();

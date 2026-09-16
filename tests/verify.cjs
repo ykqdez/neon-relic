@@ -156,9 +156,9 @@ async function main() {
   if (!ready) throw Error('Game startup timed out');
   report.browser = await ev('({userAgent:navigator.userAgent,initialState:game.state})');
   check(report.browser.initialState === 'ready', 'initial state ready');
-  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js', 'combat-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
   await ev('auditSaved.sound.ready');
-  if(report.noOgg)check(await ev('auditRejectedOgg===0&&auditSaved.sound.failed.length===0&&auditSaved.sound.buffers.size===15'),'all SFX decode with OGG support disabled');
+  if(report.noOgg)check(await ev('auditRejectedOgg===0&&auditSaved.sound.failed.length===0&&auditSaved.sound.buffers.size===SOUND_SAMPLE_NAMES.length'),'all SFX decode with OGG support disabled');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
   if (process.env.VERIFY_FAULT === 'case') cases(await ev('[(()=>{try{throw Error("VERIFY_CASE_SENTINEL")}catch(e){return {name:"injected",error:e.message}}})()]'), 'injected');
   const core = await ev('regressionChecks()');
@@ -169,6 +169,9 @@ async function main() {
   for(const row of pixel)check(row.passed,'pixel: '+row.name,row.detail);
   const experience=await ev('experienceChecks()');save('experience',experience);
   for(const row of experience)check(row.passed,'experience: '+row.name,row.detail);
+  const combat=await ev('combatChecks()');save('combat',combat);
+  for(const row of combat)check(row.passed,'combat: '+row.name,row.detail);
+  fs.writeFileSync(path.join(out,'combat-preview.png'),Buffer.from((await ev('window.combatPreview')).split(',')[1],'base64'));
   const bladeFrames=await ev('window.bladePreview');
   for(let i=0;i<bladeFrames.length;i++)fs.writeFileSync(path.join(out,`blade-trail-${i}.png`),Buffer.from(bladeFrames[i].split(',')[1],'base64'));
   fs.writeFileSync(path.join(out,'plasma-preview.png'),Buffer.from((await ev('window.plasmaPreview')).split(',')[1],'base64'));

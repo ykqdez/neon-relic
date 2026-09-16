@@ -1,6 +1,6 @@
 /**
  * 《霓虹遗迹 Neon Relic》- 敌人、精英怪与多阶段 Boss 体系
- * 6 种差异化普通怪 + 3 种精英词缀 + 多阶段机制 Boss「遗迹泰坦」
+ * 8 种差异化普通怪 + 3 种精英词缀 + 多阶段机制 Boss「遗迹泰坦」
  */
 
 class BaseEnemy {
@@ -236,63 +236,50 @@ class PrismSniper extends BaseEnemy {
     this.diffConfig = diffConfig;
     this.aimDuration = (diffConfig && diffConfig.sniperAimTime !== undefined) ? diffConfig.sniperAimTime : 1.0;
     this.bulletSpeed = (diffConfig && diffConfig.sniperBulletSpeed !== undefined) ? diffConfig.sniperBulletSpeed : 270;
-    this.shootTimer = 2.5;
+    this.shootTimer = 2.2;
     this.aimTimer = 0;
     this.aimAngle = 0;
+    this.attackState = 'recover';
+    this.isAimLocked = false;
+    this.aimOrigin = null;
   }
 
-  update(dt, player, enemies, bullets) {
+  update(dt, player, enemies, bullets, pool) {
     this.updateCommon(dt);
     if (this.isDead) return;
-
-    const dx = player.x - this.x;
-    const dy = player.y - this.y;
-    const dist = Math.hypot(dx, dy);
-
-    // 维持安全交火距离 (添加 dist > 1e-4 严格守卫，防止重合时产生 NaN)
-    if (dist > 1e-4) {
-      if (dist < 190) {
-        this.x -= (dx / dist) * this.speed * dt;
-        this.y -= (dy / dist) * this.speed * dt;
-      } else if (dist > 280) {
-        this.x += (dx / dist) * this.speed * dt;
-        this.y += (dy / dist) * this.speed * dt;
+    const dx=player.x-this.x,dy=player.y-this.y,dist=Math.hypot(dx,dy);
+    const eligible=enemyCanAttack(this,player,pool);
+    if (!eligible || (this.aimOrigin && Math.hypot(this.x-this.aimOrigin.x,this.y-this.aimOrigin.y)>8)) {
+      this.attackState='recover';this.shootTimer=Math.max(this.shootTimer,1);
+      this.isAimLocked=false;this.aimOrigin=null;this.aimTimer=0;
+    }
+    if (this.attackState==='recover') {
+      if(dist>1e-4) {
+        const move=!eligible?1:dist<170?-1:dist>250?1:0;
+        this.x+=dx/dist*this.speed*dt*move;this.y+=dy/dist*this.speed*dt*move;
+      }
+      this.shootTimer=Math.max(0,this.shootTimer-dt);
+      if(eligible && this.shootTimer<=0 && rangedSlotAvailable(this,enemies,pool)) {
+        this.attackState='track';this.shootTimer=this.aimDuration;this.aimTimer=0;
+        this.aimAngle=Math.atan2(player.y-this.y,player.x-this.x);
+      }
+      return;
+    }
+    this.shootTimer-=dt;this.aimTimer+=dt;
+    const lockWindow=Math.max(.3,this.diffConfig?.sniperLockTime??.35);
+    if(this.attackState==='track') {
+      this.aimAngle=Math.atan2(player.y-this.y,player.x-this.x);
+      if(this.shootTimer<=lockWindow) {
+        this.attackState='locked';this.isAimLocked=true;
+        this.aimOrigin={x:this.x,y:this.y};
       }
     }
-
-    this.shootTimer -= dt;
-    if (this.shootTimer <= this.aimDuration) {
-      // 瞄准锁定时间 (Dodge Window)：开火前固定时间停止跟踪，给予玩家走位闪避的窗口
-      const lockWindow = (this.diffConfig && this.diffConfig.sniperLockTime !== undefined)
-        ? this.diffConfig.sniperLockTime
-        : 0.35;
-
-      if (this.shootTimer > lockWindow) {
-        this.aimAngle = Math.atan2(dy, dx);
-        this.isAimLocked = false;
-      } else {
-        // 进入锁定倒计时，冻结瞄准角，不再随玩家位移旋转
-        this.isAimLocked = true;
-      }
-      this.aimTimer += dt;
-
-      if (this.shootTimer <= 0) {
-        this.shootTimer = 3.2;
-        this.aimTimer = 0;
-        this.isAimLocked = false;
-        if (bullets) {
-          bullets.push({
-            x: this.x + Math.cos(this.aimAngle) * (this.radius * 1.5),
-            y: this.y + Math.sin(this.aimAngle) * (this.radius * 1.5),
-            vx: Math.cos(this.aimAngle) * this.bulletSpeed,
-            vy: Math.sin(this.aimAngle) * this.bulletSpeed,
-            radius: 6,
-            damage: 16,
-            life: 3.5,
-            color: '#b026ff'
-          });
-        }
-      }
+    if(this.shootTimer<=0) {
+      const origin=this.aimOrigin||this;
+      if(bullets)bullets.push({x:origin.x+Math.cos(this.aimAngle)*24,y:origin.y+Math.sin(this.aimAngle)*24,
+        vx:Math.cos(this.aimAngle)*this.bulletSpeed,vy:Math.sin(this.aimAngle)*this.bulletSpeed,
+        radius:6,damage:16,life:3.5,color:'#b026ff'});
+      this.attackState='recover';this.shootTimer=2.2;this.aimTimer=0;this.isAimLocked=false;this.aimOrigin=null;
     }
   }
 
@@ -302,6 +289,76 @@ class PrismSniper extends BaseEnemy {
 }
 
 // 5. 裂变原体 (Fission Core): 旋转双核原体，阵亡分裂为两个子核
+// Ranged threats need a visible source and share a small telegraph budget.
+function enemyCanAttack(enemy,player,pool) {
+  if(Math.hypot(enemy.x-player.x,enemy.y-player.y)>360)return false;
+  const c=pool?.camera;
+  return !c || (Math.abs(enemy.x-c.x)<c.width/(2*c.zoom)-enemy.radius &&
+    Math.abs(enemy.y-c.y)<c.height/(2*c.zoom)-enemy.radius);
+}
+function rangedSlotAvailable(enemy,enemies,pool) {
+  const limit=pool?.activeBoss?1:pool?.diffConfig?.id==='casual'?1:2;
+  return enemies.filter(e=>e!==enemy&&!e.isDead&&['track','locked','windup'].includes(e.attackState)).length<limit;
+}
+
+// Fragile support: cannot heal bosses, elites, itself or other healers.
+class RepairPriest extends BaseEnemy {
+  constructor(x,y,multiplier=1) {
+    super(x,y,{radius:14,hp:42*multiplier,speed:58,damage:6,exp:3,color:'#8ae1ad'});
+    this.healTimer=3.2;this.healFlash=0;this.healTargets=[];
+  }
+  update(dt,player,enemies) {
+    this.updateCommon(dt);if(this.isDead)return;
+    this.healFlash=Math.max(0,this.healFlash-dt);
+    const dx=player.x-this.x,dy=player.y-this.y,d=Math.hypot(dx,dy);
+    if(d>1){const direction=d>210?1:d<135?-1:0;this.x+=dx/d*this.speed*dt*direction;this.y+=dy/d*this.speed*dt*direction;}
+    this.healTimer-=dt;
+    if(this.healTimer<=0) {
+      this.healTimer+=3.8;
+      this.healTargets=enemies.filter(e=>e!==this&&!e.isDead&&!e.isBoss&&!e.isElite&&
+        !(e instanceof RepairPriest)&&e.hp<e.maxHp&&Math.hypot(e.x-this.x,e.y-this.y)<=130)
+        .sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp).slice(0,3);
+      for(const e of this.healTargets)e.hp=Math.min(e.maxHp,e.hp+Math.min(18,e.maxHp*.12));
+      if(this.healTargets.length)this.healFlash=.35;
+    }
+  }
+  render(ctx){window.PixelArt.enemy(ctx,this);}
+}
+
+// Fixed three-path warning followed by slow projectiles with navigable gaps.
+class BurstSentry extends BaseEnemy {
+  constructor(x,y,multiplier=1,diffConfig=null) {
+    super(x,y,{radius:17,hp:65*multiplier,speed:48,damage:9,exp:3,color:'#e9ac62'});
+    this.attackState='recover';this.attackTimer=2.6;this.aimAngle=0;this.aimOrigin=null;
+    this.bulletSpeed=170*(diffConfig?.bossBulletSpeedMult??1);
+  }
+  update(dt,player,enemies,bullets,pool) {
+    this.updateCommon(dt);if(this.isDead)return;
+    const dx=player.x-this.x,dy=player.y-this.y,d=Math.hypot(dx,dy);
+    const eligible=enemyCanAttack(this,player,pool);
+    if(!eligible||(this.aimOrigin&&Math.hypot(this.x-this.aimOrigin.x,this.y-this.aimOrigin.y)>8)) {
+      this.attackState='recover';this.attackTimer=Math.max(this.attackTimer,1);this.aimOrigin=null;
+    }
+    this.attackTimer-=dt;
+    if(this.attackState==='recover') {
+      if(d>1&&(!eligible||d>260)){this.x+=dx/d*this.speed*dt;this.y+=dy/d*this.speed*dt;}
+      if(this.attackTimer<=0&&eligible&&rangedSlotAvailable(this,enemies,pool)) {
+        this.attackState='windup';this.attackTimer=.95;this.aimAngle=Math.atan2(dy,dx);
+        this.aimOrigin={x:this.x,y:this.y};
+      }
+    } else if(this.attackTimer<=0) {
+      const o=this.aimOrigin;
+      if(bullets)for(const offset of [-.32,0,.32]) {
+        const a=this.aimAngle+offset;
+        bullets.push({x:o.x+Math.cos(a)*25,y:o.y+Math.sin(a)*25,vx:Math.cos(a)*this.bulletSpeed,
+          vy:Math.sin(a)*this.bulletSpeed,radius:5,damage:11,life:3,color:'#e9ac62'});
+      }
+      this.attackState='recover';this.attackTimer=3.6;this.aimOrigin=null;
+    }
+  }
+  render(ctx){window.PixelArt.enemy(ctx,this);}
+}
+
 class FissionCore extends BaseEnemy {
   constructor(x, y, multiplier = 1, isChild = false) {
     super(x, y, {
@@ -566,7 +623,9 @@ window.EnemyTypes = {
   PrismSniper,
   FissionCore,
   ChargeStriker,
-  BossTitan
+  BossTitan,
+  RepairPriest,
+  BurstSentry
 };
 window.BaseEnemy = BaseEnemy;
 window.BossTitan = BossTitan;

@@ -98,7 +98,7 @@ class UpgradeSystem {
           evoDesc = '引力奇点牵引范围暴增，消失时引发毁灭性超新星大爆炸！';
         } else if (wId === 'orbital_satellites') {
           evoName = '极光环垒 (进化)';
-          evoDesc = '轨道卫星增加至 6 颗，极速环绕并形成近身绞杀力场！';
+          evoDesc = '6 颗卫星形成击退力场；每 0.3 秒抵消一枚外来子弹（不阻挡地面危险区）。';
         } else if (wId === 'plasma_cannon') {
           evoName = '湮灭重炮 (进化)';
           evoDesc = '多联装高速贯穿等离子光柱，极致击退毁灭敌群！';
@@ -126,7 +126,15 @@ class UpgradeSystem {
         const isNew = weapon.level === 0;
         const rarity = this.rollRarity(isNew);
         let bonus = null;
-        let desc = isNew ? `装配新武器：${weapon.name}` : `提升武器等级，强化对应攻击能力`;
+        const roles = {
+          pulse_blade: '追击近敌的精准斩击；升级增强伤害与多重斩击。',
+          arc_core: '连锁闪电清理密集敌群；升级增加连锁与伤害。',
+          orbital_satellites: `近身环绕、命中击退；${3+Math.floor((nextLv-1)/2)} 颗卫星，每 ${(1-nextLv*.1).toFixed(1)} 秒挡一枚外来子弹。范围升级扩大接触面。`,
+          plasma_cannon: '能量弹贯穿并击退敌人；升级强化齐射与穿透。',
+          black_hole: '聚拢和持续消耗敌群；搭配范围武器清场。',
+          prism_ray: '持续灼烧直线路径；高输出需要目标留在光束内。'
+        };
+        let desc = roles[wId] || `装配新武器：${weapon.name}`;
         if (rarity === 'rare') {
           bonus = { healPercent: 0.08, expPercent: 0 };
           desc += ' ❖ [稀有特权: 紧急维修 8% 生命]';

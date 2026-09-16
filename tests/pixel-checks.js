@@ -1,10 +1,10 @@
 window.pixelScene = (screen = 'battle') => {
   const g=resetAudit('casual');
   g.elapsedTime=182;g.player.level=12;g.player.hp=82;g.player.rotationAngle=1;
-  const types=['SwarmDrone','NeonScout','RelicGolem','PrismSniper','FissionCore','ChargeStriker'];
+  const types=['SwarmDrone','NeonScout','RelicGolem','PrismSniper','FissionCore','ChargeStriker','RepairPriest','BurstSentry'];
   g.enemies=Array.from({length:18},(_,i)=>{
     const angle=i/18*Math.PI*2,r=120+(i%3)*80;
-    return new EnemyTypes[types[i%6]](Math.cos(angle)*r,Math.sin(angle)*r);
+    return new EnemyTypes[types[i%types.length]](Math.cos(angle)*r,Math.sin(angle)*r);
   });
   for(const w of Object.values(g.weapons))w.level=4;
   g.weapons.orbital_satellites.level=5;g.weapons.orbital_satellites.evolve();
@@ -31,7 +31,7 @@ window.pixelChecks = async () => {
   await PixelArt.ready;await auditSaved.sound.ready;await document.fonts.ready;
   check(PixelArt.failed.length===0 && Object.values(PixelArt.images).every(i=>i.naturalWidth>0),'all six sprite images decode',PixelArt.failed);
   check(document.fonts.check('12px "Relic Pixel"'),'Chinese pixel font loaded');
-  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===15,'15 PCM sound samples decode',auditSaved.sound.failed);
+  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===SOUND_SAMPLE_NAMES.length,'all PCM sound samples decode',auditSaved.sound.failed);
   const g=resetAudit();const before=JSON.stringify({hp:g.player.hp,stats:g.stats,weapons:Object.values(g.weapons).map(w=>w.damageDealt)});
   let randomCalls=0;const original=Math.random;Math.random=()=>{randomCalls++;return .5;};
   try{for(let i=0;i<10;i++)g.render();}finally{Math.random=original;}

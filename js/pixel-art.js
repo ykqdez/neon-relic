@@ -11,7 +11,7 @@
     black_hole:[8,4], prism_ray:[11,10], armor:[6,8], pickup:[6,5], haste:[5,10], crit:[7,8],
     hp:[7,9], speed:[6,10], exp:[5,5], area:[8,4], heal:[7,9], joystick:[8,8], target:[8,4], upgrade:[5,5] };
   const enemyTiles = { SwarmDrone:[0,10], NeonScout:[1,10], RelicGolem:[2,9], PrismSniper:[0,7],
-    FissionCore:[0,9], ChargeStriker:[2,10], BossTitan:[2,9] };
+    FissionCore:[0,9], ChargeStriker:[2,10], RepairPriest:[1,7], BurstSentry:[3,9], BossTitan:[2,9] };
   const snap = n => Math.round(n / 2) * 2;
   function tile(ctx, col, row, x, y, size = 32, flip = false) {
     ctx.save(); ctx.imageSmoothingEnabled = false;
@@ -67,8 +67,24 @@
       ctx.restore();ring(ctx,hz.x,hz.y,hz.radius,'#ff816b',3);
       ring(ctx,hz.x,hz.y,hz.radius*progress,'#ffcb83',3);
     }
-    if(e.constructor.name==='PrismSniper' && e.shootTimer<=e.aimDuration)
-      line(ctx,e.x,e.y,e.x+Math.cos(e.aimAngle)*450,e.y+Math.sin(e.aimAngle)*450,e.isAimLocked?'#ffd58f':'#df6570',e.isAimLocked?3:2,e.isAimLocked?0:4);
+    if(e.constructor.name==='PrismSniper' && ['track','locked'].includes(e.attackState)) {
+      const o=e.aimOrigin||e;
+      line(ctx,o.x,o.y,o.x+Math.cos(e.aimAngle)*450,o.y+Math.sin(e.aimAngle)*450,e.isAimLocked?'#ffd58f':'#df6570',e.isAimLocked?3:2,e.isAimLocked?0:4);
+      ring(ctx,e.x,e.y,e.radius+7,e.isAimLocked?'#ffd58f':'#df6570',2,Math.min(1,e.aimTimer/e.aimDuration));
+    }
+    if(e.constructor.name==='BurstSentry' && e.attackState==='windup') {
+      const o=e.aimOrigin||e;
+      for(const offset of [-.32,0,.32]){const a=e.aimAngle+offset;line(ctx,o.x,o.y,o.x+Math.cos(a)*130,o.y+Math.sin(a)*130,'#e9ac62',2,4);}
+      ring(ctx,e.x,e.y,e.radius+8,'#ffd58f',3,1-e.attackTimer/.95);
+    }
+    if(e.constructor.name==='RepairPriest') {
+      if(e.healTimer<.8){ctx.save();ctx.globalAlpha=.25;ring(ctx,e.x,e.y,130,'#8ae1ad',2);ctx.restore();}
+      if(e.healFlash>0)for(const target of e.healTargets)if(!target.isDead){
+        ctx.save();ctx.globalAlpha=e.healFlash/.35;line(ctx,e.x,e.y,target.x,target.y,'#8ae1ad',2,3);ctx.restore();
+      }
+      line(ctx,e.x-5,e.y-e.radius-10,e.x+5,e.y-e.radius-10,'#8ae1ad',3);
+      line(ctx,e.x,e.y-e.radius-15,e.x,e.y-e.radius-5,'#8ae1ad',3);
+    }
     if(e.state==='charge_aim')line(ctx,e.x,e.y,e.x+Math.cos(e.dashAngle)*260,e.y+Math.sin(e.dashAngle)*260,'#ffb56b',3,4);
     const r=e.radius,size=e.isBoss?112:Math.max(28,Math.round(r*2.4/2)*2);
     shadow(ctx,e.x,e.y,r);
@@ -119,9 +135,16 @@
       }ctx.restore();
     }
     if(w.id==='orbital_satellites' && p) {
-      const radius=(70+(w.level-1)*8)*p.areaBonus,count=w.isEvolved?6:2+w.level-1;
+      const {radius,count,orbSize}=w.geometry(p);
       if(w.isEvolved){ctx.save();ctx.globalAlpha=.45;ring(ctx,p.x,p.y,radius,'#b6a3e8',3);ctx.restore();}
-      for(let i=0;i<count;i++){const a=w.angle+i*Math.PI*2/count;tile(ctx,6,8,p.x+Math.cos(a)*radius,p.y+Math.sin(a)*radius,w.isEvolved?26:20);}
+      if(w.interceptFlash>0){ctx.save();ctx.globalAlpha=w.interceptFlash/.16;ring(ctx,p.x,p.y,radius,'#e1fbff',4);ctx.restore();}
+      for(let i=0;i<count;i++){
+        const a=w.angle+i*Math.PI*2/count,x=p.x+Math.cos(a)*radius,y=p.y+Math.sin(a)*radius;
+        ctx.save();
+        for(let j=4;j>0;j--){const t=a-j*.09;ctx.globalAlpha=(5-j)*.09;ring(ctx,p.x+Math.cos(t)*radius,p.y+Math.sin(t)*radius,orbSize*.6,'#83e9ff',2);}
+        ctx.globalAlpha=.4;ring(ctx,x,y,orbSize,w.isEvolved?'#b6a3e8':'#83e9ff',2);
+        ctx.globalAlpha=1;tile(ctx,6,8,x,y,w.isEvolved?26:22);ctx.restore();
+      }
     }
     if(w.id==='plasma_cannon')for(const b of w.projectiles) {
       const r=Math.max(6,b.radius),speed=Math.hypot(b.vx,b.vy);

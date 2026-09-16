@@ -2,6 +2,13 @@
   "downloaded": "2026-09-16",
   "files": [
     {
+      "path": "assets/audio/blade-swish.wav",
+      "bytes": 15920,
+      "sha256": "3c0ee38145a159d929d52d3eb93c1991e70f7c377b1e1fcf09a8cedefa31f40b",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/enemy-shatter.wav",
       "bytes": 15920,
       "sha256": "fd7546c4a574117e6b15d0c5bab0cbed54f43146e72e2832958952e6e694fd83",
@@ -55,6 +62,13 @@
       "bytes": 69164,
       "sha256": "9d07e828058b35e2b2f432632bb8084715cbe876f56e5dc263b7300f6e620c6f",
       "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/orbital-contact.wav",
+      "bytes": 10628,
+      "sha256": "29320fd7f823b2dd740ffb5ebc1a6fae79591a2ffe9fd8cfcb19ce13a908d217",
+      "source": "tools/build_audio.py",
       "license": "CC0-1.0"
     },
     {
@@ -118,6 +132,13 @@
       "bytes": 50732,
       "sha256": "8d80c6c5376da1c094ed8ba466d8bbadc837ffaf91b354c83fde9335bfc2b87d",
       "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/prism-beam.wav",
+      "bytes": 42380,
+      "sha256": "3349f5c9b35c7b46cc4ffe78cd3bae8788a64113a5aed81d87c1ef75d5100796",
+      "source": "tools/build_audio.py",
       "license": "CC0-1.0"
     },
     {

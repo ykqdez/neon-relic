@@ -268,10 +268,45 @@ class OrbitalSatellites extends BaseWeapon {
     this.barrierCooldowns = new Map(); // 进化形态力场连线伤害冷却 (基于逻辑帧 dt 统一递减)
     this.coreContacts = new Set();
     this.barrierContacts = new Set();
+    this.interceptTimer = 0;
+    this.interceptFlash = 0;
+    this.blockedProjectiles = 0;
+  }
+
+  geometry(player) {
+    // Area expands the contact surface, never pushes protection away from the player.
+    return { radius: 54, count: this.isEvolved ? 6 : 3 + Math.floor((this.level - 1) / 2),
+      orbSize: (this.isEvolved ? 20 : 12 + (this.level - 1) * 1.5) * player.areaBonus,
+      barrierWidth: 14 * player.areaBonus };
   }
 
   update(dt, player, enemies, pool) {
     if (this.level <= 0) return;
+
+    this.interceptTimer = Math.max(0, this.interceptTimer - dt);
+    this.interceptFlash = Math.max(0, this.interceptFlash - dt);
+    const { radius, count: orbCount, orbSize, barrierWidth } = this.geometry(player);
+    const rotSpeed = (2.2 + (this.level >= 3 ? 0.8 : 0)) * (this.isEvolved ? 1.4 : 1.0);
+    this.angle = (this.angle + dt * rotSpeed) % (Math.PI * 2);
+    // One shared shield charge, not one per satellite. Swept segment catches fast bullets.
+    if (this.interceptTimer <= 0 && pool && pool.enemyBullets) {
+      for (let i = 0; i < pool.enemyBullets.length; i++) {
+        const b = pool.enemyBullets[i];
+        if (b.life <= 0) continue;
+        const x = b.x-player.x, y = b.y-player.y, dx=b.vx*dt, dy=b.vy*dt;
+        const len2=dx*dx+dy*dy;
+        const t=len2 ? Math.max(0,Math.min(1,-(x*dx+y*dy)/len2)) : 0;
+        if (Math.hypot(x,y) >= radius && Math.hypot(x+dx*t,y+dy*t) <= radius+b.radius) {
+          pool.enemyBullets.splice(i,1);
+          this.interceptTimer = this.isEvolved ? .3 : 1 - this.level * .1;
+          this.interceptFlash = .16;
+          this.blockedProjectiles++;
+          if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id,this.isEvolved);
+          if (pool.spawnSparks) pool.spawnSparks(b.x,b.y,'#bceeff',5);
+          break;
+        }
+      }
+    }
 
     // 统一战斗时钟：每个逻辑步在顶层推进一次命中与力场冷却，不随卫星数量或碰撞重复扣减
     const valid = getValidEnemies(enemies);
@@ -288,12 +323,6 @@ class OrbitalSatellites extends BaseWeapon {
     this.barrierContacts = new Set();
     if (valid.length === 0) return;
 
-    const rotSpeed = (2.2 + (this.level >= 3 ? 0.8 : 0)) * (this.isEvolved ? 1.4 : 1.0);
-    this.angle += dt * rotSpeed;
-
-    const orbCount = this.isEvolved ? 6 : (2 + (this.level - 1));
-    const radius = (70 + (this.level - 1) * 8) * player.areaBonus;
-    const orbSize = this.isEvolved ? 10 : 7;
     const baseDamage = this.isEvolved ? 32 : (14 + (this.level - 1) * 4);
 
     const cdr = player.cooldownReduction || 0;
@@ -320,6 +349,8 @@ class OrbitalSatellites extends BaseWeapon {
             this.damageDealt += hit.damage;
             if (isDead) this.kills++;
 
+            const away = Math.atan2(e.y-player.y,e.x-player.x);
+            e.applyKnockback(Math.cos(away)*45,Math.sin(away)*45);
             if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
             if (pool && pool.spawnSparks) pool.spawnSparks(ox, oy, hit.isCrit ? '#ffaa00' : '#00f0ff', 4);
           }
@@ -332,7 +363,7 @@ class OrbitalSatellites extends BaseWeapon {
       for (const e of valid) {
         if (e.isDead) continue;
         const dToCenter = Math.hypot(e.x - player.x, e.y - player.y);
-        if (Math.abs(dToCenter - radius) < e.radius + 12) {
+        if (Math.abs(dToCenter - radius) < e.radius + barrierWidth) {
           this.barrierContacts.add(e);
           const remaining = this.barrierCooldowns.get(e) || 0;
           if (remaining <= 1e-9) {
@@ -755,18 +786,18 @@ class PrismRay extends BaseWeapon {
       for (let i = 0; i < beamCount; i++) {
         let baseOffset = 0;
         let rotSpeed = 0;
-        let damage = 50; // 中央锁定主光束：单体高能输出，确保 100/200/300 距离中心光束自身 DPS 达 260+，彻底根除负进化
+        let damage = 36; // Sustained line damage; side sweeps provide crowd coverage.
 
         if (i === 0) {
           // 左翼扫掠死光
           baseOffset = -0.28;
           rotSpeed = -1.0;
-          damage = 28;
+          damage = 20;
         } else if (i === 2) {
           // 右翼扫掠死光
           baseOffset = +0.28;
           rotSpeed = +1.0;
-          damage = 28;
+          damage = 20;
         }
 
         this.beams.push({
@@ -788,7 +819,7 @@ class PrismRay extends BaseWeapon {
 
     const duration = 0.45 + (this.level >= 5 ? 0.2 : 0);
     const width = (16 + (this.level - 1) * 3) * player.areaBonus;
-    const baseDamage = 14 + (this.level - 1) * 5; // 每 tick 伤害
+    const baseDamage = 14 + (this.level - 1) * 4; // 每 tick 伤害
 
     if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
 

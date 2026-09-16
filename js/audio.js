@@ -1,13 +1,13 @@
 /* Locally licensed samples and chiptune music. Sources: assets/CREDITS.md. */
 const WEAPON_ATTACK_SOUNDS = Object.freeze({
-  pulse_blade: {sample:'laser1',volume:.19,rate:1.65,cooldown:70},
+  pulse_blade: {sample:'blade-swish',volume:.19,rate:1,cooldown:90},
   arc_core: {sample:'lightning-crack',volume:.28,rate:1.1,cooldown:120},
-  orbital_satellites: {sample:'zap2',volume:.14,rate:1.8,cooldown:140},
+  orbital_satellites: {sample:'orbital-contact',volume:.11,rate:1,cooldown:230},
   plasma_cannon: {sample:'plasma-shot',volume:.25,rate:1,cooldown:100},
   black_hole: {sample:'phaserDown1',volume:.22,rate:.65,cooldown:400},
-  prism_ray: {sample:'laser5',volume:.21,rate:.85,cooldown:160}
+  prism_ray: {sample:'prism-beam',volume:.17,rate:1,cooldown:220}
 });
-const SOUND_SAMPLE_NAMES=Object.freeze(['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack','plasma-shot','enemy-shatter']);
+const SOUND_SAMPLE_NAMES=Object.freeze(['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack','plasma-shot','enemy-shatter','orbital-contact','blade-swish','prism-beam']);
 class SoundSystem {
   constructor() {
     this.ctx = null;
