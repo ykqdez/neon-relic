@@ -228,7 +228,7 @@ html, body {
   width: 100%;
   background: #00f0ff;
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-  transition: width 0.15s ease-out, background 0.25s, box-shadow 0.25s;
+  transition: width 0.15s ease-out;
 }
 
 /* 触控规范按键 (>= 44x44px，弱化样式保持克制) */

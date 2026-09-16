@@ -1,14 +1,14 @@
 # 修复与验收结果
 
-生成时间：2026-09-16T10:00:03.421Z。运行 ID：`290f2fae-7d73-41c2-8823-5f6984785b67`。
+生成时间：2026-09-16T15:34:48.560Z。运行 ID：`ab2d3ded-f2ff-4607-bca3-22c976df4bdc`。
 
 环境：Node v24.19.0；Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0。
 
-本文件由 `node tests/build-report.cjs` 从同次运行结果生成；完整源码 SHA-256 与运行条件见 [CURRENT_BENCHMARK.json](CURRENT_BENCHMARK.json)。父提交为 `2c47bfd858204a53ca367604b809155408f96ef2`，测试包含其后的工作区修改。
+本文件由 `node tests/build-report.cjs` 从同次运行结果生成；完整源码 SHA-256 与运行条件见 [CURRENT_BENCHMARK.json](CURRENT_BENCHMARK.json)。父提交为 `764a52d9761678de821975366e0a16ac7afbf054`，测试包含其后的工作区修改。
 
 ## 结论
 
-本轮自动断言 **954/954 通过**；浏览器错误 0 条。验证器自身的正常对照及四种故障注入均通过。此结论仅覆盖下列自动场景，不代表真机兼容性或游戏平衡全部验收。
+本轮自动断言 **972/972 通过**；浏览器错误 0 条。验证器自身的正常对照及四种故障注入均通过。此结论仅覆盖下列自动场景，不代表真机兼容性或游戏平衡全部验收。
 
 ## 本轮修复
 

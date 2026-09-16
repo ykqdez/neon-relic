@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "runId": "290f2fae-7d73-41c2-8823-5f6984785b67",
-    "timestamp": "2026-09-16T10:00:03.421Z",
+    "runId": "ab2d3ded-f2ff-4607-bca3-22c976df4bdc",
+    "timestamp": "2026-09-16T15:34:48.560Z",
     "node": "v24.19.0",
     "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
-    "baseCommit": "2c47bfd858204a53ca367604b809155408f96ef2",
+    "baseCommit": "764a52d9761678de821975366e0a16ac7afbf054",
     "sourceHashes": {
       "assets/audio/blade-swish.wav": "3c0ee38145a159d929d52d3eb93c1991e70f7c377b1e1fcf09a8cedefa31f40b",
       "assets/audio/crystal-pickup.wav": "a084ac542d8b898b2b6657fd03a8749f29406591638b1b79a42d65963d102b5e",
@@ -64,17 +64,17 @@
       "assets/sprites/explosion-05.png": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
       "audio-review.html": "9daa93ba363703d2c9efe28286b596d5716217155d33b0aec241c64b67c547ad",
       "css/pixel.css": "7192f8e39cb1b698666f8b94227f661cb55de26ed872d36588a4d0b35b5a4383",
-      "css/style.css": "8e40de08e4f6605cd57ce4a2688d695992fe4488de5b1c4cee0fbf484bc1cbcc",
+      "css/style.css": "65d4fa3503e04a74cfe2963c6256ee7365fe125b21ea0b3b4c043e10069abffa",
       "index.html": "3b53bb5b0ca59378c8ecb89475632ce8ed4ddf73c1690426a5f1ca65355abcb9",
       "js/audio-review.js": "f0cebbc37db83d2e9b69253324a6e4a640021a4d62dabfd1780663c74577b2f0",
-      "js/audio.js": "b00f25feeb80719618fbf2cc08b1bbf2c9c03e190d6cce46deab373bfaba076c",
+      "js/audio.js": "7a63b83ae72ec3773eb3a70e9354521cbcdc61eae5e0bb31f68d074c1c2841ed",
       "js/enemies.js": "ccb2df8b96cd699b1236f4b051135b2b8b2cf03fd1ed1a3b537d5a1ae342d5cc",
       "js/game.js": "ba17b53a1346ac65c9ed7ce376fe5a5c30820463402870be8cc15c05c40f284a",
       "js/input.js": "54ba1bc7075cca064011978bc12359ba4bea858ae9fcb2db0c5fe80d3ebf27cd",
-      "js/pixel-art.js": "e909dd451826b472726fbb8dc81c67a95da1bcf19a8bbec92b2540059e480f76",
+      "js/pixel-art.js": "d4167d67eab29f907b4fb54066de98a8219518dcecc953579cb1769ef48c3bdc",
       "js/player.js": "a37b04713d925b9de0da98586ab3296c92343d26999610ddd118c549326ecc0b",
       "js/upgrades.js": "8ac7b151e7a5cc92290b0f56c7155feb288a7c46285297372befbf587e15a930",
-      "js/weapons.js": "241395f0d3f3e905ebc6bf7ced256a9daf652566e07857f423b3956e8c57f9fe",
+      "js/weapons.js": "d8d977e8b21b274bdce4a9581545dcdcfa0a303a2f3a61431fc1b19fe8d1a09d",
       "package.json": "8301e0dca88e0582a63c143e143e97071c7103714941d8fb3ba94f7b4d4d5f1f",
       "tests/audio-action-checks.js": "e8d409e4e8a1ae1eee8e85bfe3623ba380b72893b157b7b6056a6ca288c3706e",
       "tests/build-report.cjs": "252793fcd4ca216ecad2de80b501c77f61827aeaa25e9ebb0a22a5ce55a9c2cc",
@@ -88,15 +88,16 @@
       "tests/pixel-checks.js": "d5d4300fbeb4fda9929e5adc21ce610bc5a0c303b4bac55dc0a8c0248e9838fe",
       "tests/regression-probes.js": "fec643abdcf384dc227956a9ebd9fa40cc2b1120fe27916312196592d512abde",
       "tests/scenarios.js": "fd266deed268753f3ca719f00459b40fe9fb317de869b6632fa4fd5a5eb63eb3",
-      "tests/verify.cjs": "5bec8842c98efcc1930e5dd77f6f98b8ce44e274decd41f93d534e817e66f1f3"
+      "tests/verify.cjs": "8b8123935e28e4adce9276ebee7d1095307484df47d4c4d629081abfc53d02e3",
+      "tests/vfx-sfx-checks.js": "80a1436b1a7442f8b6afe06f77e265077a45fbcacedbe27384d2906d21aabd33"
     },
-    "command": "node tests/verify.cjs --growth --no-ogg",
+    "command": "node tests/verify.cjs --growth",
     "conditions": "10s; cold start; dt=1/fps; radius46 immortal stationary boss target; attackDamage1,area1,crit0,CDR0; evolved keeps level5 as selectUpgrade; seed12345; Date.now advanced by dt; dense 24 radius13 targets in 6x4 grid x60..210 y-45..45; no AI or displacement; moving target angular speed0.7 rad/s",
     "notes": "baseCommit is the parent commit before local edits; sourceHashes identify the tested tree. Game-displayed seed is not a gameplay replay seed."
   },
   "verification": {
     "status": "PASSED",
-    "totalAssertions": 954,
+    "totalAssertions": 972,
     "failures": [],
     "integrity": [
       {
@@ -585,7 +586,7 @@
         "passed": true,
         "name": "six-weapon mixed output has headroom in measured burst",
         "detail": {
-          "peak": 0.191715270280838
+          "peak": 0.1917209029197693
         }
       },
       {
@@ -1199,30 +1200,30 @@
         "passed": true,
         "name": "evolved beam audible at 0.65–0.95s and silent after ending",
         "detail": {
-          "tailPeak": 0.03561203181743622
+          "tailPeak": 0.03562508895993233
         }
       },
       {
         "passed": true,
         "name": "real six-weapon onsets, sustains and danger cues retain headroom",
         "detail": {
-          "peak": 0.2558389902114868,
+          "peak": 0.25558382272720337,
           "maxVoices": 9,
           "maxSustains": 2
         }
       }
     ],
     "audio": {
-      "seconds": 61.2145,
-      "batches": 10368,
+      "seconds": 61.2095,
+      "batches": 10254,
       "created": 950,
       "active": 0,
       "peak": 2,
       "disconnected": 950
     },
     "realtime": {
-      "frames": 532,
-      "elapsed": 3.000499999999988,
+      "frames": 181,
+      "elapsed": 2.992999999988076,
       "finite": true,
       "soundState": "running"
     },
@@ -1233,9 +1234,9 @@
           1728,
           896
         ],
-        "meanMs": 3.1071111110928986,
-        "p95Ms": 6.4000000059604645,
-        "maxMs": 47.599999994039536,
+        "meanMs": 5.604194444376561,
+        "p95Ms": 7.700000017881393,
+        "maxMs": 14.400000005960464,
         "maxShock": 35,
         "maxParticles": 250,
         "damageTexts": 25
@@ -1246,9 +1247,9 @@
           390,
           844
         ],
-        "meanMs": 1.482944444451067,
-        "p95Ms": 2.0999999940395355,
-        "maxMs": 32,
+        "meanMs": 3.050444444467624,
+        "p95Ms": 4.699999988079071,
+        "maxMs": 7.5999999940395355,
         "maxShock": 20,
         "maxParticles": 120,
         "damageTexts": 25
@@ -2162,13 +2163,13 @@
       "diff": "casual",
       "seed": 42,
       "state": "gameover",
-      "time": 507.88,
+      "time": 508.33,
       "level": 14,
-      "kills": 772,
-      "hp": 102.24,
+      "kills": 777,
+      "hp": 102.39,
       "minHp": 77.07,
       "choices": 13,
-      "maxEnemies": 21,
+      "maxEnemies": 20,
       "firstBoss": 480.02,
       "bossPhases": [
         1,
@@ -2178,7 +2179,7 @@
       "nonfinite": false,
       "weapons": {
         "pulse_blade": {
-          "lv": 4,
+          "lv": 3,
           "evolved": false
         },
         "arc_core": {
@@ -2186,7 +2187,7 @@
           "evolved": false
         },
         "plasma_cannon": {
-          "lv": 1,
+          "lv": 2,
           "evolved": false
         },
         "black_hole": {
@@ -2203,13 +2204,13 @@
       "diff": "casual",
       "seed": 2026,
       "state": "gameover",
-      "time": 509.77,
+      "time": 498.3,
       "level": 14,
-      "kills": 737,
-      "hp": 109.31,
-      "minHp": 81.41,
+      "kills": 720,
+      "hp": 120,
+      "minHp": 82,
       "choices": 13,
-      "maxEnemies": 25,
+      "maxEnemies": 23,
       "firstBoss": 480.02,
       "bossPhases": [
         1,
@@ -2219,15 +2220,11 @@
       "nonfinite": false,
       "weapons": {
         "pulse_blade": {
-          "lv": 4,
-          "evolved": false
-        },
-        "arc_core": {
-          "lv": 2,
+          "lv": 3,
           "evolved": false
         },
         "plasma_cannon": {
-          "lv": 2,
+          "lv": 4,
           "evolved": false
         },
         "black_hole": {
@@ -2235,7 +2232,7 @@
           "evolved": false
         },
         "prism_ray": {
-          "lv": 2,
+          "lv": 4,
           "evolved": false
         }
       }
@@ -2244,13 +2241,13 @@
       "diff": "normal",
       "seed": 1,
       "state": "gameover",
-      "time": 258.15,
+      "time": 267.8,
       "level": 7,
-      "kills": 359,
+      "kills": 345,
       "hp": 0,
       "minHp": 0,
       "choices": 6,
-      "maxEnemies": 33,
+      "maxEnemies": 37,
       "firstBoss": null,
       "bossPhases": [],
       "nonfinite": false,
@@ -2263,11 +2260,15 @@
           "lv": 2,
           "evolved": false
         },
-        "black_hole": {
+        "orbital_satellites": {
           "lv": 1,
           "evolved": false
         },
-        "prism_ray": {
+        "plasma_cannon": {
+          "lv": 1,
+          "evolved": false
+        },
+        "black_hole": {
           "lv": 1,
           "evolved": false
         }
@@ -2310,23 +2311,29 @@
       "diff": "normal",
       "seed": 2026,
       "state": "gameover",
-      "time": 253.78,
-      "level": 9,
-      "kills": 319,
+      "time": 532.55,
+      "level": 14,
+      "kills": 1177,
       "hp": 0,
       "minHp": 0,
-      "choices": 8,
-      "maxEnemies": 49,
-      "firstBoss": null,
-      "bossPhases": [],
+      "choices": 13,
+      "maxEnemies": 84,
+      "firstBoss": 480.02,
+      "bossPhases": [
+        1
+      ],
       "nonfinite": false,
       "weapons": {
         "pulse_blade": {
-          "lv": 3,
+          "lv": 2,
+          "evolved": false
+        },
+        "arc_core": {
+          "lv": 1,
           "evolved": false
         },
         "black_hole": {
-          "lv": 1,
+          "lv": 3,
           "evolved": false
         },
         "prism_ray": {
@@ -2360,26 +2367,26 @@
       "diff": "hard",
       "seed": 42,
       "state": "gameover",
-      "time": 150.38,
-      "level": 4,
-      "kills": 143,
+      "time": 245.03,
+      "level": 7,
+      "kills": 362,
       "hp": 0,
       "minHp": 0,
-      "choices": 3,
-      "maxEnemies": 64,
+      "choices": 6,
+      "maxEnemies": 72,
       "firstBoss": null,
       "bossPhases": [],
       "nonfinite": false,
       "weapons": {
         "pulse_blade": {
+          "lv": 2,
+          "evolved": false
+        },
+        "plasma_cannon": {
           "lv": 1,
           "evolved": false
         },
         "black_hole": {
-          "lv": 1,
-          "evolved": false
-        },
-        "prism_ray": {
           "lv": 1,
           "evolved": false
         }
@@ -2418,7 +2425,7 @@
       "controlled": true,
       "diff": "casual",
       "state": "gameover",
-      "time": 494.217,
+      "time": 483.617,
       "firstBoss": 480.017,
       "bossKills": 1,
       "maxEnemies": 6,
@@ -2443,10 +2450,10 @@
       "controlled": true,
       "diff": "normal",
       "state": "gameover",
-      "time": 507.8,
+      "time": 498.75,
       "firstBoss": 480.017,
       "bossKills": 1,
-      "maxEnemies": 11,
+      "maxEnemies": 10,
       "types": [
         "SwarmDrone",
         "NeonScout",
@@ -2468,10 +2475,10 @@
       "controlled": true,
       "diff": "hard",
       "state": "gameover",
-      "time": 744.8,
+      "time": 600.6,
       "firstBoss": 480.017,
       "bossKills": 1,
-      "maxEnemies": 121,
+      "maxEnemies": 101,
       "types": [
         "SwarmDrone",
         "NeonScout",
@@ -2497,8 +2504,8 @@
         "difficulty": "casual",
         "strategy": "balanced",
         "runs": 30,
-        "victories": 7,
-        "deaths": 3,
+        "victories": 8,
+        "deaths": 2,
         "timeouts": 20,
         "finalLevel": {
           "reached": 30,
@@ -2513,10 +2520,10 @@
           "p75": 6.5
         },
         "firstWeapon5": {
-          "reached": 2,
-          "p25": 241.41,
-          "median": 242.84,
-          "p75": 244.27
+          "reached": 1,
+          "p25": 410.35,
+          "median": 410.35,
+          "p75": 410.35
         },
         "firstEvolution": {
           "reached": 0,
@@ -2527,21 +2534,21 @@
         "milestones": {
           "5": {
             "reached": 18,
-            "p25": 143.14,
+            "p25": 140.51,
             "median": 190.69,
             "p75": 767.07
           },
           "10": {
             "reached": 7,
-            "p25": 265.03,
-            "median": 274.05,
-            "p75": 297.21
+            "p25": 268.33,
+            "median": 287.15,
+            "p75": 328.51
           },
           "15": {
             "reached": 2,
-            "p25": 490.85,
-            "median": 499.98,
-            "p75": 509.12
+            "p25": 504.64,
+            "median": 525.12,
+            "p75": 545.59
           },
           "20": {
             "reached": 0,
@@ -2572,15 +2579,15 @@
         "timeouts": 8,
         "finalLevel": {
           "reached": 30,
-          "p25": 7.25,
+          "p25": 6.5,
           "median": 13,
           "p75": 14
         },
         "bossArrivalLevel": {
           "reached": 29,
           "p25": 4,
-          "median": 11,
-          "p75": 12
+          "median": 12,
+          "p75": 13
         },
         "firstWeapon5": {
           "reached": 1,
@@ -2598,20 +2605,20 @@
           "5": {
             "reached": 27,
             "p25": 136.76,
-            "median": 151,
+            "median": 148.4,
             "p75": 241.73
           },
           "10": {
             "reached": 18,
-            "p25": 291.35,
-            "median": 316.19,
-            "p75": 390.97
+            "p25": 288.06,
+            "median": 301.65,
+            "p75": 367.71
           },
           "15": {
             "reached": 1,
-            "p25": 739.55,
-            "median": 739.55,
-            "p75": 739.55
+            "p25": 648.35,
+            "median": 648.35,
+            "p75": 648.35
           },
           "20": {
             "reached": 0,
@@ -2637,8 +2644,8 @@
         "difficulty": "casual",
         "strategy": "damage",
         "runs": 30,
-        "victories": 27,
-        "deaths": 2,
+        "victories": 29,
+        "deaths": 0,
         "timeouts": 1,
         "finalLevel": {
           "reached": 30,
@@ -2647,35 +2654,35 @@
           "p75": 14
         },
         "bossArrivalLevel": {
-          "reached": 28,
+          "reached": 30,
           "p25": 13,
           "median": 14,
           "p75": 14
         },
         "firstWeapon5": {
-          "reached": 14,
-          "p25": 303.16,
-          "median": 364.86,
-          "p75": 467.55
+          "reached": 11,
+          "p25": 366.02,
+          "median": 415.48,
+          "p75": 470.33
         },
         "firstEvolution": {
-          "reached": 0,
-          "p25": null,
-          "median": null,
-          "p75": null
+          "reached": 2,
+          "p25": 443.67,
+          "median": 455.25,
+          "p75": 466.82
         },
         "milestones": {
           "5": {
             "reached": 30,
-            "p25": 124.85,
-            "median": 129.9,
-            "p75": 136.38
+            "p25": 124.24,
+            "median": 129.27,
+            "p75": 138.6
           },
           "10": {
-            "reached": 28,
-            "p25": 261.53,
-            "median": 264.99,
-            "p75": 274.15
+            "reached": 29,
+            "p25": 263.4,
+            "median": 269.18,
+            "p75": 276.08
           },
           "15": {
             "reached": 0,
@@ -2707,8 +2714,8 @@
         "difficulty": "casual",
         "strategy": "evolution",
         "runs": 30,
-        "victories": 26,
-        "deaths": 2,
+        "victories": 27,
+        "deaths": 1,
         "timeouts": 2,
         "finalLevel": {
           "reached": 30,
@@ -2717,35 +2724,35 @@
           "p75": 14
         },
         "bossArrivalLevel": {
-          "reached": 29,
+          "reached": 30,
           "p25": 13,
           "median": 14,
           "p75": 14
         },
         "firstWeapon5": {
-          "reached": 11,
-          "p25": 327.32,
-          "median": 412.6,
-          "p75": 450.83
+          "reached": 13,
+          "p25": 314.27,
+          "median": 412.33,
+          "p75": 440.83
         },
         "firstEvolution": {
-          "reached": 5,
-          "p25": 307.57,
-          "median": 411.12,
-          "p75": 477.37
+          "reached": 6,
+          "p25": 371.77,
+          "median": 413.68,
+          "p75": 462.09
         },
         "milestones": {
           "5": {
             "reached": 30,
-            "p25": 127.75,
-            "median": 132.47,
-            "p75": 166.2
+            "p25": 128.97,
+            "median": 137.65,
+            "p75": 164.52
           },
           "10": {
             "reached": 28,
-            "p25": 266.93,
-            "median": 272.28,
-            "p75": 292.07
+            "p25": 269.35,
+            "median": 276.45,
+            "p75": 299.03
           },
           "15": {
             "reached": 0,
@@ -2787,16 +2794,16 @@
           "p75": 9
         },
         "bossArrivalLevel": {
-          "reached": 22,
+          "reached": 19,
           "p25": 4,
           "median": 5,
-          "p75": 8.75
+          "p75": 7.5
         },
         "firstWeapon5": {
-          "reached": 2,
-          "p25": 412.77,
-          "median": 494.76,
-          "p75": 576.75
+          "reached": 1,
+          "p25": 330.78,
+          "median": 330.78,
+          "p75": 330.78
         },
         "firstEvolution": {
           "reached": 0,
@@ -2807,21 +2814,21 @@
         "milestones": {
           "5": {
             "reached": 15,
-            "p25": 157.29,
+            "p25": 151.78,
             "median": 189.65,
             "p75": 211.3
           },
           "10": {
             "reached": 7,
-            "p25": 342.02,
-            "median": 352.38,
-            "p75": 469.17
+            "p25": 325.55,
+            "median": 332.57,
+            "p75": 457.61
           },
           "15": {
-            "reached": 5,
-            "p25": 522.65,
-            "median": 523.03,
-            "p75": 554.45
+            "reached": 1,
+            "p25": 558,
+            "median": 558,
+            "p75": 558
           },
           "20": {
             "reached": 0,
@@ -2847,9 +2854,9 @@
         "difficulty": "normal",
         "strategy": "survival",
         "runs": 30,
-        "victories": 8,
-        "deaths": 11,
-        "timeouts": 11,
+        "victories": 10,
+        "deaths": 10,
+        "timeouts": 10,
         "finalLevel": {
           "reached": 30,
           "p25": 3,
@@ -2877,21 +2884,21 @@
         "milestones": {
           "5": {
             "reached": 17,
-            "p25": 163.63,
-            "median": 183.07,
+            "p25": 167.25,
+            "median": 188.27,
             "p75": 208.1
           },
           "10": {
             "reached": 13,
-            "p25": 309.37,
-            "median": 341.63,
-            "p75": 453.4
+            "p25": 323.1,
+            "median": 343.83,
+            "p75": 479.43
           },
           "15": {
             "reached": 8,
-            "p25": 570.47,
-            "median": 606.17,
-            "p75": 688.09
+            "p25": 599.96,
+            "median": 661.8,
+            "p75": 780.82
           },
           "20": {
             "reached": 0,
@@ -2922,46 +2929,46 @@
         "timeouts": 2,
         "finalLevel": {
           "reached": 30,
-          "p25": 10.25,
+          "p25": 8.25,
           "median": 12,
           "p75": 14
         },
         "bossArrivalLevel": {
-          "reached": 12,
-          "p25": 11.5,
+          "reached": 7,
+          "p25": 8.5,
           "median": 13,
-          "p75": 13.25
+          "p75": 13
         },
         "firstWeapon5": {
-          "reached": 2,
-          "p25": 285.01,
-          "median": 290.03,
-          "p75": 295.06
+          "reached": 6,
+          "p25": 284.23,
+          "median": 315.3,
+          "p75": 444.67
         },
         "firstEvolution": {
           "reached": 1,
-          "p25": 451.47,
-          "median": 451.47,
-          "p75": 451.47
+          "p25": 533.88,
+          "median": 533.88,
+          "p75": 533.88
         },
         "milestones": {
           "5": {
-            "reached": 29,
-            "p25": 126.67,
-            "median": 135.48,
-            "p75": 161.43
+            "reached": 27,
+            "p25": 124.05,
+            "median": 134.05,
+            "p75": 156.85
           },
           "10": {
-            "reached": 24,
-            "p25": 233,
-            "median": 267.39,
-            "p75": 324.98
+            "reached": 21,
+            "p25": 231.48,
+            "median": 256.53,
+            "p75": 318.15
           },
           "15": {
-            "reached": 5,
-            "p25": 498.72,
-            "median": 534.32,
-            "p75": 536.93
+            "reached": 4,
+            "p25": 539.61,
+            "median": 542.86,
+            "p75": 554.55
           },
           "20": {
             "reached": 0,
@@ -2992,46 +2999,46 @@
         "timeouts": 4,
         "finalLevel": {
           "reached": 30,
-          "p25": 7.25,
-          "median": 11,
+          "p25": 8,
+          "median": 11.5,
           "p75": 14
         },
         "bossArrivalLevel": {
-          "reached": 13,
-          "p25": 7,
+          "reached": 14,
+          "p25": 7.5,
           "median": 13,
-          "p75": 14
+          "p75": 14.75
         },
         "firstWeapon5": {
-          "reached": 11,
-          "p25": 272.72,
-          "median": 300.08,
-          "p75": 319.71
+          "reached": 12,
+          "p25": 254.2,
+          "median": 318.67,
+          "p75": 381.32
         },
         "firstEvolution": {
-          "reached": 9,
-          "p25": 289.08,
-          "median": 338.6,
-          "p75": 392.25
+          "reached": 10,
+          "p25": 278.37,
+          "median": 333.54,
+          "p75": 428.39
         },
         "milestones": {
           "5": {
             "reached": 27,
-            "p25": 126.97,
+            "p25": 125.72,
             "median": 143.05,
-            "p75": 173.09
+            "p75": 171.3
           },
           "10": {
-            "reached": 19,
-            "p25": 241.99,
-            "median": 311.73,
-            "p75": 350.07
+            "reached": 20,
+            "p25": 263.05,
+            "median": 279.29,
+            "p75": 322.39
           },
           "15": {
-            "reached": 6,
-            "p25": 437.22,
-            "median": 464.84,
-            "p75": 491.57
+            "reached": 7,
+            "p25": 442.32,
+            "median": 448.23,
+            "p75": 528.71
           },
           "20": {
             "reached": 0,
@@ -3086,16 +3093,16 @@
         },
         "milestones": {
           "5": {
-            "reached": 2,
-            "p25": 131.91,
-            "median": 150.18,
-            "p75": 168.44
+            "reached": 3,
+            "p25": 136.21,
+            "median": 158.77,
+            "p75": 172.73
           },
           "10": {
-            "reached": 1,
-            "p25": 356.57,
-            "median": 356.57,
-            "p75": 356.57
+            "reached": 2,
+            "p25": 277.15,
+            "median": 303.63,
+            "p75": 330.1
           },
           "15": {
             "reached": 0,
@@ -3134,13 +3141,13 @@
           "reached": 30,
           "p25": 3,
           "median": 4,
-          "p75": 5
+          "p75": 5.75
         },
         "bossArrivalLevel": {
-          "reached": 3,
+          "reached": 4,
           "p25": 4,
-          "median": 4,
-          "p75": 5
+          "median": 5,
+          "p75": 8
         },
         "firstWeapon5": {
           "reached": 0,
@@ -3156,22 +3163,22 @@
         },
         "milestones": {
           "5": {
-            "reached": 10,
-            "p25": 173.77,
-            "median": 189.7,
-            "p75": 212.5
+            "reached": 11,
+            "p25": 167.26,
+            "median": 176.52,
+            "p75": 209.23
           },
           "10": {
-            "reached": 0,
-            "p25": null,
-            "median": null,
-            "p75": null
+            "reached": 1,
+            "p25": 279.18,
+            "median": 279.18,
+            "p75": 279.18
           },
           "15": {
-            "reached": 0,
-            "p25": null,
-            "median": null,
-            "p75": null
+            "reached": 1,
+            "p25": 504.35,
+            "median": 504.35,
+            "p75": 504.35
           },
           "20": {
             "reached": 0,
@@ -3203,8 +3210,8 @@
         "finalLevel": {
           "reached": 30,
           "p25": 3,
-          "median": 4,
-          "p75": 7
+          "median": 5,
+          "p75": 9.75
         },
         "bossArrivalLevel": {
           "reached": 0,
@@ -3213,10 +3220,10 @@
           "p75": null
         },
         "firstWeapon5": {
-          "reached": 0,
-          "p25": null,
-          "median": null,
-          "p75": null
+          "reached": 1,
+          "p25": 294.03,
+          "median": 294.03,
+          "p75": 294.03
         },
         "firstEvolution": {
           "reached": 0,
@@ -3226,16 +3233,16 @@
         },
         "milestones": {
           "5": {
-            "reached": 14,
-            "p25": 131.32,
-            "median": 142.74,
-            "p75": 176.28
+            "reached": 16,
+            "p25": 121.03,
+            "median": 131.49,
+            "p75": 160.59
           },
           "10": {
-            "reached": 3,
-            "p25": 229.68,
-            "median": 243.13,
-            "p75": 252.88
+            "reached": 8,
+            "p25": 241.17,
+            "median": 257.68,
+            "p75": 282.75
           },
           "15": {
             "reached": 0,
@@ -3273,7 +3280,7 @@
         "finalLevel": {
           "reached": 30,
           "p25": 3,
-          "median": 4,
+          "median": 4.5,
           "p75": 5.75
         },
         "bossArrivalLevel": {
@@ -3296,16 +3303,16 @@
         },
         "milestones": {
           "5": {
-            "reached": 13,
-            "p25": 139.53,
-            "median": 148.38,
-            "p75": 180.68
+            "reached": 15,
+            "p25": 131.49,
+            "median": 143.27,
+            "p75": 156.75
           },
           "10": {
-            "reached": 4,
-            "p25": 252.76,
-            "median": 261.41,
-            "p75": 272.66
+            "reached": 3,
+            "p25": 246.51,
+            "median": 247.57,
+            "p75": 251.38
           },
           "15": {
             "reached": 0,

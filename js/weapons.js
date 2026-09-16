@@ -9,6 +9,130 @@ function getValidEnemies(enemies) {
   return enemies.filter(e => e && !e.isDead);
 }
 
+function getWeaponVfxProfile(id, level, isEvolved, areaBonus = 1.0, cdr = 0) {
+  const lvl = Math.max(1, Math.min(5, level || 1));
+  const tier = isEvolved ? 6 : lvl;
+  const pulseFreq = (1 + cdr * 1.5) * (1.0 + lvl * 0.15 + (isEvolved ? 0.8 : 0));
+
+  const profiles = {
+    pulse_blade: {
+      tier,
+      intensity: isEvolved ? 3.6 : 1.0 + (lvl - 1) * 0.35,
+      glow: isEvolved ? 28 : 5 + (lvl - 1) * 3.5,
+      trailLength: isEvolved ? 7 : 1 + (lvl - 1),
+      particleCount: isEvolved ? 28 : 4 + (lvl - 1) * 4,
+      secondaryParticles: isEvolved ? 18 : Math.max(0, (lvl - 1) * 3),
+      impactScale: (isEvolved ? 2.6 : 1.0 + (lvl - 1) * 0.28) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 5 : Math.max(0, lvl - 2),
+      bladeWidth: (isEvolved ? 12 : 3 + (lvl - 1) * 1.6) * areaBonus,
+      layerCount: isEvolved ? 4 : (lvl >= 4 ? 3 : (lvl >= 2 ? 2 : 1)),
+      primaryColor: isEvolved ? '#d9adff' : '#acf5e3',
+      secondaryColor: isEvolved ? '#a855f7' : '#5eead4',
+      coreColor: isEvolved ? '#ffffff' : '#f0fdfa',
+      accentColor: isEvolved ? '#f472b6' : '#99f6e4'
+    },
+    arc_core: {
+      tier,
+      intensity: isEvolved ? 3.8 : 1.0 + (lvl - 1) * 0.36,
+      glow: isEvolved ? 32 : 6 + (lvl - 1) * 3.8,
+      trailLength: isEvolved ? 6 : 1 + (lvl - 1),
+      particleCount: isEvolved ? 32 : 5 + (lvl - 1) * 5,
+      secondaryParticles: isEvolved ? 24 : Math.max(0, (lvl - 1) * 4),
+      impactScale: (isEvolved ? 2.8 : 1.0 + (lvl - 1) * 0.3) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 4 : Math.max(0, lvl - 2),
+      arcThickness: (isEvolved ? 10 : 3 + (lvl - 1) * 1.4) * areaBonus,
+      branchCount: isEvolved ? 5 : (lvl >= 4 ? 3 : (lvl >= 2 ? 1 : 0)),
+      primaryColor: isEvolved ? '#c6a9f0' : '#86d7ed',
+      secondaryColor: isEvolved ? '#9333ea' : '#38bdf8',
+      coreColor: isEvolved ? '#ffffff' : '#f0f9ff',
+      accentColor: isEvolved ? '#c084fc' : '#bae6fd'
+    },
+    orbital_satellites: {
+      tier,
+      intensity: isEvolved ? 3.5 : 1.0 + (lvl - 1) * 0.32,
+      glow: isEvolved ? 26 : 4 + (lvl - 1) * 3.2,
+      trailLength: isEvolved ? 8 : 2 + (lvl - 1) * 1.2,
+      particleCount: isEvolved ? 30 : 6 + (lvl - 1) * 4,
+      secondaryParticles: isEvolved ? 20 : Math.max(0, (lvl - 1) * 3),
+      impactScale: (isEvolved ? 2.5 : 1.0 + (lvl - 1) * 0.25) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 6 : Math.max(0, lvl - 2),
+      orbitRings: isEvolved ? 3 : (lvl >= 4 ? 2 : 1),
+      resonantBarrier: isEvolved,
+      primaryColor: isEvolved ? '#b6a3e8' : '#83e9ff',
+      secondaryColor: isEvolved ? '#7c3aed' : '#0ea5e9',
+      coreColor: isEvolved ? '#ffffff' : '#e0f2fe',
+      accentColor: isEvolved ? '#e879f9' : '#7dd3fc'
+    },
+    plasma_cannon: {
+      tier,
+      intensity: isEvolved ? 3.8 : 1.0 + (lvl - 1) * 0.38,
+      glow: isEvolved ? 30 : 5 + (lvl - 1) * 3.6,
+      trailLength: isEvolved ? 8 : 2 + (lvl - 1) * 1.2,
+      particleCount: isEvolved ? 36 : 6 + (lvl - 1) * 5,
+      secondaryParticles: isEvolved ? 24 : Math.max(0, (lvl - 1) * 4),
+      impactScale: (isEvolved ? 3.0 : 1.0 + (lvl - 1) * 0.32) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 5 : Math.max(0, lvl - 2),
+      orbRadius: (isEvolved ? 18 : 7 + (lvl - 1) * 1.5) * areaBonus,
+      primaryColor: isEvolved ? '#b899ed' : '#69cce8',
+      secondaryColor: isEvolved ? '#6b21a8' : '#0284c7',
+      coreColor: isEvolved ? '#ffffff' : '#e0f2fe',
+      accentColor: isEvolved ? '#f0abfc' : '#38bdf8'
+    },
+    black_hole: {
+      tier,
+      intensity: isEvolved ? 4.0 : 1.0 + (lvl - 1) * 0.4,
+      glow: isEvolved ? 34 : 6 + (lvl - 1) * 4.0,
+      trailLength: isEvolved ? 8 : 2 + (lvl - 1) * 1.2,
+      particleCount: isEvolved ? 42 : 8 + (lvl - 1) * 6,
+      secondaryParticles: isEvolved ? 28 : Math.max(0, (lvl - 1) * 5),
+      impactScale: (isEvolved ? 3.2 : 1.0 + (lvl - 1) * 0.35) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 6 : Math.max(0, lvl - 2),
+      accretionLayers: isEvolved ? 4 : (lvl >= 4 ? 3 : (lvl >= 2 ? 2 : 1)),
+      primaryColor: isEvolved ? '#c3b4ed' : '#8b70b5',
+      secondaryColor: isEvolved ? '#581c87' : '#4c1d95',
+      coreColor: isEvolved ? '#05020c' : '#090e1d',
+      accentColor: isEvolved ? '#f43f5e' : '#a78bfa'
+    },
+    prism_ray: {
+      tier,
+      intensity: isEvolved ? 3.8 : 1.0 + (lvl - 1) * 0.36,
+      glow: isEvolved ? 30 : 5 + (lvl - 1) * 3.5,
+      trailLength: isEvolved ? 7 : 1 + (lvl - 1),
+      particleCount: isEvolved ? 32 : 5 + (lvl - 1) * 5,
+      secondaryParticles: isEvolved ? 22 : Math.max(0, (lvl - 1) * 4),
+      impactScale: (isEvolved ? 2.8 : 1.0 + (lvl - 1) * 0.3) * areaBonus,
+      pulseFrequency: pulseFreq,
+      afterImage: isEvolved ? 5 : Math.max(0, lvl - 2),
+      coreBeamWidth: (isEvolved ? 26 : 8 + (lvl - 1) * 2.5) * areaBonus,
+      primaryColor: isEvolved ? '#b59ad9' : '#79baca',
+      secondaryColor: isEvolved ? '#7e22ce' : '#0891b2',
+      coreColor: isEvolved ? '#ffffff' : '#fef9c3',
+      accentColor: isEvolved ? '#f472b6' : '#67e8f9'
+    }
+  };
+
+  return profiles[id] || {
+    tier,
+    intensity: 1.0 + (lvl - 1) * 0.3,
+    glow: 5 + (lvl - 1) * 3,
+    trailLength: lvl,
+    particleCount: 4 + lvl * 3,
+    secondaryParticles: Math.max(0, (lvl - 1) * 2),
+    impactScale: (1.0 + (lvl - 1) * 0.25) * areaBonus,
+    pulseFrequency: pulseFreq,
+    afterImage: Math.max(0, lvl - 2),
+    primaryColor: '#86d7ed',
+    secondaryColor: '#38bdf8',
+    coreColor: '#ffffff',
+    accentColor: '#bae6fd'
+  };
+}
+
 class BaseWeapon {
   constructor(id, name, icon) {
     this.id = id;
@@ -27,6 +151,18 @@ class BaseWeapon {
     return Math.max(0.15, this.baseCd * (1 - cdr));
   }
 
+  get vfxProfile() {
+    const lvl = Math.max(1, Math.min(5, this.level || 1));
+    return getWeaponVfxProfile(this.id, lvl, this.isEvolved, 1.0, 0);
+  }
+
+  getVfxProfile(player) {
+    const lvl = Math.max(1, Math.min(5, this.level || 1));
+    const area = player?.areaBonus || 1.0;
+    const cdr = player?.cooldownReduction || 0;
+    return getWeaponVfxProfile(this.id, lvl, this.isEvolved, area, cdr);
+  }
+
   calcDamage(baseVal, player) {
     const isCrit = Math.random() < player.critChance;
     let dmg = baseVal * player.attackDamage;
@@ -34,6 +170,10 @@ class BaseWeapon {
       dmg *= player.critDamage;
     }
     return { damage: Math.max(1, Math.round(dmg)), isCrit };
+  }
+
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 }
 
@@ -101,7 +241,10 @@ class PulseBlade extends BaseWeapon {
         radius: (this.isEvolved ? 42 : 28) * player.areaBonus,
         life: 0.26,
         maxLife: 0.26,
-        isEvolved: this.isEvolved
+        isEvolved: this.isEvolved,
+        level: this.level,
+        isCrit: hitResult.isCrit,
+        areaBonus: player.areaBonus
       });
 
       // 施加伤害
@@ -115,8 +258,8 @@ class PulseBlade extends BaseWeapon {
     });
   }
 
-  render(ctx) {
-    window.PixelArt.weapon(ctx, this);
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -200,7 +343,9 @@ class ArcCore extends BaseWeapon {
         points: chainPoints,
         life: 0.14,
         maxLife: 0.14,
-        color: '#00f0ff'
+        color: '#00f0ff',
+        level: this.level,
+        isEvolved: false
       });
     } else {
       this.timer = 0.1;
@@ -239,7 +384,9 @@ class ArcCore extends BaseWeapon {
         life: 0.22,
         maxLife: 0.22,
         color: '#b026ff',
-        isBolt: true
+        isBolt: true,
+        level: this.level,
+        isEvolved: true
       });
 
       // 扩散冲击波
@@ -247,8 +394,8 @@ class ArcCore extends BaseWeapon {
     }
   }
 
-  render(ctx) {
-    window.PixelArt.weapon(ctx, this);
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -270,6 +417,7 @@ class OrbitalSatellites extends BaseWeapon {
     this.barrierContacts = new Set();
     this.interceptTimer = 0;
     this.interceptFlash = 0;
+    this.contactFlash = 0;
     this.blockedProjectiles = 0;
   }
 
@@ -285,6 +433,7 @@ class OrbitalSatellites extends BaseWeapon {
 
     this.interceptTimer = Math.max(0, this.interceptTimer - dt);
     this.interceptFlash = Math.max(0, this.interceptFlash - dt);
+    this.contactFlash = Math.max(0, (this.contactFlash || 0) - dt);
     const { radius, count: orbCount, orbSize, barrierWidth } = this.geometry(player);
     const rotSpeed = (2.2 + (this.level >= 3 ? 0.8 : 0)) * (this.isEvolved ? 1.4 : 1.0);
     this.angle = (this.angle + dt * rotSpeed) % (Math.PI * 2);
@@ -427,10 +576,10 @@ class PlasmaCannon extends BaseWeapon {
         if (d < e.radius + p.radius) {
           p.hitList.add(e);
           p.pierce--;
-          if(this.impacts.length>=24)this.impacts.shift();
-          this.impacts.push({x:p.x,y:p.y,life:.18,maxLife:.18,isEvolved:p.isEvolved});
-
           const hit = this.calcDamage(p.damage, player);
+          if(this.impacts.length>=24)this.impacts.shift();
+          this.impacts.push({x:p.x,y:p.y,life:.18,maxLife:.18,isEvolved:p.isEvolved,level:this.level,isCrit:hit.isCrit});
+
           const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
           this.damageDealt += hit.damage;
           if (isDead) this.kills++;
@@ -488,7 +637,7 @@ class PlasmaCannon extends BaseWeapon {
     }
 
     if(this.muzzleFlashes.length>=6)this.muzzleFlashes.shift();
-    this.muzzleFlashes.push({x:player.x,y:player.y,angle:targetAngle,life:.12,maxLife:.12,isEvolved:this.isEvolved});
+    this.muzzleFlashes.push({x:player.x,y:player.y,angle:targetAngle,life:.12,maxLife:.12,isEvolved:this.isEvolved,level:this.level});
     if (this.isEvolved) {
       if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
       // 湮灭重炮：3 枚高密反物质能量弹，无限穿透，强击退 320，触敌生成冲击波
@@ -512,7 +661,8 @@ class PlasmaCannon extends BaseWeapon {
           knockback: 320,
           life: 2.5,
           hitList: new Set(),
-          isEvolved: true
+          isEvolved: true,
+          level: this.level
         });
       }
       return;
@@ -540,13 +690,14 @@ class PlasmaCannon extends BaseWeapon {
         knockback: 110,
         life: 2.2,
         hitList: new Set(),
-        isEvolved: false
+        isEvolved: false,
+        level: this.level
       });
     }
   }
 
-  render(ctx) {
-    window.PixelArt.weapon(ctx, this);
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -572,17 +723,28 @@ class BlackHoleGenerator extends BaseWeapon {
       const h = this.holes[i];
       const activeDt = Math.min(dt, Math.max(0, h.life));
       h.life = Math.max(0, h.life - dt);
-      h.rotation += activeDt * 5;
+      h.rotation += activeDt * (5 + (player?.cooldownReduction || 0) * 4);
 
       // 牵引范围内的敌人 (遵照敌人击退/位移抗性)
+      h.pulledEnemies = [];
       for (const e of enemies) {
         if (e.isDead) continue;
         const dx = h.x - e.x;
         const dy = h.y - e.y;
         const dist = Math.hypot(dx, dy);
-        if (dist < h.radius && dist > 5) {
-          const pullForce = (h.pullStrength * (1 - dist / h.radius)) * activeDt;
+        if (dist < h.radius && dist > 2) {
+          const normDist = dist / h.radius;
+          const pullFactor = Math.pow(1 - normDist, 0.7);
+          const pullForce = (h.pullStrength * pullFactor) * activeDt;
           e.applyDisplacement((dx / dist) * pullForce, (dy / dist) * pullForce);
+          h.pulledEnemies.push({
+            x: e.x,
+            y: e.y,
+            radius: e.radius,
+            distRatio: normDist,
+            dx,
+            dy
+          });
         }
       }
 
@@ -637,7 +799,7 @@ class BlackHoleGenerator extends BaseWeapon {
     const duration = 2.2 + (this.level - 1) * 0.3;
     const radius = (65 + (this.level - 1) * 12) * player.areaBonus * (this.isEvolved ? 1.4 : 1.0);
     const damage = this.isEvolved ? 18 : (8 + (this.level - 1) * 3);
-    const pull = this.isEvolved ? 160 : 90;
+    const pull = this.isEvolved ? 280 : (140 + (this.level - 1) * 20);
 
     if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved, {x:spawnX,y:spawnY});
     this.holes.push({
@@ -650,13 +812,16 @@ class BlackHoleGenerator extends BaseWeapon {
       maxLife: duration,
       rotation: 0,
       tickTimer: 0.2,
-      isEvolved: this.isEvolved
+      isEvolved: this.isEvolved,
+      level: this.level,
+      pulledEnemies: []
     });
   }
 
   triggerSupernova(h, player, enemies, pool) {
     if (window.soundSystem) window.soundSystem.playExplosion(true,h);
     if (pool && pool.spawnShockwave) pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f', true);
+    if (pool && pool.spawnSparks) pool.spawnSparks(h.x, h.y, '#f0abfc', 20);
 
     for (const e of enemies) {
       if (e.isDead) continue;
@@ -674,8 +839,8 @@ class BlackHoleGenerator extends BaseWeapon {
     }
   }
 
-  render(ctx) {
-    window.PixelArt.weapon(ctx, this);
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -812,7 +977,8 @@ class PrismRay extends BaseWeapon {
           life: duration,
           maxLife: duration,
           tickTimer: 0,
-          isEvolved: true
+          isEvolved: true,
+          level: this.level
         });
       }
       return;
@@ -838,13 +1004,14 @@ class PrismRay extends BaseWeapon {
         life: duration,
         maxLife: duration,
         tickTimer: 0,
-        isEvolved: false
+        isEvolved: false,
+        level: this.level
       });
     }
   }
 
-  render(ctx) {
-    window.PixelArt.weapon(ctx, this);
+  render(ctx, player) {
+    window.PixelArt.weapon(ctx, this, player);
   }
 
   evolve() {
@@ -870,3 +1037,4 @@ window.PlasmaCannon = PlasmaCannon;
 window.BlackHoleGenerator = BlackHoleGenerator;
 window.PrismRay = PrismRay;
 window.getValidEnemies = getValidEnemies;
+window.getWeaponVfxProfile = getWeaponVfxProfile;

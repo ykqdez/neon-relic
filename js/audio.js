@@ -197,6 +197,10 @@ class SoundSystem {
       if(voice){
         voice.gain.gain.setTargetAtTime(volume*spatial.gain,this.ctx.currentTime,.025);
         voice.pan?.pan.setTargetAtTime(spatial.pan,this.ctx.currentTime,.025);
+        if(id==='black_hole'){
+          const collapsing=effects.some(e=>e.isEvolved&&e.life<=.35);
+          voice.node.playbackRate.setTargetAtTime(collapsing?1.28:1,this.ctx.currentTime,.05);
+        }
         voice.node.stop(this.ctx.currentTime+remaining+.05);
       }
     }

@@ -102,96 +102,432 @@
     const bend=4*t*(1-t)*.18;
     return {x:x+dx*t-dy*bend,y:y+dy*t+dx*bend};
   }
-  function weapon(ctx,w,p) {
-    if(w.level<=0)return;
-    if(w.id==='pulse_blade')for(const s of w.slashes) {
-      const progress=1-s.life/s.maxLife,head=Math.min(1,progress/.62);
-      const color=s.isEvolved?'#d9adff':'#acf5e3';
-      ctx.save();ctx.globalAlpha=Math.min(1,s.life/s.maxLife*2);
-      // A faint complete path communicates the instant hit; the bright blade travels along it.
-      ctx.globalAlpha*=.22;
-      for(let i=1;i<=20;i++){
-        const a=bladePoint(s,(i-1)/20),b=bladePoint(s,i/20);line(ctx,a.x,a.y,b.x,b.y,color,2);
-      }
-      ctx.globalAlpha=Math.min(1,s.life/s.maxLife*2);
-      for(let i=1;i<=16;i++){
-        const start=Math.max(0,head-.45),a=bladePoint(s,start+(head-start)*(i-1)/16),b=bladePoint(s,start+(head-start)*i/16);
-        line(ctx,a.x,a.y,b.x,b.y,i>11?'#fff3d6':color,i>10?4:2);
-      }
-      const tip=bladePoint(s,head);
-      for(let i=0;i<16;i++) {
-        const a=s.angle-1.1+i/15*2.2,r=s.radius*.6;
-        ctx.fillStyle=i>3&&i<12?'#fff3d6':color;
-        ctx.fillRect(snap(tip.x+Math.cos(a)*r),snap(tip.y+Math.sin(a)*r),4,4);
-      }
-      if(head===1){line(ctx,s.x-8,s.y,s.x+8,s.y,'#fff5d9',3);line(ctx,s.x,s.y-8,s.x,s.y+8,'#fff5d9',3);}
-      ctx.restore();
-    }
-    if(w.id==='arc_core')for(const c of w.chains) {
-      ctx.save();ctx.globalAlpha=Math.min(1,c.life/c.maxLife*2);
-      for(let i=1;i<c.points.length;i++) {
-        const a=c.points[i-1],b=c.points[i],mx=(a.x+b.x)/2+(i%2?10:-10),my=(a.y+b.y)/2-6;
-        line(ctx,a.x,a.y,mx,my,c.isBolt?'#c6a9f0':'#86d7ed',5);line(ctx,mx,my,b.x,b.y,'#eafaff',3);
-      }ctx.restore();
-    }
-    if(w.id==='orbital_satellites' && p) {
-      const {radius,count,orbSize}=w.geometry(p);
-      if(w.isEvolved){ctx.save();ctx.globalAlpha=.45;ring(ctx,p.x,p.y,radius,'#b6a3e8',3);ctx.restore();}
-      if(w.interceptFlash>0){ctx.save();ctx.globalAlpha=w.interceptFlash/.16;ring(ctx,p.x,p.y,radius,'#e1fbff',4);ctx.restore();}
-      for(let i=0;i<count;i++){
-        const a=w.angle+i*Math.PI*2/count,x=p.x+Math.cos(a)*radius,y=p.y+Math.sin(a)*radius;
-        ctx.save();
-        for(let j=4;j>0;j--){const t=a-j*.09;ctx.globalAlpha=(5-j)*.09;ring(ctx,p.x+Math.cos(t)*radius,p.y+Math.sin(t)*radius,orbSize*.6,'#83e9ff',2);}
-        ctx.globalAlpha=.4;ring(ctx,x,y,orbSize,w.isEvolved?'#b6a3e8':'#83e9ff',2);
-        ctx.globalAlpha=1;tile(ctx,6,8,x,y,w.isEvolved?26:22);ctx.restore();
-      }
-    }
-    if(w.id==='plasma_cannon')for(const b of w.projectiles) {
-      const r=Math.max(6,b.radius),speed=Math.hypot(b.vx,b.vy);
-      const length=Math.min(b.isEvolved?64:42,(b.age||0)*speed);
-      const shell=b.isEvolved?'#b899ed':'#69cce8',rim=b.isEvolved?'#745da9':'#35798e';
+  function weapon(ctx, w, p) {
+    if (w.level <= 0) return;
+    const lvl = Math.max(1, Math.min(5, w.level || 1));
+    const isEvo = !!w.isEvolved;
+
+    // 1. 脉冲刃 (Pulse Blade) / 光子幻刃 (Phantom Voidblade)
+    if (w.id === 'pulse_blade') for (const s of w.slashes) {
+      const progress = 1 - s.life / s.maxLife;
+      const head = Math.min(1, progress / 0.62);
+      const sLvl = s.level || lvl;
+      const evo = s.isEvolved !== undefined ? s.isEvolved : isEvo;
+      const alpha = Math.min(1, (s.life / s.maxLife) * 2);
+      const primaryColor = evo ? '#d9adff' : (sLvl >= 4 ? '#5eead4' : (sLvl >= 2 ? '#7fe3c1' : '#acf5e3'));
+      const coreColor = evo ? '#ffffff' : (sLvl >= 3 ? '#ffffff' : '#f0fdfa');
+      const accentColor = evo ? '#f472b6' : (s.isCrit ? '#ffaa00' : '#fff3d6');
+
       ctx.save();
-      for(let i=5;i>=1;i--){
-        const t=i/5,x=b.x-Math.cos(b.angle)*length*t,y=b.y-Math.sin(b.angle)*length*t;
-        ctx.globalAlpha=.65*(1-t*.7);const size=Math.max(2,Math.round(r*(1-t*.65)));
-        ctx.fillStyle=shell;ctx.fillRect(snap(x)-size/2,snap(y)-size/2,size,size);
+      // Level 3+: Lingering luminous incision path etched into spacetime
+      ctx.globalAlpha = alpha * (evo ? 0.35 : 0.22);
+      for (let i = 1; i <= 20; i++) {
+        const a = bladePoint(s, (i - 1) / 20), b = bladePoint(s, i / 20);
+        line(ctx, a.x, a.y, b.x, b.y, primaryColor, evo ? 3 : 2);
       }
-      ctx.globalAlpha=1;
-      ring(ctx,b.x,b.y,r,rim,3);
-      ctx.fillStyle=shell;ctx.fillRect(snap(b.x-r*.65),snap(b.y-r*.65),r*1.3,r*1.3);
-      ctx.fillStyle='#e1fbff';ctx.fillRect(snap(b.x-r*.35),snap(b.y-r*.35),r*.7,r*.7);
-      const spin=(b.age||0)*12;
-      for(let i=0;i<3;i++){const a=spin+i*Math.PI*2/3;ctx.fillStyle='#c6f8ff';ctx.fillRect(snap(b.x+Math.cos(a)*r),snap(b.y+Math.sin(a)*r),3,3);}
+
+      // Main blade cutting arc traveling along the trajectory
+      ctx.globalAlpha = alpha;
+      const start = Math.max(0, head - 0.45);
+      const segs = 16;
+      for (let i = 1; i <= segs; i++) {
+        const t0 = start + (head - start) * (i - 1) / segs;
+        const t1 = start + (head - start) * i / segs;
+        const a = bladePoint(s, t0), b = bladePoint(s, t1);
+        const isTip = i > 11;
+        const isBody = i > 7;
+        const col = isTip ? coreColor : (isBody ? accentColor : primaryColor);
+        const sz = evo ? (isTip ? 5 : 3) : (sLvl >= 4 ? (isTip ? 4 : 3) : (isTip ? 4 : 2));
+        line(ctx, a.x, a.y, b.x, b.y, col, sz);
+
+        // Evolution: Staggered void fracture offset
+        if (evo && i % 4 === 0) {
+          const offsetDist = Math.sin(i * 1.7) * 6;
+          line(ctx, a.x + offsetDist, a.y - offsetDist, b.x + offsetDist, b.y - offsetDist, '#a855f7', 2);
+        }
+      }
+
+      // Blade tip energy fan / shards
+      const tip = bladePoint(s, head);
+      const shardCount = evo ? 22 : (sLvl >= 4 ? 18 : (sLvl >= 2 ? 14 : 10));
+      for (let i = 0; i < shardCount; i++) {
+        const a = s.angle - 1.1 + (i / (shardCount - 1)) * 2.2;
+        const r = (s.radius || 28) * (0.45 + (i % 3) * 0.15);
+        ctx.fillStyle = (i > 3 && i < shardCount - 4) ? coreColor : (evo ? '#c084fc' : primaryColor);
+        const dotSz = evo ? (i % 2 === 0 ? 4 : 2) : (sLvl >= 4 ? 4 : (i % 2 === 0 ? 4 : 2));
+        ctx.fillRect(snap(tip.x + Math.cos(a) * r), snap(tip.y + Math.sin(a) * r), dotSz, dotSz);
+      }
+
+      // Target impact burst flash
+      if (head === 1) {
+        const crossSz = evo ? 14 : (sLvl >= 4 ? 10 : 8);
+        const crossColor = s.isCrit ? '#ffaa00' : (evo ? '#ffffff' : '#fff5d9');
+        line(ctx, s.x - crossSz, s.y, s.x + crossSz, s.y, crossColor, evo ? 4 : 3);
+        line(ctx, s.x, s.y - crossSz, s.x, s.y + crossSz, crossColor, evo ? 4 : 3);
+        if (evo || sLvl >= 4) {
+          const diag = crossSz * 0.7;
+          line(ctx, s.x - diag, s.y - diag, s.x + diag, s.y + diag, accentColor, 2);
+          line(ctx, s.x - diag, s.y + diag, s.x + diag, s.y - diag, accentColor, 2);
+        }
+      }
       ctx.restore();
     }
-    if(w.id==='plasma_cannon'){
-      for(const flash of w.muzzleFlashes){
-        ctx.save();ctx.globalAlpha=flash.life/flash.maxLife;
-        const x=flash.x+Math.cos(flash.angle)*20,y=flash.y+Math.sin(flash.angle)*20;
-        ring(ctx,x,y,8+(1-flash.life/flash.maxLife)*12,'#b6f1ff',3);
-        line(ctx,x-5,y,x+5,y,'#ffffff',3);ctx.restore();
+
+    // 2. 电弧核心 (Arc Core) / 天罚风暴 (Tempest Protocol)
+    if (w.id === 'arc_core') for (const c of w.chains) {
+      const cLvl = c.level || lvl;
+      const isBolt = !!c.isBolt;
+      const alpha = Math.min(1, (c.life / c.maxLife) * 2);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      if (isBolt) {
+        // Celestial Tempest: Skyward thunder pillar & ground shock rings
+        const targetPt = c.points[c.points.length - 1];
+        ring(ctx, targetPt.x, targetPt.y, 28 * (1 - c.life / c.maxLife), '#c084fc', 3);
+        ring(ctx, targetPt.x, targetPt.y, 48 * (1 - c.life / c.maxLife), '#7c3aed', 2);
+
+        // Multi-layered vertical lightning pillar
+        for (let i = 1; i < c.points.length; i++) {
+          const a = c.points[i - 1], b = c.points[i];
+          const mx = (a.x + b.x) / 2 + (i % 2 ? 14 : -14);
+          const my = (a.y + b.y) / 2;
+          line(ctx, a.x, a.y, mx, my, '#7c3aed', 8);
+          line(ctx, mx, my, b.x, b.y, '#7c3aed', 8);
+          line(ctx, a.x, a.y, mx, my, '#c6a9f0', 5);
+          line(ctx, mx, my, b.x, b.y, '#c6a9f0', 5);
+          line(ctx, a.x, a.y, mx, my, '#ffffff', 2);
+          line(ctx, mx, my, b.x, b.y, '#ffffff', 2);
+          const spkX = mx + ((i * 7) % 13 - 6);
+          const spkY = my + ((i * 11) % 15 - 7);
+          ctx.fillStyle = '#f5d0fe';
+          ctx.fillRect(snap(spkX), snap(spkY), 4, 4);
+        }
+      } else {
+        // Normal Arc Core chain lightning
+        const boltCol = cLvl >= 4 ? '#38bdf8' : '#86d7ed';
+        const coreCol = cLvl >= 3 ? '#ffffff' : '#eafaff';
+        const thickness = cLvl >= 4 ? 6 : (cLvl >= 2 ? 4 : 3);
+
+        for (let i = 1; i < c.points.length; i++) {
+          const a = c.points[i - 1], b = c.points[i];
+          const offset = (i % 2 ? 1 : -1) * (cLvl >= 3 ? 12 : 8);
+          const mx = (a.x + b.x) / 2 + offset;
+          const my = (a.y + b.y) / 2 - (i % 3 ? 5 : -4);
+
+          line(ctx, a.x, a.y, mx, my, boltCol, thickness);
+          line(ctx, mx, my, b.x, b.y, boltCol, thickness);
+          line(ctx, a.x, a.y, mx, my, coreCol, Math.max(2, thickness - 2));
+          line(ctx, mx, my, b.x, b.y, coreCol, Math.max(2, thickness - 2));
+
+          if (cLvl >= 3) {
+            const bx = mx + offset * 0.8;
+            const by = my - 10;
+            line(ctx, mx, my, bx, by, '#bae6fd', 2);
+          }
+          ring(ctx, b.x, b.y, cLvl >= 4 ? 6 : 4, '#e0f2fe', 2);
+        }
       }
-      for(const hit of w.impacts){
-        const t=1-hit.life/hit.maxLife;ctx.save();ctx.globalAlpha=1-t;
-        const r=(hit.isEvolved?30:20)*t;
-        ring(ctx,hit.x,hit.y,r,hit.isEvolved?'#c5a5ff':'#83e9ff',3);
-        for(let i=0;i<4;i++){const a=i*Math.PI/2+.78;line(ctx,hit.x+Math.cos(a)*r,hit.y+Math.sin(a)*r,hit.x+Math.cos(a)*(r+7),hit.y+Math.sin(a)*(r+7),'#e1fbff',2);}
+      ctx.restore();
+    }
+
+    // 3. 轨道卫星 (Orbital Satellites) / 极光环垒 (Aurora Bastion)
+    if (w.id === 'orbital_satellites' && p) {
+      const { radius, count, orbSize, barrierWidth } = w.geometry(p);
+      const satLvl = w.level;
+      const isBastion = !!w.isEvolved;
+
+      ctx.save();
+      if (isBastion) {
+        ctx.globalAlpha = 0.55;
+        ring(ctx, p.x, p.y, radius, '#b6a3e8', 3);
+        ctx.globalAlpha = 0.25;
+        ring(ctx, p.x, p.y, radius - (barrierWidth || 14), '#7c3aed', 2);
+        ring(ctx, p.x, p.y, radius + (barrierWidth || 14), '#c084fc', 2);
+      } else if (satLvl >= 2) {
+        ctx.globalAlpha = satLvl >= 4 ? 0.35 : 0.18;
+        ring(ctx, p.x, p.y, radius, satLvl >= 4 ? '#38bdf8' : '#83e9ff', satLvl >= 4 ? 3 : 2);
+        if (satLvl >= 4) {
+          ctx.globalAlpha = 0.15;
+          ring(ctx, p.x, p.y, radius * 0.82, '#0284c7', 2);
+        }
+      }
+
+      if (w.interceptFlash > 0) {
+        ctx.globalAlpha = Math.min(1, (w.interceptFlash / 0.16) * 1.2);
+        ring(ctx, p.x, p.y, radius, '#e1fbff', isBastion ? 6 : 4);
+        ring(ctx, p.x, p.y, radius + 10, '#38bdf8', 2);
+      }
+      if (w.contactFlash > 0) {
+        ctx.globalAlpha = Math.min(1, (w.contactFlash / 0.14) * 0.8);
+        ring(ctx, p.x, p.y, radius, isBastion ? '#f472b6' : '#fef08a', 3);
+      }
+
+      const satCoords = [];
+      for (let i = 0; i < count; i++) {
+        const a = w.angle + (i * Math.PI * 2) / count;
+        satCoords.push({ x: p.x + Math.cos(a) * radius, y: p.y + Math.sin(a) * radius, angle: a });
+      }
+
+      if (isBastion) {
+        ctx.globalAlpha = 0.45;
+        for (let i = 0; i < count; i++) {
+          const curr = satCoords[i];
+          const next = satCoords[(i + 1) % count];
+          line(ctx, curr.x, curr.y, next.x, next.y, '#c084fc', 3);
+          line(ctx, curr.x, curr.y, next.x, next.y, '#ffffff', 1);
+        }
+      } else if (satLvl >= 4) {
+        ctx.globalAlpha = 0.22;
+        for (let i = 0; i < count; i++) {
+          const curr = satCoords[i];
+          const next = satCoords[(i + 1) % count];
+          line(ctx, curr.x, curr.y, next.x, next.y, '#7dd3fc', 1);
+        }
+      }
+
+      for (let i = 0; i < count; i++) {
+        const { x, y, angle: a } = satCoords[i];
+        const trailSteps = isBastion ? 6 : (satLvl >= 4 ? 5 : (satLvl >= 2 ? 4 : 2));
+        for (let j = trailSteps; j > 0; j--) {
+          const t = a - j * 0.08;
+          ctx.globalAlpha = (trailSteps + 1 - j) * (isBastion ? 0.09 : 0.07);
+          ring(ctx, p.x + Math.cos(t) * radius, p.y + Math.sin(t) * radius, orbSize * 0.6, isBastion ? '#b6a3e8' : '#83e9ff', 2);
+        }
+
+        ctx.globalAlpha = isBastion ? 0.6 : (satLvl >= 3 ? 0.45 : 0.3);
+        ring(ctx, x, y, orbSize, isBastion ? '#c084fc' : (satLvl >= 4 ? '#38bdf8' : '#83e9ff'), 2);
+
+        ctx.globalAlpha = 1;
+        tile(ctx, 6, 8, x, y, isBastion ? 26 : 22);
+
+        if (satLvl >= 3 || isBastion) {
+          ctx.fillStyle = isBastion ? '#f5d0fe' : '#ffffff';
+          ctx.fillRect(snap(x) - 2, snap(y) - 2, 4, 4);
+        }
+      }
+      ctx.restore();
+    }
+
+    // 4. 等离子炮 (Plasma Cannon) / 湮灭重炮 (Annihilation Cannon)
+    if (w.id === 'plasma_cannon') {
+      for (const flash of w.muzzleFlashes) {
+        const progress = 1 - flash.life / flash.maxLife;
+        ctx.save();
+        ctx.globalAlpha = (1 - progress);
+        const dist = 18 + progress * 8;
+        const x = flash.x + Math.cos(flash.angle) * dist;
+        const y = flash.y + Math.sin(flash.angle) * dist;
+        const fCol = flash.isEvolved ? '#c084fc' : '#b6f1ff';
+        ring(ctx, x, y, 8 + progress * 14, fCol, flash.isEvolved ? 4 : 3);
+        line(ctx, x - 6, y, x + 6, y, '#ffffff', 3);
+        line(ctx, x, y - 6, x, y + 6, '#ffffff', 3);
+        ctx.restore();
+      }
+
+      for (const b of w.projectiles) {
+        const r = Math.max(6, b.radius);
+        const speed = Math.hypot(b.vx, b.vy) || 360;
+        const pLvl = b.level || lvl;
+        const evo = !!b.isEvolved;
+        const length = Math.min(evo ? 72 : (pLvl >= 4 ? 54 : 42), (b.age || 0) * speed);
+        const shell = evo ? '#b899ed' : (pLvl >= 4 ? '#38bdf8' : '#69cce8');
+        const rim = evo ? '#745da9' : (pLvl >= 4 ? '#0284c7' : '#35798e');
+        const core = evo ? '#0f051d' : '#ffffff';
+
+        ctx.save();
+        const trailSegments = evo ? 7 : (pLvl >= 4 ? 6 : 4);
+        for (let i = trailSegments; i >= 1; i--) {
+          const t = i / trailSegments;
+          const tx = b.x - Math.cos(b.angle) * length * t;
+          const ty = b.y - Math.sin(b.angle) * length * t;
+          ctx.globalAlpha = 0.7 * (1 - t * 0.7);
+          const sz = Math.max(2, Math.round(r * (1 - t * 0.65)));
+          ctx.fillStyle = shell;
+          ctx.fillRect(snap(tx) - sz / 2, snap(ty) - sz / 2, sz, sz);
+          if (evo && i % 2 === 0) {
+            ctx.fillStyle = '#f472b6';
+            ctx.fillRect(snap(tx) - 1, snap(ty) - 1, 2, 2);
+          }
+        }
+
+        ctx.globalAlpha = 1;
+        ring(ctx, b.x, b.y, r, rim, evo ? 4 : 3);
+        ctx.fillStyle = shell;
+        ctx.fillRect(snap(b.x - r * 0.65), snap(b.y - r * 0.65), r * 1.3, r * 1.3);
+
+        if (evo) {
+          ctx.fillStyle = core;
+          ctx.fillRect(snap(b.x - r * 0.4), snap(b.y - r * 0.4), r * 0.8, r * 0.8);
+          ctx.fillStyle = '#f5d0fe';
+          ctx.fillRect(snap(b.x - 2), snap(b.y - 2), 4, 4);
+        } else {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(snap(b.x - r * 0.35), snap(b.y - r * 0.35), r * 0.7, r * 0.7);
+        }
+
+        const spin = (b.age || 0) * (evo ? 16 : 12);
+        const moteCount = evo ? 4 : (pLvl >= 4 ? 4 : 3);
+        for (let i = 0; i < moteCount; i++) {
+          const a = spin + (i * Math.PI * 2) / moteCount;
+          ctx.fillStyle = evo ? (i % 2 === 0 ? '#f472b6' : '#e0e7ff') : '#c6f8ff';
+          const mDist = r + (evo ? 3 : 2);
+          ctx.fillRect(snap(b.x + Math.cos(a) * mDist), snap(b.y + Math.sin(a) * mDist), evo ? 4 : 3, evo ? 4 : 3);
+        }
+        ctx.restore();
+      }
+
+      for (const hit of w.impacts) {
+        const t = 1 - hit.life / hit.maxLife;
+        const evo = !!hit.isEvolved;
+        const hLvl = hit.level || lvl;
+        ctx.save();
+        ctx.globalAlpha = 1 - t;
+        const r = (evo ? 32 : (hLvl >= 4 ? 24 : 20)) * t;
+        const impCol = hit.isCrit ? '#ffaa00' : (evo ? '#c5a5ff' : (hLvl >= 4 ? '#38bdf8' : '#83e9ff'));
+
+        ring(ctx, hit.x, hit.y, r, impCol, evo ? 4 : 3);
+        const spikeCount = evo ? 6 : 4;
+        for (let i = 0; i < spikeCount; i++) {
+          const a = (i * Math.PI * 2) / spikeCount + 0.78;
+          line(ctx, hit.x + Math.cos(a) * r, hit.y + Math.sin(a) * r, hit.x + Math.cos(a) * (r + 8), hit.y + Math.sin(a) * (r + 8), '#ffffff', 2);
+        }
         ctx.restore();
       }
     }
-    if(w.id==='black_hole')for(const h of w.holes) {
-      ctx.save();ctx.globalAlpha=.9;ring(ctx,h.x,h.y,h.radius*.72,'#8b70b5',3);
-      for(let n=0;n<3;n++)for(let i=0;i<18;i++) {
-        const a=h.rotation+n*2.094+i*.16,r=h.radius*(.1+i/25);
-        ctx.fillStyle=i%3?'#615481':'#c3b4ed';ctx.fillRect(snap(h.x+Math.cos(a)*r),snap(h.y+Math.sin(a)*r),4,4);
+
+    // 5. 黑洞发生器 (Black Hole Generator) / 坍缩超新星 (Collapsing Supernova)
+    if (w.id === 'black_hole') for (const h of w.holes) {
+      const hLvl = h.level || lvl;
+      const evo = !!h.isEvolved;
+      const isCollapsing = evo && (h.life <= 0.35);
+      const collapseScale = isCollapsing ? Math.max(0.08, h.life / 0.35) : 1.0;
+      const curRadius = h.radius * collapseScale;
+
+      ctx.save();
+
+      // 1. 引力边界圈
+      ctx.globalAlpha = 0.45 + Math.sin(h.rotation * 2) * 0.15;
+      ring(ctx, h.x, h.y, h.radius, evo ? '#c084fc' : '#818cf8', 2);
+      const chevronCount = 8;
+      for (let i = 0; i < chevronCount; i++) {
+        const ca = h.rotation * 0.5 + (i * Math.PI * 2) / chevronCount;
+        const cx0 = h.x + Math.cos(ca) * h.radius;
+        const cy0 = h.y + Math.sin(ca) * h.radius;
+        const cx1 = h.x + Math.cos(ca) * (h.radius - 8);
+        const cy1 = h.y + Math.sin(ca) * (h.radius - 8);
+        line(ctx, cx0, cy0, cx1, cy1, evo ? '#f472b6' : '#a5b4fc', 2);
       }
-      tile(ctx,8,4,h.x,h.y,34);ctx.restore();
+
+      // 2. 被牵引敌人的引力丝线与位移反馈
+      if (h.pulledEnemies && h.pulledEnemies.length > 0) {
+        for (const pe of h.pulledEnemies) {
+          const pullIntensity = Math.pow(1 - pe.distRatio, 0.6);
+          ctx.globalAlpha = Math.min(0.85, pullIntensity * 0.9);
+          line(ctx, pe.x, pe.y, h.x, h.y, evo ? '#e879f9' : '#818cf8', pe.distRatio < 0.35 ? 3 : 2, 4);
+          const awayAngle = Math.atan2(pe.y - h.y, pe.x - h.x);
+          const wakeLen = 14 * pullIntensity;
+          line(ctx, pe.x, pe.y, pe.x + Math.cos(awayAngle) * wakeLen, pe.y + Math.sin(awayAngle) * wakeLen, evo ? '#f43f5e' : '#60a5fa', 2);
+        }
+      }
+
+      // 3. 向内塌缩的螺旋粒子流 (确定性计算，绝不使用 Math.random)
+      ctx.globalAlpha = 0.85;
+      const vortexCount = evo ? 24 : (hLvl >= 4 ? 20 : 16);
+      for (let k = 0; k < vortexCount; k++) {
+        const cycle = ((h.rotation * 1.6 + k * 0.38) % 1.0);
+        const pr = curRadius * (1 - cycle);
+        const pa = k * ((Math.PI * 2) / vortexCount) + (1 - cycle) * 3.2 + h.rotation;
+        const px = h.x + Math.cos(pa) * pr;
+        const py = h.y + Math.sin(pa) * pr;
+        const pSize = cycle > 0.8 ? 4 : (cycle > 0.4 ? 3 : 2);
+        ctx.fillStyle = cycle > 0.75 ? '#ffffff' : (evo ? (k % 2 === 0 ? '#f472b6' : '#c084fc') : (k % 2 === 0 ? '#818cf8' : '#c7d2fe'));
+        ctx.fillRect(snap(px) - pSize / 2, snap(py) - pSize / 2, pSize, pSize);
+      }
+
+      // 4. 旋转吸积盘
+      const diskRadius = curRadius * 0.65;
+      ctx.globalAlpha = isCollapsing ? 0.95 : 0.75;
+      ring(ctx, h.x, h.y, diskRadius, evo ? '#d946ef' : '#8b70b5', isCollapsing ? 5 : 3);
+      for (let n = 0; n < 3; n++) {
+        for (let i = 0; i < 18; i++) {
+          const a = h.rotation + n * 2.094 + i * 0.16;
+          const r = curRadius * (0.12 + (i / 22) * 0.65);
+          ctx.fillStyle = i % 3 === 0 ? (evo ? '#ffffff' : '#c3b4ed') : (evo ? '#a855f7' : '#615481');
+          ctx.fillRect(snap(h.x + Math.cos(a) * r), snap(h.y + Math.sin(a) * r), 4, 4);
+        }
+      }
+
+      // 5. 事件视界纯黑奇点核心
+      const coreR = Math.max(4, curRadius * (isCollapsing ? 0.12 : 0.24));
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#020108';
+      ctx.fillRect(snap(h.x - coreR), snap(h.y - coreR), snap(coreR * 2), snap(coreR * 2));
+      ring(ctx, h.x, h.y, coreR, isCollapsing ? '#ffffff' : (evo ? '#f43f5e' : '#a78bfa'), 2);
+
+      tile(ctx, 8, 4, h.x, h.y, Math.round(34 * collapseScale));
+      ctx.restore();
     }
-    if(w.id==='prism_ray')for(const b of w.beams) {
-      const dx=Math.cos(b.angle)*b.length,dy=Math.sin(b.angle)*b.length;
-      ctx.save();ctx.globalAlpha=Math.min(.75,b.life/b.maxLife*1.5);
-      line(ctx,b.x,b.y,b.x+dx,b.y+dy,b.isEvolved?'#b59ad9':'#79baca',Math.max(4,Math.round(b.width*.6)));
-      line(ctx,b.x,b.y,b.x+dx,b.y+dy,'#f3f1d1',3);ctx.restore();
+
+    // 6. 棱镜射线 (Prism Ray) / 超维裂隙 (Dimensional Rift)
+    if (w.id === 'prism_ray') for (const b of w.beams) {
+      const bLvl = b.level || lvl;
+      const evo = !!b.isEvolved;
+      const dx = Math.cos(b.angle) * b.length;
+      const dy = Math.sin(b.angle) * b.length;
+      const alpha = Math.min(0.9, (b.life / b.maxLife) * 1.6);
+      const beamW = Math.max(4, Math.round((b.width || 16) * 0.65));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      if (evo) {
+        // Dimensional Rift: 空间撕裂锯齿死光
+        line(ctx, b.x, b.y, b.x + dx, b.y + dy, '#7c3aed', beamW + 4);
+        const steps = 24;
+        for (let i = 1; i <= steps; i++) {
+          const t0 = (i - 1) / steps;
+          const t1 = i / steps;
+          const p0x = b.x + dx * t0, p0y = b.y + dy * t0;
+          const p1x = b.x + dx * t1, p1y = b.y + dy * t1;
+          const tearOffset = (i % 3 - 1) * 3;
+          line(ctx, p0x + tearOffset, p0y - tearOffset, p1x + tearOffset, p1y - tearOffset, '#d946ef', Math.max(3, beamW - 2));
+        }
+        line(ctx, b.x, b.y, b.x + dx, b.y + dy, '#ffffff', 3);
+
+        const moteCount = 8;
+        for (let m = 0; m < moteCount; m++) {
+          const mt = ((m * 0.13 + (b.life * 4)) % 1.0);
+          const mx = b.x + dx * mt + ((m * 5) % 9 - 4);
+          const my = b.y + dy * mt + ((m * 7) % 9 - 4);
+          ctx.fillStyle = '#f5d0fe';
+          ctx.fillRect(snap(mx) - 1, snap(my) - 1, 3, 3);
+        }
+      } else {
+        const outerCol = bLvl >= 4 ? '#0891b2' : '#79baca';
+        const midCol = bLvl >= 4 ? '#38bdf8' : '#a5f3fc';
+        const coreCol = '#fef9c3';
+
+        line(ctx, b.x, b.y, b.x + dx, b.y + dy, outerCol, beamW);
+        if (bLvl >= 3) line(ctx, b.x, b.y, b.x + dx, b.y + dy, midCol, Math.max(2, beamW - 3));
+        line(ctx, b.x, b.y, b.x + dx, b.y + dy, coreCol, Math.max(2, Math.round(beamW * 0.35)));
+
+        if (bLvl >= 4) {
+          for (let k = 0; k < 4; k++) {
+            const pt = ((k * 0.25 + (b.life * 3)) % 1.0);
+            const px = b.x + dx * pt;
+            const py = b.y + dy * pt;
+            ring(ctx, px, py, 4, '#ffffff', 2);
+          }
+        }
+      }
+
+      const flareCol = evo ? '#f472b6' : '#ffffff';
+      ring(ctx, b.x, b.y, evo ? 8 : 5, flareCol, 3);
+      line(ctx, b.x - 6, b.y, b.x + 6, b.y, '#ffffff', 2);
+      line(ctx, b.x, b.y - 6, b.x, b.y + 6, '#ffffff', 2);
+
+      ctx.restore();
     }
   }
   function arena(ctx,g) {

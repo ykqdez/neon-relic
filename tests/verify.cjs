@@ -156,7 +156,7 @@ async function main() {
   if (!ready) throw Error('Game startup timed out');
   report.browser = await ev('({userAgent:navigator.userAgent,initialState:game.state})');
   check(report.browser.initialState === 'ready', 'initial state ready');
-  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js', 'combat-checks.js', 'audio-action-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js', 'combat-checks.js', 'audio-action-checks.js', 'vfx-sfx-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
   await ev('auditSaved.sound.ready');
   if(report.noOgg)check(await ev('auditRejectedOgg===0&&auditSaved.sound.failed.length===0&&auditSaved.sound.buffers.size===SOUND_SAMPLE_NAMES.length'),'all SFX decode with OGG support disabled');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
@@ -173,6 +173,8 @@ async function main() {
   for(const row of combat)check(row.passed,'combat: '+row.name,row.detail);
   const audioActions=await ev('audioActionChecks()');save('audio-actions',audioActions);
   for(const row of audioActions)check(row.passed,'audio-actions: '+row.name,row.detail);
+  const vfxSfx=await ev('vfxSfxChecks()');save('vfx-sfx',vfxSfx);
+  for(const row of vfxSfx)check(row.passed,'vfx-sfx: '+row.name,row.detail);
   fs.writeFileSync(path.join(out,'combat-preview.png'),Buffer.from((await ev('window.combatPreview')).split(',')[1],'base64'));
   const bladeFrames=await ev('window.bladePreview');
   for(let i=0;i<bladeFrames.length;i++)fs.writeFileSync(path.join(out,`blade-trail-${i}.png`),Buffer.from(bladeFrames[i].split(',')[1],'base64'));
