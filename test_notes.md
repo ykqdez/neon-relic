@@ -10,7 +10,7 @@ node tests/verify.cjs
 
 此命令执行静态检查、逻辑回归、六武器矩阵、12 局流程、8 视口、坐标触控、60 秒音效压力测试和真实 RAF 冒烟测试。退出码 0 表示所有已执行断言通过；任何失败或浏览器异常返回 1。通常需要约 1–2 分钟。
 
-像素版另检查 21 个二进制素材的 SHA-256、6 张图片与 13 个采样音效解码、中文像素字体、最近邻画布、渲染不消耗玩法随机数，以及 BGM 暂停/装备抽屉/静音和声音节点回收。游戏与测试均通过 HTTP 加载本地素材。
+像素版另检查 35 个二进制素材的 SHA-256、6 张图片与 15 个 PCM WAV 音效解码、中文像素字体、最近邻画布、渲染不消耗玩法随机数，以及 BGM 暂停/装备抽屉/静音和声音节点回收。游戏与测试均通过 HTTP 加载本地素材。
 
 声音回归覆盖六武器基础/进化形态的真实攻击、独立音色与并发播放、齐射单次发声、未装备时静音、混合攻击节点预算与回收，以及 BGM 音量上限 4%。
 
@@ -21,12 +21,14 @@ node tests/verify.cjs
 完整交付验证和报告生成：
 
 ```powershell
-node tests/verify.cjs --growth
+node tests/verify.cjs --growth --no-ogg
 node tests/integrity.cjs
 node tests/build-report.cjs
 ```
 
 `--growth` 额外运行 360 局，需数分钟。逐条检查退出码；报告生成器只接受通过且源码哈希匹配的完整运行。也可使用 package.json 对应的 `npm test`、`npm run test:growth`、`npm run test:integrity`、`npm run test:report`。
+
+`--no-ogg` 在页面初始化前禁用 OGG 解码，检查全部音效仍正常加载；完整流程还通过真实触控恢复 suspended 音频上下文，并确认随后可播放等离子炮。另覆盖音效临时加载失败后的重试、三类敌人的死亡音效和等离子炮视觉队列上限。此测试不能替代 iPhone 的真实浏览器与扬声器验收。
 
 ## 参数与隔离
 

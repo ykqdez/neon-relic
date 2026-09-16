@@ -1,36 +1,51 @@
 {
   "metadata": {
-    "runId": "1e2702ac-1fc9-4975-98bf-03434179d8ee",
-    "timestamp": "2026-09-16T00:25:45.895Z",
+    "runId": "bcb205ae-9826-4e51-9905-ceb558e7ba14",
+    "timestamp": "2026-09-16T00:52:07.522Z",
     "node": "v24.19.0",
     "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
-    "baseCommit": "33c6d54128f726d0174735cd62fa999dcd88697b",
+    "baseCommit": "a1082bfa0eed22bce7c3b416bac917516bdafb28",
     "sourceHashes": {
+      "assets/audio/enemy-shatter.wav": "fd7546c4a574117e6b15d0c5bab0cbed54f43146e72e2832958952e6e694fd83",
       "assets/audio/laser1.ogg": "0bf468769b48a834dc1c6e38e457f2c71159b010225a9aedf84316795e8cc3e5",
+      "assets/audio/laser1.wav": "0d18e2b3f7ded8011d18f51b19b4cbfb78ebdf8b0b8c82d978c7d34a929f457e",
       "assets/audio/laser5.ogg": "8d7b30b35112bedf4dd6f03796a5f33af85414b02947187e4063819fd80cf3e2",
+      "assets/audio/laser5.wav": "24b82ec0208e551bcccfe0b532cba74491e7588330e3352cafe6e4082071c2bb",
       "assets/audio/lightning-crack.wav": "fb998c5498ff41465e8565f1a852ad6d7906b7a8f2e606e13d3d335842877732",
       "assets/audio/lowDown.ogg": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+      "assets/audio/lowDown.wav": "9d07e828058b35e2b2f432632bb8084715cbe876f56e5dc263b7300f6e620c6f",
       "assets/audio/pepSound1.ogg": "f2f44effce087e47683f0fea05a71002bd8dca78fb10bf93d9f0b38d49f9590e",
+      "assets/audio/pepSound1.wav": "1ec6b81c08d307d6b5581f256f606685162e9c02aec17212ee3d60966655de9c",
       "assets/audio/phaserDown1.ogg": "d2d046cd0247045f8819905fc9719a7237ccbd590b3128ce58a61a81f50d208b",
+      "assets/audio/phaserDown1.wav": "fade71378fd40c5c82c315813fc6bde865aa0f76e2caeb2d510e5181dea95538",
+      "assets/audio/plasma-shot.wav": "172fa9d5452b3f332ec88fb8ddb37ab3a5b7b35bb8711789bba45ce018fd9de3",
       "assets/audio/powerUp3.ogg": "59e7591f7a068882767bc1fd61edabf479b78787466d3a70bc49dfa0533777d2",
+      "assets/audio/powerUp3.wav": "09b0e1b9cf06f26f813d4e54a0490f3191e31b942ed0e8b23d728d62efefdd5a",
       "assets/audio/powerUp8.ogg": "2a2adebaacbf07cc89c194e5d088c8e01cad8557800559d6cb5b6106b6739508",
+      "assets/audio/powerUp8.wav": "8d80c6c5376da1c094ed8ba466d8bbadc837ffaf91b354c83fde9335bfc2b87d",
       "assets/audio/relic-run.mp3": "559ad4eb2f936b7a3db0513aabf45926c842253a5721d23b3202a7a56a6b19da",
       "assets/audio/spaceTrash1.ogg": "8f702781627c95cf9f91724dab3bcdb46bb87cc0ccf2a350748798dba6bc82aa",
+      "assets/audio/spaceTrash1.wav": "6c6f608e9cac14815390e105ff201015c5582a7dc6bc07df57322f60d39ac730",
       "assets/audio/spaceTrash4.ogg": "d0c659b2c8108a7bccfeac94dbac6b770f89e4b71c0b4c6c3024941287094f34",
+      "assets/audio/spaceTrash4.wav": "783166d498a3c498fdc741620cb3b80768987457adbddbad1cd1a16930f6af97",
       "assets/audio/threeTone1.ogg": "bdf21eb12e65507f091d074886fdac820e1ccae51d060caa168e5567acadb84b",
+      "assets/audio/threeTone1.wav": "17095c87c135b7c2c893502d5a95f58008341ec8d0e0eddf06157ca9460b13ff",
       "assets/audio/zap1.ogg": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
+      "assets/audio/zap1.wav": "71c27b1cc22aa73fa13d05501ec3e28263b452ce91efe4a9987e5aba83611c8d",
       "assets/audio/zap2.ogg": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
-      "assets/CREDITS.md": "1197971da325e1c3d29d7350d599d3642790944ad0e7f23ca2536d4f8cdeb509",
+      "assets/audio/zap2.wav": "6e2fc532cfd47ff39e0e8bdaab518685435e3c46d0a3eb260df6b47ea420b679",
+      "assets/CREDITS.md": "04c947d87ab163b922c84976a92abc87ad5dfdaeba8f36adf8e21ca99473cf26",
       "assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2": "de421b3da7b20e045f0712ee838f30c225f4610b348efb37e2b31baa98860cbf",
       "assets/licenses/fusion-pixel/LICENSES/ark-pixel/OFL.txt": "3ab41567e68e3988ba1ef16dd2644eca95ca5648ea12e7d46e6287fc0bbe5aee",
       "assets/licenses/fusion-pixel/LICENSES/cubic-11/OFL.txt": "2b6e5938e5cffa0b9e183bd05f8c363e174e7ebed1a0556e2855fd1707fa2188",
       "assets/licenses/fusion-pixel/LICENSES/galmuri/LICENSE.txt": "86a3ee9495f942f0243f18c103da9faca27adb88142613edb8bb852e56c892c1",
       "assets/licenses/fusion-pixel/OFL.txt": "bc518cf64b8032c07690f33cc270c35c179255a6ac8efa7c165ebae7e8f76a63",
+      "assets/licenses/generated-sfx.txt": "c71e8012302b0cb0841241ed3fce2bd0a43a1834ee61ba2a2748bb1996c2f87b",
       "assets/licenses/jerimee-thunder.txt": "7a8a4d86647e6c5e2e1a3f2fb32e9cc363fa44a008aad6750b6644b28afd33b1",
       "assets/licenses/kenney-digital-audio.txt": "654d24e000d1c3b2a1d2264151f49e273e8a26d24e26e9bffc2aeb48cea93815",
       "assets/licenses/kenney-tiny-dungeon.txt": "9f574a2f1f636a3db8a0665ba90212f34e2b5e61ecb533d77c05237766374111",
       "assets/licenses/opengameart-cc0.txt": "f3ca365b73f1ec72746f68b414e62338972e692b7efc67c5d99cab3741f68865",
-      "assets/manifest.json": "6aef861ffba76fd26992cc6dfd08b7f418f8b070e826d270d894fbca1877074a",
+      "assets/manifest.json": "633b652af9507e31952c87ab3138ab20b56786c7b9e120bbbaa4b16dbebf2030",
       "assets/sprites/dungeon.png": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f",
       "assets/sprites/explosion-01.png": "ff9cc38fdba93d5af30a52562dba3c8a177449bee31e243f000e9cfe45dcb355",
       "assets/sprites/explosion-02.png": "5e36d46e3a7dddb1c46bcfec62c125cde4e253e18e3452dcf560b70a424ca976",
@@ -39,35 +54,35 @@
       "assets/sprites/explosion-05.png": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
       "css/pixel.css": "7192f8e39cb1b698666f8b94227f661cb55de26ed872d36588a4d0b35b5a4383",
       "css/style.css": "8e40de08e4f6605cd57ce4a2688d695992fe4488de5b1c4cee0fbf484bc1cbcc",
-      "index.html": "bf4fff27b2a0eefc5b0b35ae731aee5d27ae427fe7fd3175aff8e02a1ab85f1f",
-      "js/audio.js": "d58425893d5cfd1c90e7108455f6c668b6f277bd591b9b493dfcc28516eb0a68",
-      "js/enemies.js": "e7dae2b2714f8c94c06c8e3c82b7924a51eb7dd0c2f6369efad6923eb206397b",
-      "js/game.js": "11c9603cfb92742611058cd84e30019fd15568145524ef54b2aad7974da1f6f2",
+      "index.html": "ad7a542148d7fde5ccf714633ebe68ed4100afca4bdf260f911ecfe785b7516d",
+      "js/audio.js": "bc14d985911212da87fb4008cea26a31049919b3eec9309a57f2839b97928f1f",
+      "js/enemies.js": "42a1d21d3e1180ccd40e0a37536d6edbfca294b9b519ede1be66843b1e8ce9f1",
+      "js/game.js": "c27c19f82a52ce4d979ea42b8929dc81985e9f79130ff3809894ee978d844848",
       "js/input.js": "54ba1bc7075cca064011978bc12359ba4bea858ae9fcb2db0c5fe80d3ebf27cd",
-      "js/pixel-art.js": "6772312e16659d5f1e70302df0a3eedd0ab6c2a54ef83fb5e967d5712a829009",
+      "js/pixel-art.js": "2733bd90cdda98e1a3588d4e27e767ea52f3e2929c4409ba8abcd88620fbdf3c",
       "js/player.js": "a37b04713d925b9de0da98586ab3296c92343d26999610ddd118c549326ecc0b",
       "js/upgrades.js": "5500c6799fdbd3336a2bf19b5566a8a8f34c008606d75f857649bc36667d150d",
-      "js/weapons.js": "971c8ded2d3fc8c035e47ffe6a901c7099475ff10acace1a6a4df39a984376b1",
+      "js/weapons.js": "b2e24521ccd7d78e3e3f7177630b9441063fe8fb87d94938b24a2d61ced27733",
       "package.json": "8301e0dca88e0582a63c143e143e97071c7103714941d8fb3ba94f7b4d4d5f1f",
-      "tests/build-report.cjs": "5024f828b9aad3267d5560c24bc2964dfa8ca3c1d855516c847a458abdef2efa",
+      "tests/build-report.cjs": "a4917bfb6a2ecb46e8d86b2827068ae67ee5e6362a29c34ede841a8aeab77452",
       "tests/checks.js": "472d4fb513362b02d1ef564e7589fa16be12dab587584fa34b99f2edcc12f87f",
       "tests/diagnostics.js": "28a19dff8e60c385d5e9bcbe48a3a243130009852dedf72e0d4278f9fc36fe0b",
-      "tests/experience-checks.js": "d278fb2bd93d55a96d5c7357ed1fefa48658f943aa626839b19758a63571d496",
+      "tests/experience-checks.js": "3a3be4a799db78775577e8eabba306a9bf0386588dcd4f42db4b5a8b7de85c19",
       "tests/growth.js": "93bd2984bff01eaa2da0de3ef0f15de5aaec3595b0b13f65b0000d8214fa5f25",
       "tests/integrity.cjs": "36c98df866fe97f267e22cc5d0f9bdf4d166c368ed05f17b7fe787c556d1968b",
       "tests/measurements.cjs": "2e8edb6f193b1dfa7e78880346957c59e4662404dd689423ea022726e300499a",
-      "tests/pixel-checks.js": "5c8c6d7a11740e50ab346167d6e330a36f301c4921e5ae64491c44dfad72a658",
+      "tests/pixel-checks.js": "8cc62f89e444acbaca3a75f1cb1b55ef097fdeeeaadbe082c7561d6452bc7afa",
       "tests/regression-probes.js": "fec643abdcf384dc227956a9ebd9fa40cc2b1120fe27916312196592d512abde",
       "tests/scenarios.js": "fd266deed268753f3ca719f00459b40fe9fb317de869b6632fa4fd5a5eb63eb3",
-      "tests/verify.cjs": "93ef9bbf8a3c822f86e17ba472f4bc2ff5b5b26e3af15f3adab89a0447a50d96"
+      "tests/verify.cjs": "567ae9af67623ad1d49572cfd395793e3d2048529eba9ef0b36556ea7dcb8450"
     },
-    "command": "node tests/verify.cjs --growth",
+    "command": "node tests/verify.cjs --growth --no-ogg",
     "conditions": "10s; cold start; dt=1/fps; radius46 immortal stationary boss target; attackDamage1,area1,crit0,CDR0; evolved keeps level5 as selectUpgrade; seed12345; Date.now advanced by dt; dense 24 radius13 targets in 6x4 grid x60..210 y-45..45; no AI or displacement; moving target angular speed0.7 rad/s",
     "notes": "baseCommit is the parent commit before local edits; sourceHashes identify the tested tree. Game-displayed seed is not a gameplay replay seed."
   },
   "verification": {
     "status": "PASSED",
-    "totalAssertions": 805,
+    "totalAssertions": 830,
     "failures": [],
     "integrity": [
       {
@@ -108,7 +123,7 @@
       },
       {
         "passed": true,
-        "name": "13 local sound samples decode",
+        "name": "15 PCM sound samples decode",
         "detail": []
       },
       {
@@ -135,8 +150,8 @@
       },
       {
         "passed": true,
-        "name": "BGM starts after unlock at reduced volume",
-        "detail": 0.04
+        "name": "BGM starts after unlock through mobile-compatible gain",
+        "detail": 0.03999999910593033
       },
       {
         "passed": true,
@@ -235,9 +250,9 @@
         "name": "real weapon attack audio: plasma_cannon/base",
         "detail": [
           {
-            "name": "spaceTrash1",
-            "volume": 0.24,
-            "rate": 0.9,
+            "name": "plasma-shot",
+            "volume": 0.25,
+            "rate": 1,
             "cooldown": 100,
             "group": "weapon:plasma_cannon",
             "importance": 50
@@ -371,9 +386,9 @@
         "name": "real weapon attack audio: plasma_cannon/evolved",
         "detail": [
           {
-            "name": "spaceTrash1",
-            "volume": 0.24,
-            "rate": 0.765,
+            "name": "plasma-shot",
+            "volume": 0.25,
+            "rate": 0.85,
             "cooldown": 100,
             "group": "weapon:plasma_cannon",
             "importance": 55
@@ -439,7 +454,7 @@
           "laser1",
           "lightning-crack",
           "zap2",
-          "spaceTrash1",
+          "plasma-shot",
           "phaserDown1",
           "laser5"
         ]
@@ -524,7 +539,7 @@
         "passed": true,
         "name": "six-weapon mixed output has headroom in measured burst",
         "detail": {
-          "peak": 0.2546883821487427
+          "peak": 0.24288715422153473
         }
       },
       {
@@ -542,19 +557,51 @@
       {
         "passed": true,
         "name": "blade trails expire"
+      },
+      {
+        "passed": true,
+        "name": "one new death cue: normal"
+      },
+      {
+        "passed": true,
+        "name": "one new death cue: elite"
+      },
+      {
+        "passed": true,
+        "name": "one new death cue: boss"
+      },
+      {
+        "passed": true,
+        "name": "plasma muzzle, impact and moving orb generated by actual attack"
+      },
+      {
+        "passed": true,
+        "name": "plasma visual pools stay bounded"
+      },
+      {
+        "passed": true,
+        "name": "plasma visuals expire"
+      },
+      {
+        "passed": true,
+        "name": "temporary sample failure is recorded"
+      },
+      {
+        "passed": true,
+        "name": "later interaction retries failed PCM sample"
       }
     ],
     "audio": {
-      "seconds": 61.20540000000596,
-      "batches": 10586,
-      "created": 322,
+      "seconds": 61.2145,
+      "batches": 10407,
+      "created": 331,
       "active": 0,
       "peak": 4,
-      "disconnected": 322
+      "disconnected": 331
     },
     "realtime": {
-      "frames": 722,
-      "elapsed": 2.9989999999880714,
+      "frames": 721,
+      "elapsed": 3.002300000005962,
       "finite": true,
       "soundState": "running"
     },
@@ -565,9 +612,9 @@
           1728,
           896
         ],
-        "meanMs": 2.7833055555240978,
+        "meanMs": 2.7757777777479755,
         "p95Ms": 3.9000000059604645,
-        "maxMs": 55.5,
+        "maxMs": 44.599999994039536,
         "maxShock": 35,
         "maxParticles": 250,
         "damageTexts": 25
@@ -578,9 +625,9 @@
           390,
           844
         ],
-        "meanMs": 2.597333333351546,
-        "p95Ms": 3.2000000178813934,
-        "maxMs": 81,
+        "meanMs": 2.541055555558867,
+        "p95Ms": 3.2999999821186066,
+        "maxMs": 34.30000001192093,
         "maxShock": 20,
         "maxParticles": 120,
         "damageTexts": 25

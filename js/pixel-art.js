@@ -124,9 +124,37 @@
       for(let i=0;i<count;i++){const a=w.angle+i*Math.PI*2/count;tile(ctx,6,8,p.x+Math.cos(a)*radius,p.y+Math.sin(a)*radius,w.isEvolved?26:20);}
     }
     if(w.id==='plasma_cannon')for(const b of w.projectiles) {
-      const length=b.isEvolved?45:24;
-      line(ctx,b.x-Math.cos(b.angle)*length,b.y-Math.sin(b.angle)*length,b.x,b.y,b.isEvolved?'#95dc8b':'#ecbb72',b.isEvolved?8:5);
-      ctx.fillStyle='#fff3ce';ctx.fillRect(snap(b.x)-4,snap(b.y)-4,8,8);
+      const r=Math.max(6,b.radius),speed=Math.hypot(b.vx,b.vy);
+      const length=Math.min(b.isEvolved?64:42,(b.age||0)*speed);
+      const shell=b.isEvolved?'#b899ed':'#69cce8',rim=b.isEvolved?'#745da9':'#35798e';
+      ctx.save();
+      for(let i=5;i>=1;i--){
+        const t=i/5,x=b.x-Math.cos(b.angle)*length*t,y=b.y-Math.sin(b.angle)*length*t;
+        ctx.globalAlpha=.65*(1-t*.7);const size=Math.max(2,Math.round(r*(1-t*.65)));
+        ctx.fillStyle=shell;ctx.fillRect(snap(x)-size/2,snap(y)-size/2,size,size);
+      }
+      ctx.globalAlpha=1;
+      ring(ctx,b.x,b.y,r,rim,3);
+      ctx.fillStyle=shell;ctx.fillRect(snap(b.x-r*.65),snap(b.y-r*.65),r*1.3,r*1.3);
+      ctx.fillStyle='#e1fbff';ctx.fillRect(snap(b.x-r*.35),snap(b.y-r*.35),r*.7,r*.7);
+      const spin=(b.age||0)*12;
+      for(let i=0;i<3;i++){const a=spin+i*Math.PI*2/3;ctx.fillStyle='#c6f8ff';ctx.fillRect(snap(b.x+Math.cos(a)*r),snap(b.y+Math.sin(a)*r),3,3);}
+      ctx.restore();
+    }
+    if(w.id==='plasma_cannon'){
+      for(const flash of w.muzzleFlashes){
+        ctx.save();ctx.globalAlpha=flash.life/flash.maxLife;
+        const x=flash.x+Math.cos(flash.angle)*20,y=flash.y+Math.sin(flash.angle)*20;
+        ring(ctx,x,y,8+(1-flash.life/flash.maxLife)*12,'#b6f1ff',3);
+        line(ctx,x-5,y,x+5,y,'#ffffff',3);ctx.restore();
+      }
+      for(const hit of w.impacts){
+        const t=1-hit.life/hit.maxLife;ctx.save();ctx.globalAlpha=1-t;
+        const r=(hit.isEvolved?30:20)*t;
+        ring(ctx,hit.x,hit.y,r,hit.isEvolved?'#c5a5ff':'#83e9ff',3);
+        for(let i=0;i<4;i++){const a=i*Math.PI/2+.78;line(ctx,hit.x+Math.cos(a)*r,hit.y+Math.sin(a)*r,hit.x+Math.cos(a)*(r+7),hit.y+Math.sin(a)*(r+7),'#e1fbff',2);}
+        ctx.restore();
+      }
     }
     if(w.id==='black_hole')for(const h of w.holes) {
       ctx.save();ctx.globalAlpha=.9;ring(ctx,h.x,h.y,h.radius*.72,'#8b70b5',3);

@@ -608,6 +608,7 @@ class Game {
       this.pauseReasons.delete('system_blur');
     }
     if (this.pauseReasons.size > 0 || this.state === 'playing') return;
+    window.soundSystem?.unlock();
     const modalPause = document.getElementById('modal-pause');
     if (modalPause) modalPause.classList.remove('active');
     const modalBuildDetail = document.getElementById('modal-build-detail');

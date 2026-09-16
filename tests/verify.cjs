@@ -125,6 +125,17 @@ async function startBrowser() {
   await cdp('Page.addScriptToEvaluateOnNewDocument', {
     source: 'window.auditOriginalRAF=window.requestAnimationFrame.bind(window);window.requestAnimationFrame=()=>0;'
   });
+  if(process.argv.includes('--no-ogg')){
+    report.noOgg=true;
+    await cdp('Page.addScriptToEvaluateOnNewDocument',{source:`
+      window.auditRejectedOgg=0;
+      const originalDecode=AudioContext.prototype.decodeAudioData;
+      AudioContext.prototype.decodeAudioData=function(data,...args){
+        const bytes=new Uint8Array(data,0,Math.min(4,data.byteLength));
+        if(String.fromCharCode(...bytes)==='OggS'){window.auditRejectedOgg++;return Promise.reject(new DOMException('OGG unsupported','EncodingError'));}
+        return originalDecode.call(this,data,...args);
+      };`});
+  }
   await cdp('Page.navigate', { url: 'http://127.0.0.1:' + server.address().port + '/' });
 }
 async function ev(expression) {
@@ -147,6 +158,7 @@ async function main() {
   check(report.browser.initialState === 'ready', 'initial state ready');
   for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
   await ev('auditSaved.sound.ready');
+  if(report.noOgg)check(await ev('auditRejectedOgg===0&&auditSaved.sound.failed.length===0&&auditSaved.sound.buffers.size===15'),'all SFX decode with OGG support disabled');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
   if (process.env.VERIFY_FAULT === 'case') cases(await ev('[(()=>{try{throw Error("VERIFY_CASE_SENTINEL")}catch(e){return {name:"injected",error:e.message}}})()]'), 'injected');
   const core = await ev('regressionChecks()');
@@ -159,6 +171,7 @@ async function main() {
   for(const row of experience)check(row.passed,'experience: '+row.name,row.detail);
   const bladeFrames=await ev('window.bladePreview');
   for(let i=0;i<bladeFrames.length;i++)fs.writeFileSync(path.join(out,`blade-trail-${i}.png`),Buffer.from(bladeFrames[i].split(',')[1],'base64'));
+  fs.writeFileSync(path.join(out,'plasma-preview.png'),Buffer.from((await ev('window.plasmaPreview')).split(',')[1],'base64'));
   if(process.argv.includes('--preview')) {
     const layouts=[];
     for(const [width,height] of [[390,844],[960,640],[844,390],[320,568]]) {
@@ -227,6 +240,10 @@ async function main() {
   check(await ev("document.querySelector('#btn-mute').textContent==='OFF' && document.querySelector('#btn-mute').getAttribute('aria-pressed')==='true'"), 'pixel mute button label and accessible state');
   await tap('#btn-pause', "game.state==='paused'");
   await tap('#btn-resume', "game.state==='playing'");
+  await ev("(async()=>{soundSystem.isMuted=false;game.openPauseModal();await soundSystem.ctx.suspend();soundSystem.hasUnlocked=false;})()");
+  await tap('#btn-resume', "game.state==='playing'&&soundSystem.ctx.state==='running'");
+  const resumedAttack=await cdp('Runtime.evaluate',{expression:"(()=>{const w=new WeaponRegistry.plasma_cannon();w.level=1;soundSystem.lastSoundTimes['weapon:plasma_cannon']=-Infinity;w.fire(game.player,[],game);return [...soundSystem.voices].some(v=>v.group==='weapon:plasma_cannon'&&v.node.buffer===soundSystem.buffers.get('plasma-shot'));})()",returnByValue:true,userGesture:false});
+  check(resumedAttack.result.value===true,'attack SFX play after trusted touch resumes suspended audio');
   await tap('#btn-toggle-build', "game.pauseReasons.has('build_detail')");
   await tap('#btn-close-build-detail', "game.state==='playing'");
   await tap('#btn-toggle-build', "game.pauseReasons.has('build_detail')");

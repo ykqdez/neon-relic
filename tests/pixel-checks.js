@@ -31,7 +31,7 @@ window.pixelChecks = async () => {
   await PixelArt.ready;await auditSaved.sound.ready;await document.fonts.ready;
   check(PixelArt.failed.length===0 && Object.values(PixelArt.images).every(i=>i.naturalWidth>0),'all six sprite images decode',PixelArt.failed);
   check(document.fonts.check('12px "Relic Pixel"'),'Chinese pixel font loaded');
-  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===13,'13 local sound samples decode',auditSaved.sound.failed);
+  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===15,'15 PCM sound samples decode',auditSaved.sound.failed);
   const g=resetAudit();const before=JSON.stringify({hp:g.player.hp,stats:g.stats,weapons:Object.values(g.weapons).map(w=>w.damageDealt)});
   let randomCalls=0;const original=Math.random;Math.random=()=>{randomCalls++;return .5;};
   try{for(let i=0;i<10;i++)g.render();}finally{Math.random=original;}
@@ -43,7 +43,7 @@ window.pixelChecks = async () => {
   check(new Set(hpColors).size===3,'health bar retains healthy / hurt / danger colors',hpColors);
   const sound=auditSaved.sound;await sound.ctx.resume();sound.hasUnlocked=true;sound.isMuted=false;
   sound.setGameState('playing');await new Promise(r=>setTimeout(r,700));
-  check(!sound.music.paused && sound.music.loop && sound.music.volume<=.04,'BGM starts after unlock at reduced volume',sound.music.volume);
+  check(!sound.music.paused && sound.music.loop && sound.musicGain.gain.value<=.04,'BGM starts after unlock through mobile-compatible gain',sound.musicGain.gain.value);
   window.soundSystem=sound;g.openPauseModal();check(sound.music.paused,'game pause suspends BGM immediately');
   g.resumeGame();g.openBuildDetailModal();check(sound.music.paused,'equipment drawer suspends BGM immediately');
   g.closeBuildDetailModal();await new Promise(r=>setTimeout(r,150));

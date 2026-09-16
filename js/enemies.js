@@ -74,7 +74,7 @@ class BaseEnemy {
     if (this.hp <= 0) {
       this.hp = 0;
       this.isDead = true;
-      if (window.soundSystem) window.soundSystem.playExplosion(this.isElite || this.isBoss);
+      if (window.soundSystem) window.soundSystem.playEnemyDeath(this.isElite, this.isBoss);
       pool.spawnSparks(this.x, this.y, this.color, this.isElite ? 18 : 8);
       return true;
     }

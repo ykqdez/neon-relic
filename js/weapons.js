@@ -370,14 +370,21 @@ class PlasmaCannon extends BaseWeapon {
     super('plasma_cannon', '等离子炮', '💥');
     this.baseCd = 1.7;
     this.projectiles = [];
+    this.muzzleFlashes = [];
+    this.impacts = [];
   }
 
   update(dt, player, enemies, pool) {
     if (this.level <= 0) return;
 
     // 更新飞行弹道
+    for(const list of [this.muzzleFlashes,this.impacts]) {
+      for(const effect of list)effect.life-=dt;
+      for(let i=list.length-1;i>=0;i--)if(list[i].life<=0)list.splice(i,1);
+    }
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
+      p.age=(p.age||0)+dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.life -= dt;
@@ -389,6 +396,8 @@ class PlasmaCannon extends BaseWeapon {
         if (d < e.radius + p.radius) {
           p.hitList.add(e);
           p.pierce--;
+          if(this.impacts.length>=24)this.impacts.shift();
+          this.impacts.push({x:p.x,y:p.y,life:.18,maxLife:.18,isEvolved:p.isEvolved});
 
           const hit = this.calcDamage(p.damage, player);
           const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
@@ -400,10 +409,10 @@ class PlasmaCannon extends BaseWeapon {
           e.applyKnockback(Math.cos(p.angle) * kb, Math.sin(p.angle) * kb);
 
           if (p.isEvolved) {
-            if (pool && pool.spawnShockwave) pool.spawnShockwave(e.x, e.y, 45, '#39ff14');
-            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#39ff14', 8);
+            if (pool && pool.spawnShockwave) pool.spawnShockwave(e.x, e.y, 45, '#c5a5ff');
+            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#bceeff', 8);
           } else {
-            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#39ff14', 6);
+            if (pool && pool.spawnSparks) pool.spawnSparks(p.x, p.y, '#83e9ff', 6);
           }
 
           if (p.pierce <= 0) {
@@ -446,6 +455,8 @@ class PlasmaCannon extends BaseWeapon {
       }
     }
 
+    if(this.muzzleFlashes.length>=6)this.muzzleFlashes.shift();
+    this.muzzleFlashes.push({x:player.x,y:player.y,angle:targetAngle,life:.12,maxLife:.12,isEvolved:this.isEvolved});
     if (this.isEvolved) {
       if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
       // 湮灭重炮：3 枚高密反物质能量弹，无限穿透，强击退 320，触敌生成冲击波

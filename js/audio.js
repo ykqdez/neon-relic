@@ -3,10 +3,11 @@ const WEAPON_ATTACK_SOUNDS = Object.freeze({
   pulse_blade: {sample:'laser1',volume:.19,rate:1.65,cooldown:70},
   arc_core: {sample:'lightning-crack',volume:.28,rate:1.1,cooldown:120},
   orbital_satellites: {sample:'zap2',volume:.14,rate:1.8,cooldown:140},
-  plasma_cannon: {sample:'spaceTrash1',volume:.24,rate:.9,cooldown:100},
+  plasma_cannon: {sample:'plasma-shot',volume:.25,rate:1,cooldown:100},
   black_hole: {sample:'phaserDown1',volume:.22,rate:.65,cooldown:400},
   prism_ray: {sample:'laser5',volume:.21,rate:.85,cooldown:160}
 });
+const SOUND_SAMPLE_NAMES=Object.freeze(['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack','plasma-shot','enemy-shatter']);
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -17,24 +18,30 @@ class SoundSystem {
     this.buffers = new Map();
     this.voices = new Set();
     this.failed = [];
+    this.loadErrors = {};
+    this.lastLoadAttempt = -Infinity;
     this.maxVoices = 20;
     this.music = new Audio('assets/audio/relic-run.mp3');
     this.music.loop = true;
     this.music.preload = 'none';
-    this.music.volume = 0.04;
+    this.music.volume = 1;
     this.musicPending = false;
     this.music.addEventListener('error', () => {
       if (!this.failed.includes('relic-run.mp3')) this.failed.push('relic-run.mp3');
     });
     this.initAudioContext();
     this.ready = this.loadSamples();
+    // Remain installed: iOS may interrupt the context again after switching apps.
+    for(const type of ['pointerdown','touchend','click','keydown']) {
+      document.addEventListener(type,event=>{if(event.isTrusted)this.unlock();},{capture:true,passive:true});
+    }
     document.addEventListener('visibilitychange', () => { if(document.hidden)this.music.pause(); });
     window.addEventListener('blur', () => this.music.pause());
   }
   initAudioContext() {
     const AudioCtx=window.AudioContext||window.webkitAudioContext;
     if(!AudioCtx)return;
-    this.ctx=new AudioCtx();
+    this.ctx=new AudioCtx({latencyHint:'interactive'});
     this.master=this.ctx.createGain();this.master.gain.value=.55;
     this.combatBus=this.ctx.createGain();this.criticalBus=this.ctx.createGain();
     this.compressor=this.ctx.createDynamicsCompressor();
@@ -42,28 +49,47 @@ class SoundSystem {
     this.compressor.attack.value=.003;this.compressor.release.value=.12;
     this.combatBus.connect(this.compressor);this.criticalBus.connect(this.compressor);
     this.compressor.connect(this.master);this.master.connect(this.ctx.destination);
+    // iOS can ignore HTMLMediaElement.volume. A Web Audio gain controls BGM on the same output session.
+    this.musicSource=this.ctx.createMediaElementSource(this.music);
+    this.musicGain=this.ctx.createGain();this.musicGain.gain.value=.04;
+    this.musicSource.connect(this.musicGain);this.musicGain.connect(this.ctx.destination);
+    this.ctx.addEventListener('statechange',()=>{if(this.ctx.state==='running'&&this.hasUnlocked)this.syncMusic();});
   }
   async loadSamples() {
     if(!this.ctx)return;
-    const names=['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack'];
-    await Promise.all(names.map(async name=>{
+    if(this.loadingSamples)return this.loadingSamples;
+    this.lastLoadAttempt=performance.now();
+    this.loadingSamples=Promise.all(SOUND_SAMPLE_NAMES.filter(name=>!this.buffers.has(name)).map(async name=>{
       try {
-        const response=await fetch(`assets/audio/${name}.${name==='lightning-crack'?'wav':'ogg'}`);
+        const response=await fetch(`assets/audio/${name}.wav`);
         if(!response.ok)throw Error('HTTP '+response.status);
         const buffer=await this.ctx.decodeAudioData(await response.arrayBuffer());this.buffers.set(name,buffer);
-      } catch { this.failed.push(name); }
-    }));
+        this.failed=this.failed.filter(item=>item!==name);delete this.loadErrors[name];
+      } catch(error) {if(!this.failed.includes(name))this.failed.push(name);this.loadErrors[name]=String(error);}
+    })).finally(()=>{this.loadingSamples=null;});
+    return this.loadingSamples;
   }
   get isMuted() { return this._isMuted; }
   set isMuted(value) {
     this._isMuted=!!value;
     if(this.master)this.master.gain.value=this._isMuted?0:.55;
+    if(this.musicGain)this.musicGain.gain.value=this._isMuted?0:.04;
     this.syncMusic();
   }
   unlock() {
-    if(!this.ctx)return;
-    if(this.ctx.state==='running'){this.hasUnlocked=true;this.syncMusic();return;}
-    this.ctx.resume().then(()=>{this.hasUnlocked=true;this.syncMusic();}).catch(()=>{});
+    if(!this.ctx||this.isMuted||document.hidden)return;
+    // Feature-detected; unsupported browsers keep their default session behavior.
+    try {if(navigator.audioSession)navigator.audioSession.type='playback';}catch{}
+    if(this.failed.some(name=>SOUND_SAMPLE_NAMES.includes(name))&&performance.now()-this.lastLoadAttempt>5000)this.ready=this.loadSamples();
+    const firstUnlock=!this.hasUnlocked;
+    this.hasUnlocked=true;
+    if(firstUnlock||this.ctx.state!=='running'){
+      // Submit the silent primer and resume while still inside the trusted gesture.
+      const primer=this.ctx.createBufferSource();primer.buffer=this.ctx.createBuffer(1,1,this.ctx.sampleRate);
+      primer.connect(this.master);primer.onended=()=>primer.disconnect();primer.start();
+      this.ctx.resume().then(()=>this.syncMusic()).catch(error=>{this.lastUnlockError=String(error);});
+    }
+    this.syncMusic();
   }
   toggleMute() { this.isMuted=!this.isMuted; if(!this.isMuted)this.unlock(); return this.isMuted; }
   setGameState(state) {
@@ -135,6 +161,10 @@ class SoundSystem {
   }
   playHit(isCrit=false) { this.playSample(isCrit?'zap2':'pepSound1',{volume:isCrit?.20:.12,rate:isCrit?1.3:1.6,cooldown:isCrit?25:35,group:'hit'}); }
   playExplosion(isLarge=false) { this.playSample(isLarge?'spaceTrash4':'spaceTrash1',{volume:isLarge?.32:.16,cooldown:isLarge?100:65,group:'explosion',priority:isLarge,importance:isLarge?70:25}); }
+  playEnemyDeath(elite=false,boss=false) {
+    this.playSample('enemy-shatter',{volume:boss?.28:elite?.18:.11,rate:boss?.65:elite?.85:1.12,
+      cooldown:boss?250:90,group:boss?'boss-death':'enemy-death',priority:boss,importance:boss?90:20});
+  }
   playGem(value=1) { this.playSample('pepSound1',{volume:.12,rate:value>=25?1.8:1.35,group:'gem',cooldown:65,importance:5}); }
   playHurt() { this.playSample('phaserDown1',{volume:.35,cooldown:100,priority:true}); }
   playBossAlert() { this.playSample('threeTone1',{volume:.5,rate:.7,cooldown:500,priority:true,importance:110}); }

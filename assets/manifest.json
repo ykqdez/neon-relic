@@ -2,9 +2,23 @@
   "downloaded": "2026-09-16",
   "files": [
     {
+      "path": "assets/audio/enemy-shatter.wav",
+      "bytes": 15920,
+      "sha256": "fd7546c4a574117e6b15d0c5bab0cbed54f43146e72e2832958952e6e694fd83",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/laser1.ogg",
       "bytes": 9315,
       "sha256": "0bf468769b48a834dc1c6e38e457f2c71159b010225a9aedf84316795e8cc3e5",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/laser1.wav",
+      "bytes": 97096,
+      "sha256": "0d18e2b3f7ded8011d18f51b19b4cbfb78ebdf8b0b8c82d978c7d34a929f457e",
       "source": "https://kenney.nl/assets/digital-audio",
       "license": "CC0-1.0"
     },
@@ -16,9 +30,30 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/laser5.wav",
+      "bytes": 89450,
+      "sha256": "24b82ec0208e551bcccfe0b532cba74491e7588330e3352cafe6e4082071c2bb",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/lightning-crack.wav",
+      "bytes": 75014,
+      "sha256": "fb998c5498ff41465e8565f1a852ad6d7906b7a8f2e606e13d3d335842877732",
+      "source": "https://opengameart.org/content/thunder",
+      "license": "CC-BY-3.0"
+    },
+    {
       "path": "assets/audio/lowDown.ogg",
       "bytes": 5956,
       "sha256": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/lowDown.wav",
+      "bytes": 69164,
+      "sha256": "9d07e828058b35e2b2f432632bb8084715cbe876f56e5dc263b7300f6e620c6f",
       "source": "https://kenney.nl/assets/digital-audio",
       "license": "CC0-1.0"
     },
@@ -30,10 +65,31 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/pepSound1.wav",
+      "bytes": 46124,
+      "sha256": "1ec6b81c08d307d6b5581f256f606685162e9c02aec17212ee3d60966655de9c",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/phaserDown1.ogg",
       "bytes": 7113,
       "sha256": "d2d046cd0247045f8819905fc9719a7237ccbd590b3128ce58a61a81f50d208b",
       "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/phaserDown1.wav",
+      "bytes": 41516,
+      "sha256": "fade71378fd40c5c82c315813fc6bde865aa0f76e2caeb2d510e5181dea95538",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/plasma-shot.wav",
+      "bytes": 28268,
+      "sha256": "172fa9d5452b3f332ec88fb8ddb37ab3a5b7b35bb8711789bba45ce018fd9de3",
+      "source": "tools/build_audio.py",
       "license": "CC0-1.0"
     },
     {
@@ -44,9 +100,23 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/powerUp3.wav",
+      "bytes": 101420,
+      "sha256": "09b0e1b9cf06f26f813d4e54a0490f3191e31b942ed0e8b23d728d62efefdd5a",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/powerUp8.ogg",
       "bytes": 6363,
       "sha256": "2a2adebaacbf07cc89c194e5d088c8e01cad8557800559d6cb5b6106b6739508",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/powerUp8.wav",
+      "bytes": 50732,
+      "sha256": "8d80c6c5376da1c094ed8ba466d8bbadc837ffaf91b354c83fde9335bfc2b87d",
       "source": "https://kenney.nl/assets/digital-audio",
       "license": "CC0-1.0"
     },
@@ -65,9 +135,23 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/spaceTrash1.wav",
+      "bytes": 128050,
+      "sha256": "6c6f608e9cac14815390e105ff201015c5582a7dc6bc07df57322f60d39ac730",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/spaceTrash4.ogg",
       "bytes": 12685,
       "sha256": "d0c659b2c8108a7bccfeac94dbac6b770f89e4b71c0b4c6c3024941287094f34",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/spaceTrash4.wav",
+      "bytes": 130338,
+      "sha256": "783166d498a3c498fdc741620cb3b80768987457adbddbad1cd1a16930f6af97",
       "source": "https://kenney.nl/assets/digital-audio",
       "license": "CC0-1.0"
     },
@@ -79,6 +163,13 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/threeTone1.wav",
+      "bytes": 72990,
+      "sha256": "17095c87c135b7c2c893502d5a95f58008341ec8d0e0eddf06157ca9460b13ff",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/zap1.ogg",
       "bytes": 8126,
       "sha256": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
@@ -86,9 +177,23 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/zap1.wav",
+      "bytes": 89900,
+      "sha256": "71c27b1cc22aa73fa13d05501ec3e28263b452ce91efe4a9987e5aba83611c8d",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/zap2.ogg",
       "bytes": 9819,
       "sha256": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
+      "source": "https://kenney.nl/assets/digital-audio",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/zap2.wav",
+      "bytes": 108332,
+      "sha256": "6e2fc532cfd47ff39e0e8bdaab518685435e3c46d0a3eb260df6b47ea420b679",
       "source": "https://kenney.nl/assets/digital-audio",
       "license": "CC0-1.0"
     },
@@ -140,13 +245,6 @@
       "sha256": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
       "source": "https://opengameart.org/content/16x16-explosion",
       "license": "CC0-1.0"
-    },
-    {
-      "path": "assets/audio/lightning-crack.wav",
-      "bytes": 75014,
-      "sha256": "fb998c5498ff41465e8565f1a852ad6d7906b7a8f2e606e13d3d335842877732",
-      "source": "https://opengameart.org/content/thunder",
-      "license": "CC-BY-3.0"
     }
   ]
 }
