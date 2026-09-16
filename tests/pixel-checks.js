@@ -43,7 +43,7 @@ window.pixelChecks = async () => {
   check(new Set(hpColors).size===3,'health bar retains healthy / hurt / danger colors',hpColors);
   const sound=auditSaved.sound;await sound.ctx.resume();sound.hasUnlocked=true;sound.isMuted=false;
   sound.setGameState('playing');await new Promise(r=>setTimeout(r,700));
-  check(!sound.music.paused && sound.music.loop && sound.music.volume<=.2,'BGM starts after unlock at low volume');
+  check(!sound.music.paused && sound.music.loop && sound.music.volume<=.04,'BGM starts after unlock at reduced volume',sound.music.volume);
   window.soundSystem=sound;g.openPauseModal();check(sound.music.paused,'game pause suspends BGM immediately');
   g.resumeGame();g.openBuildDetailModal();check(sound.music.paused,'equipment drawer suspends BGM immediately');
   g.closeBuildDetailModal();g.player.pendingUpgrades=1;g.openUpgradeModal();check(sound.music.paused,'upgrade suspends BGM immediately');
@@ -54,6 +54,32 @@ window.pixelChecks = async () => {
   for(let i=0;i<100;i++)sound.playSample('zap1',{cooldown:0,group:'budget-'+i});
   check(sound.voices.size<=sound.maxVoices,'sample voice budget',sound.voices.size);
   await new Promise(r=>setTimeout(r,1200));check(sound.voices.size===0,'sample voices release after playback',sound.voices.size);
+  const attackCalls=[],playSample=sound.playSample;
+  sound.playSample=function(name,options){if(options?.group?.startsWith('weapon:'))attackCalls.push({name,...options});return playSample.call(this,name,options);};
+  window.soundSystem=sound;
+  try {
+    for(const evolved of [false,true])for(const id of Object.keys(WeaponRegistry)) {
+      const w=new WeaponRegistry[id](),p=new Player(0,0),targets=[dummy(100,0)];
+      w.level=5;if(evolved)w.evolve();
+      const start=attackCalls.length;w.update(.016,p,targets,quietPool());
+      const calls=attackCalls.slice(start);
+      check(calls.length>0 && calls.every(c=>c.group==='weapon:'+id && sound.buffers.has(c.name)),`real weapon attack audio: ${id}/${evolved?'evolved':'base'}`,calls);
+      if(id!=='orbital_satellites')check(calls.length===1,`one launch sound per volley: ${id}/${evolved}`);
+      w.level=0;const inactive=attackCalls.length;w.update(.1,p,targets,quietPool());
+      check(attackCalls.length===inactive,`unequipped weapon silent: ${id}/${evolved}`);
+    }
+    const samples=Object.keys(WeaponRegistry).map(id=>attackCalls.find(c=>c.group==='weapon:'+id)?.name);
+    check(new Set(samples).size===6,'six distinct weapon attack samples',samples);
+    const activeGroups=new Set([...sound.voices].filter(v=>v.group.startsWith('weapon:')).map(v=>v.group));
+    check(activeGroups.size===6,'simultaneous weapons do not share a cooldown gate',[...activeGroups]);
+    for(let i=0;i<100;i++)for(const id of Object.keys(WeaponRegistry))sound.playWeaponAttack(id,true);
+    check([...sound.voices].filter(v=>v.group.startsWith('weapon:')).length<=12 && sound.voices.size<=20,'mixed weapon burst stays within voice budget',sound.voices.size);
+    sound.isMuted=true;const mutedCount=sound.voices.size;
+    for(const id of Object.keys(WeaponRegistry))sound.playWeaponAttack(id);
+    check(sound.voices.size===mutedCount,'mute suppresses all weapon attacks');
+  } finally {sound.playSample=playSample;window.soundSystem=null;sound.isMuted=true;}
+  await new Promise(r=>setTimeout(r,2500));
+  check(sound.voices.size===0,'all weapon sample nodes released',sound.voices.size);
   sound.isMuted=true;
   return rows;
 };

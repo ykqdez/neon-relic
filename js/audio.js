@@ -1,4 +1,12 @@
 /* CC0 sampled sound effects and chiptune music. Sources: assets/CREDITS.md. */
+const WEAPON_ATTACK_SOUNDS = Object.freeze({
+  pulse_blade: {sample:'laser1',volume:.19,rate:1.65,cooldown:70},
+  arc_core: {sample:'zap1',volume:.22,rate:1.1,cooldown:90},
+  orbital_satellites: {sample:'zap2',volume:.14,rate:1.8,cooldown:140},
+  plasma_cannon: {sample:'spaceTrash1',volume:.24,rate:.9,cooldown:100},
+  black_hole: {sample:'phaserDown1',volume:.22,rate:.65,cooldown:400},
+  prism_ray: {sample:'laser5',volume:.21,rate:.85,cooldown:160}
+});
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -13,7 +21,7 @@ class SoundSystem {
     this.music = new Audio('assets/audio/relic-run.mp3');
     this.music.loop = true;
     this.music.preload = 'none';
-    this.music.volume = 0.13;
+    this.music.volume = 0.04;
     this.musicPending = false;
     this.music.addEventListener('error', () => {
       if (!this.failed.includes('relic-run.mp3')) this.failed.push('relic-run.mp3');
@@ -77,6 +85,7 @@ class SoundSystem {
     const now=performance.now();
     if(now-(this.lastSoundTimes[group]??-Infinity)<cooldown)return;
     if(group==='hit' && [...this.voices].filter(v=>v.group==='hit').length>=4)return;
+    if(group.startsWith('weapon:') && [...this.voices].filter(v=>v.group===group).length>=2)return;
     if(this.voices.size>=this.maxVoices) {
       if(!priority)return;
       const oldest=[...this.voices].find(v=>!v.priority);if(!oldest)return;
@@ -91,9 +100,12 @@ class SoundSystem {
     node.onended=voice.release;
     node.start();
   }
-  playSlash() { this.playSample('laser1',{volume:.19,rate:1.35,group:'slash',cooldown:70}); }
-  playShoot(type='plasma') { this.playSample(type==='laser'?'laser5':'laser1',{volume:.22,group:'shoot',cooldown:65}); }
-  playArc() { this.playSample('zap1',{volume:.22,cooldown:75}); }
+  playWeaponAttack(id, evolved=false) {
+    const profile=WEAPON_ATTACK_SOUNDS[id];if(!profile)return;
+    // One sound per attack/contact, not per projectile or damage tick. Each weapon has its own gate.
+    this.playSample(profile.sample,{volume:profile.volume,rate:profile.rate*(evolved?.85:1),
+      cooldown:profile.cooldown,group:'weapon:'+id});
+  }
   playHit(isCrit=false) { this.playSample(isCrit?'zap2':'pepSound1',{volume:isCrit?.20:.12,rate:isCrit?1.3:1.6,cooldown:isCrit?25:35,group:'hit'}); }
   playExplosion(isLarge=false) { this.playSample(isLarge?'spaceTrash4':'spaceTrash1',{volume:isLarge?.32:.16,cooldown:isLarge?100:65,group:'explosion',priority:isLarge}); }
   playGem(value=1) { this.playSample('pepSound1',{volume:.12,rate:value>=25?1.8:1.35,group:'gem',cooldown:65}); }

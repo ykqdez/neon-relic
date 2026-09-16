@@ -83,7 +83,7 @@ class PulseBlade extends BaseWeapon {
       return;
     }
 
-    if (window.soundSystem) window.soundSystem.playSlash();
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
 
     targets.forEach((t, idx) => {
       const e = t.enemy;
@@ -193,7 +193,7 @@ class ArcCore extends BaseWeapon {
     }
 
     if (chainPoints.length > 1) {
-      if (window.soundSystem) window.soundSystem.playArc();
+      if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
       this.chains.push({
         points: chainPoints,
         life: 0.14,
@@ -210,7 +210,7 @@ class ArcCore extends BaseWeapon {
     const valid = getValidEnemies(enemies);
     if (valid.length === 0) return;
 
-    if (window.soundSystem) window.soundSystem.playExplosion(true);
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
 
     const strikes = Math.min(valid.length, 6);
     const shuffled = [...valid];
@@ -318,7 +318,7 @@ class OrbitalSatellites extends BaseWeapon {
             this.damageDealt += hit.damage;
             if (isDead) this.kills++;
 
-            if (window.soundSystem) window.soundSystem.playHit(hit.isCrit);
+            if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
             if (pool && pool.spawnSparks) pool.spawnSparks(ox, oy, hit.isCrit ? '#ffaa00' : '#00f0ff', 4);
           }
         }
@@ -335,6 +335,7 @@ class OrbitalSatellites extends BaseWeapon {
           const remaining = this.barrierCooldowns.get(e) || 0;
           if (remaining <= 1e-9) {
             this.barrierCooldowns.set(e, barrierInterval + (previousBarrierContacts.has(e) ? remaining : 0));
+            if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
             const hit = this.calcDamage(22, player);
             const isDead = e.takeDamage(hit.damage, hit.isCrit, pool);
             this.damageDealt += hit.damage;
@@ -444,7 +445,7 @@ class PlasmaCannon extends BaseWeapon {
     }
 
     if (this.isEvolved) {
-      if (window.soundSystem) window.soundSystem.playShoot('plasma');
+      if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
       // 湮灭重炮：3 枚高密反物质能量弹，无限穿透，强击退 320，触敌生成冲击波
       // 散角收束至 0.11，保证远距离 (300) 侧弹全量命中半径 46 的首领靶标
       const shotCount = 3;
@@ -478,7 +479,7 @@ class PlasmaCannon extends BaseWeapon {
     const pierce = 2 + (this.level - 1) * 2;
     const speed = 360;
 
-    if (window.soundSystem) window.soundSystem.playShoot('plasma');
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
 
     for (let i = 0; i < shotCount; i++) {
       const angle = targetAngle + (i - (shotCount - 1) / 2) * spread;
@@ -593,6 +594,7 @@ class BlackHoleGenerator extends BaseWeapon {
     const damage = this.isEvolved ? 18 : (8 + (this.level - 1) * 3);
     const pull = this.isEvolved ? 160 : 90;
 
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
     this.holes.push({
       x: spawnX,
       y: spawnY,
@@ -730,7 +732,7 @@ class PrismRay extends BaseWeapon {
     }
 
     if (this.isEvolved) {
-      if (window.soundSystem) window.soundSystem.playShoot('laser');
+      if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
       // 超维裂隙：3 道高能裂隙死光，持续 1.0s
       // 中央主光束锁定目标 (rotSpeed = 0)，左右两翼光束负责扇形扫场 (rotSpeed = ±1.3)
       const duration = 1.0;
@@ -775,7 +777,7 @@ class PrismRay extends BaseWeapon {
     const width = (16 + (this.level - 1) * 3) * player.areaBonus;
     const baseDamage = 14 + (this.level - 1) * 5; // 每 tick 伤害
 
-    if (window.soundSystem) window.soundSystem.playShoot('laser');
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
 
     const beamCount = this.level >= 4 ? 2 : 1;
     for (let i = 0; i < beamCount; i++) {

@@ -1,10 +1,10 @@
 # 当前战斗基准与设计决定
 
-生成时间：2026-09-15T23:44:13.588Z。运行 ID：`ad1cf29e-5089-4547-a5df-52e55cc4be09`。
+生成时间：2026-09-15T23:57:31.506Z。运行 ID：`7eeb423d-280e-4d54-bb77-744624520982`。
 
 环境：Node v24.19.0；Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0。
 
-本文件由 `node tests/build-report.cjs` 从同次运行结果生成；完整源码 SHA-256 与运行条件见 [CURRENT_BENCHMARK.json](CURRENT_BENCHMARK.json)。父提交为 `fe5777957adb570608b74e6b49e3f117fdbbe5d4`，测试包含其后的工作区修改。
+本文件由 `node tests/build-report.cjs` 从同次运行结果生成；完整源码 SHA-256 与运行条件见 [CURRENT_BENCHMARK.json](CURRENT_BENCHMARK.json)。父提交为 `08a76abe5046b40d57161801bb4770e930bfcf5d`，测试包含其后的工作区修改。
 
 ## 数据口径
 
