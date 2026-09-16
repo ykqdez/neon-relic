@@ -31,7 +31,7 @@ window.pixelChecks = async () => {
   await PixelArt.ready;await auditSaved.sound.ready;await document.fonts.ready;
   check(PixelArt.failed.length===0 && Object.values(PixelArt.images).every(i=>i.naturalWidth>0),'all six sprite images decode',PixelArt.failed);
   check(document.fonts.check('12px "Relic Pixel"'),'Chinese pixel font loaded');
-  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===12,'12 local sound samples decode',auditSaved.sound.failed);
+  check(auditSaved.sound.failed.length===0 && auditSaved.sound.buffers.size===13,'13 local sound samples decode',auditSaved.sound.failed);
   const g=resetAudit();const before=JSON.stringify({hp:g.player.hp,stats:g.stats,weapons:Object.values(g.weapons).map(w=>w.damageDealt)});
   let randomCalls=0;const original=Math.random;Math.random=()=>{randomCalls++;return .5;};
   try{for(let i=0;i<10;i++)g.render();}finally{Math.random=original;}
@@ -46,7 +46,8 @@ window.pixelChecks = async () => {
   check(!sound.music.paused && sound.music.loop && sound.music.volume<=.04,'BGM starts after unlock at reduced volume',sound.music.volume);
   window.soundSystem=sound;g.openPauseModal();check(sound.music.paused,'game pause suspends BGM immediately');
   g.resumeGame();g.openBuildDetailModal();check(sound.music.paused,'equipment drawer suspends BGM immediately');
-  g.closeBuildDetailModal();g.player.pendingUpgrades=1;g.openUpgradeModal();check(sound.music.paused,'upgrade suspends BGM immediately');
+  g.closeBuildDetailModal();await new Promise(r=>setTimeout(r,150));
+  g.player.pendingUpgrades=1;g.openUpgradeModal();check(!sound.music.paused,'upgrade keeps BGM playing');
   g.gameOver(false);check(sound.music.paused,'game over suspends BGM immediately');
   window.soundSystem=null;
   sound.setGameState('playing');sound.isMuted=true;await new Promise(r=>setTimeout(r,100));check(sound.music.paused,'mute suspends BGM');

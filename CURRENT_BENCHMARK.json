@@ -1,13 +1,14 @@
 {
   "metadata": {
-    "runId": "7eeb423d-280e-4d54-bb77-744624520982",
-    "timestamp": "2026-09-15T23:57:31.506Z",
+    "runId": "1e2702ac-1fc9-4975-98bf-03434179d8ee",
+    "timestamp": "2026-09-16T00:25:45.895Z",
     "node": "v24.19.0",
     "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
-    "baseCommit": "08a76abe5046b40d57161801bb4770e930bfcf5d",
+    "baseCommit": "33c6d54128f726d0174735cd62fa999dcd88697b",
     "sourceHashes": {
       "assets/audio/laser1.ogg": "0bf468769b48a834dc1c6e38e457f2c71159b010225a9aedf84316795e8cc3e5",
       "assets/audio/laser5.ogg": "8d7b30b35112bedf4dd6f03796a5f33af85414b02947187e4063819fd80cf3e2",
+      "assets/audio/lightning-crack.wav": "fb998c5498ff41465e8565f1a852ad6d7906b7a8f2e606e13d3d335842877732",
       "assets/audio/lowDown.ogg": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
       "assets/audio/pepSound1.ogg": "f2f44effce087e47683f0fea05a71002bd8dca78fb10bf93d9f0b38d49f9590e",
       "assets/audio/phaserDown1.ogg": "d2d046cd0247045f8819905fc9719a7237ccbd590b3128ce58a61a81f50d208b",
@@ -19,16 +20,17 @@
       "assets/audio/threeTone1.ogg": "bdf21eb12e65507f091d074886fdac820e1ccae51d060caa168e5567acadb84b",
       "assets/audio/zap1.ogg": "4e4bf11c671a4be0723022a7177f8e122329fa32a0c59555581f4193ed111585",
       "assets/audio/zap2.ogg": "169cf3876647bae0a28a7eb3fc5b5bd573ab9efae7b56b64a8700ff9bafb3494",
-      "assets/CREDITS.md": "27897554e203931126368e900fd7e873ded6c5e0f4d442d8a5e80c7336135a7f",
+      "assets/CREDITS.md": "1197971da325e1c3d29d7350d599d3642790944ad0e7f23ca2536d4f8cdeb509",
       "assets/fonts/fusion-pixel-12px-proportional-zh_hans.otf.woff2": "de421b3da7b20e045f0712ee838f30c225f4610b348efb37e2b31baa98860cbf",
       "assets/licenses/fusion-pixel/LICENSES/ark-pixel/OFL.txt": "3ab41567e68e3988ba1ef16dd2644eca95ca5648ea12e7d46e6287fc0bbe5aee",
       "assets/licenses/fusion-pixel/LICENSES/cubic-11/OFL.txt": "2b6e5938e5cffa0b9e183bd05f8c363e174e7ebed1a0556e2855fd1707fa2188",
       "assets/licenses/fusion-pixel/LICENSES/galmuri/LICENSE.txt": "86a3ee9495f942f0243f18c103da9faca27adb88142613edb8bb852e56c892c1",
       "assets/licenses/fusion-pixel/OFL.txt": "bc518cf64b8032c07690f33cc270c35c179255a6ac8efa7c165ebae7e8f76a63",
+      "assets/licenses/jerimee-thunder.txt": "7a8a4d86647e6c5e2e1a3f2fb32e9cc363fa44a008aad6750b6644b28afd33b1",
       "assets/licenses/kenney-digital-audio.txt": "654d24e000d1c3b2a1d2264151f49e273e8a26d24e26e9bffc2aeb48cea93815",
       "assets/licenses/kenney-tiny-dungeon.txt": "9f574a2f1f636a3db8a0665ba90212f34e2b5e61ecb533d77c05237766374111",
       "assets/licenses/opengameart-cc0.txt": "f3ca365b73f1ec72746f68b414e62338972e692b7efc67c5d99cab3741f68865",
-      "assets/manifest.json": "7d3dc631ceff9dc10c5f0b6ba53d2ea83cfeb7b2cf9a09d7dac087eb52d26d7d",
+      "assets/manifest.json": "6aef861ffba76fd26992cc6dfd08b7f418f8b070e826d270d894fbca1877074a",
       "assets/sprites/dungeon.png": "d24e60a41e4ac7a745c0304dfde121143688557f40215f23221c29cfe683825f",
       "assets/sprites/explosion-01.png": "ff9cc38fdba93d5af30a52562dba3c8a177449bee31e243f000e9cfe45dcb355",
       "assets/sprites/explosion-02.png": "5e36d46e3a7dddb1c46bcfec62c125cde4e253e18e3452dcf560b70a424ca976",
@@ -38,25 +40,26 @@
       "css/pixel.css": "7192f8e39cb1b698666f8b94227f661cb55de26ed872d36588a4d0b35b5a4383",
       "css/style.css": "8e40de08e4f6605cd57ce4a2688d695992fe4488de5b1c4cee0fbf484bc1cbcc",
       "index.html": "bf4fff27b2a0eefc5b0b35ae731aee5d27ae427fe7fd3175aff8e02a1ab85f1f",
-      "js/audio.js": "7642c36c2cc79fbe3f5bfb4568b1c4e5d375af6d4a710dd179bfd21d8291f5bc",
+      "js/audio.js": "d58425893d5cfd1c90e7108455f6c668b6f277bd591b9b493dfcc28516eb0a68",
       "js/enemies.js": "e7dae2b2714f8c94c06c8e3c82b7924a51eb7dd0c2f6369efad6923eb206397b",
-      "js/game.js": "8caf9be5873f9c6c05b08afdd215cc7e732599a2b5301207a1902c873b2629c7",
+      "js/game.js": "11c9603cfb92742611058cd84e30019fd15568145524ef54b2aad7974da1f6f2",
       "js/input.js": "54ba1bc7075cca064011978bc12359ba4bea858ae9fcb2db0c5fe80d3ebf27cd",
-      "js/pixel-art.js": "353e727caab3f82c70112374d0b9af7500087e2c28fb5e565a3f9f333fb1be53",
-      "js/player.js": "3f2c6af35e66eb27511a0b8c377405ec0569e35373bd0b4f8cddc3ef789d2976",
+      "js/pixel-art.js": "6772312e16659d5f1e70302df0a3eedd0ab6c2a54ef83fb5e967d5712a829009",
+      "js/player.js": "a37b04713d925b9de0da98586ab3296c92343d26999610ddd118c549326ecc0b",
       "js/upgrades.js": "5500c6799fdbd3336a2bf19b5566a8a8f34c008606d75f857649bc36667d150d",
-      "js/weapons.js": "8a8d212ccbe8428910f6409e899cdd8effda291a5dec819f07aaf86b155d83aa",
+      "js/weapons.js": "971c8ded2d3fc8c035e47ffe6a901c7099475ff10acace1a6a4df39a984376b1",
       "package.json": "8301e0dca88e0582a63c143e143e97071c7103714941d8fb3ba94f7b4d4d5f1f",
-      "tests/build-report.cjs": "af2fb9aefa5f3f531acadfbfeca9db40a23bef7d5eefe6f9e2d5f457f223d08c",
+      "tests/build-report.cjs": "5024f828b9aad3267d5560c24bc2964dfa8ca3c1d855516c847a458abdef2efa",
       "tests/checks.js": "472d4fb513362b02d1ef564e7589fa16be12dab587584fa34b99f2edcc12f87f",
       "tests/diagnostics.js": "28a19dff8e60c385d5e9bcbe48a3a243130009852dedf72e0d4278f9fc36fe0b",
+      "tests/experience-checks.js": "d278fb2bd93d55a96d5c7357ed1fefa48658f943aa626839b19758a63571d496",
       "tests/growth.js": "93bd2984bff01eaa2da0de3ef0f15de5aaec3595b0b13f65b0000d8214fa5f25",
       "tests/integrity.cjs": "36c98df866fe97f267e22cc5d0f9bdf4d166c368ed05f17b7fe787c556d1968b",
       "tests/measurements.cjs": "2e8edb6f193b1dfa7e78880346957c59e4662404dd689423ea022726e300499a",
-      "tests/pixel-checks.js": "743e5c934494e677068f78d435b337872e1e770daba1e6724896be2a7004b0f5",
+      "tests/pixel-checks.js": "5c8c6d7a11740e50ab346167d6e330a36f301c4921e5ae64491c44dfad72a658",
       "tests/regression-probes.js": "fec643abdcf384dc227956a9ebd9fa40cc2b1120fe27916312196592d512abde",
       "tests/scenarios.js": "fd266deed268753f3ca719f00459b40fe9fb317de869b6632fa4fd5a5eb63eb3",
-      "tests/verify.cjs": "e73a8089cef223898be01d12ec4664d26d8f785ec2eb0ebe58bfe582bb57d354"
+      "tests/verify.cjs": "93ef9bbf8a3c822f86e17ba472f4bc2ff5b5b26e3af15f3adab89a0447a50d96"
     },
     "command": "node tests/verify.cjs --growth",
     "conditions": "10s; cold start; dt=1/fps; radius46 immortal stationary boss target; attackDamage1,area1,crit0,CDR0; evolved keeps level5 as selectUpgrade; seed12345; Date.now advanced by dt; dense 24 radius13 targets in 6x4 grid x60..210 y-45..45; no AI or displacement; moving target angular speed0.7 rad/s",
@@ -64,7 +67,7 @@
   },
   "verification": {
     "status": "PASSED",
-    "totalAssertions": 786,
+    "totalAssertions": 805,
     "failures": [],
     "integrity": [
       {
@@ -105,7 +108,7 @@
       },
       {
         "passed": true,
-        "name": "12 local sound samples decode",
+        "name": "13 local sound samples decode",
         "detail": []
       },
       {
@@ -145,7 +148,7 @@
       },
       {
         "passed": true,
-        "name": "upgrade suspends BGM immediately"
+        "name": "upgrade keeps BGM playing"
       },
       {
         "passed": true,
@@ -158,7 +161,7 @@
       {
         "passed": true,
         "name": "sample voice budget",
-        "detail": 20
+        "detail": 13
       },
       {
         "passed": true,
@@ -174,7 +177,8 @@
             "volume": 0.19,
             "rate": 1.65,
             "cooldown": 70,
-            "group": "weapon:pulse_blade"
+            "group": "weapon:pulse_blade",
+            "importance": 50
           }
         ]
       },
@@ -191,11 +195,12 @@
         "name": "real weapon attack audio: arc_core/base",
         "detail": [
           {
-            "name": "zap1",
-            "volume": 0.22,
+            "name": "lightning-crack",
+            "volume": 0.28,
             "rate": 1.1,
-            "cooldown": 90,
-            "group": "weapon:arc_core"
+            "cooldown": 120,
+            "group": "weapon:arc_core",
+            "importance": 50
           }
         ]
       },
@@ -216,7 +221,8 @@
             "volume": 0.14,
             "rate": 1.8,
             "cooldown": 140,
-            "group": "weapon:orbital_satellites"
+            "group": "weapon:orbital_satellites",
+            "importance": 50
           }
         ]
       },
@@ -233,7 +239,8 @@
             "volume": 0.24,
             "rate": 0.9,
             "cooldown": 100,
-            "group": "weapon:plasma_cannon"
+            "group": "weapon:plasma_cannon",
+            "importance": 50
           }
         ]
       },
@@ -254,7 +261,8 @@
             "volume": 0.22,
             "rate": 0.65,
             "cooldown": 400,
-            "group": "weapon:black_hole"
+            "group": "weapon:black_hole",
+            "importance": 50
           }
         ]
       },
@@ -275,7 +283,8 @@
             "volume": 0.21,
             "rate": 0.85,
             "cooldown": 160,
-            "group": "weapon:prism_ray"
+            "group": "weapon:prism_ray",
+            "importance": 50
           }
         ]
       },
@@ -296,7 +305,8 @@
             "volume": 0.19,
             "rate": 1.4024999999999999,
             "cooldown": 70,
-            "group": "weapon:pulse_blade"
+            "group": "weapon:pulse_blade",
+            "importance": 55
           }
         ]
       },
@@ -313,11 +323,12 @@
         "name": "real weapon attack audio: arc_core/evolved",
         "detail": [
           {
-            "name": "zap1",
-            "volume": 0.22,
+            "name": "lightning-crack",
+            "volume": 0.28,
             "rate": 0.935,
-            "cooldown": 90,
-            "group": "weapon:arc_core"
+            "cooldown": 120,
+            "group": "weapon:arc_core",
+            "importance": 55
           }
         ]
       },
@@ -338,14 +349,16 @@
             "volume": 0.14,
             "rate": 1.53,
             "cooldown": 140,
-            "group": "weapon:orbital_satellites"
+            "group": "weapon:orbital_satellites",
+            "importance": 55
           },
           {
             "name": "zap2",
             "volume": 0.14,
             "rate": 1.53,
             "cooldown": 140,
-            "group": "weapon:orbital_satellites"
+            "group": "weapon:orbital_satellites",
+            "importance": 55
           }
         ]
       },
@@ -362,7 +375,8 @@
             "volume": 0.24,
             "rate": 0.765,
             "cooldown": 100,
-            "group": "weapon:plasma_cannon"
+            "group": "weapon:plasma_cannon",
+            "importance": 55
           }
         ]
       },
@@ -383,7 +397,8 @@
             "volume": 0.22,
             "rate": 0.5525,
             "cooldown": 400,
-            "group": "weapon:black_hole"
+            "group": "weapon:black_hole",
+            "importance": 55
           }
         ]
       },
@@ -404,7 +419,8 @@
             "volume": 0.21,
             "rate": 0.7224999999999999,
             "cooldown": 160,
-            "group": "weapon:prism_ray"
+            "group": "weapon:prism_ray",
+            "importance": 55
           }
         ]
       },
@@ -421,7 +437,7 @@
         "name": "six distinct weapon attack samples",
         "detail": [
           "laser1",
-          "zap1",
+          "lightning-crack",
           "zap2",
           "spaceTrash1",
           "phaserDown1",
@@ -455,17 +471,90 @@
         "detail": 0
       }
     ],
+    "experience": [
+      {
+        "passed": true,
+        "name": "actual level-up is silent and clears combat tails"
+      },
+      {
+        "passed": true,
+        "name": "evolution choice and next upgrade are silent"
+      },
+      {
+        "passed": true,
+        "name": "BGM continues through chained upgrades without pause/restart"
+      },
+      {
+        "passed": true,
+        "name": "system blur during upgrade still pauses BGM"
+      },
+      {
+        "passed": true,
+        "name": "unmute cannot bypass system pause during upgrade"
+      },
+      {
+        "passed": true,
+        "name": "finishing upgrade preserves system pause"
+      },
+      {
+        "passed": true,
+        "name": "combat bus has a shared 12-voice limit"
+      },
+      {
+        "passed": true,
+        "name": "lightning attack replaces low-priority noise with the thunder sample"
+      },
+      {
+        "passed": true,
+        "name": "Boss warning ducks combat audio"
+      },
+      {
+        "passed": true,
+        "name": "low-priority burst cannot steal a critical cue"
+      },
+      {
+        "passed": true,
+        "name": "mixed SFX route through dynamic compression"
+      },
+      {
+        "passed": true,
+        "name": "combat gain recovers when cues finish"
+      },
+      {
+        "passed": true,
+        "name": "six-weapon mixed output has headroom in measured burst",
+        "detail": {
+          "peak": 0.2546883821487427
+        }
+      },
+      {
+        "passed": true,
+        "name": "blade trajectory connects caster to target"
+      },
+      {
+        "passed": true,
+        "name": "moving player does not teleport trail or repeat damage"
+      },
+      {
+        "passed": true,
+        "name": "blade head and trail advance across rendered frames"
+      },
+      {
+        "passed": true,
+        "name": "blade trails expire"
+      }
+    ],
     "audio": {
-      "seconds": 61.21319999998808,
-      "batches": 10437,
-      "created": 339,
+      "seconds": 61.20540000000596,
+      "batches": 10586,
+      "created": 322,
       "active": 0,
       "peak": 4,
-      "disconnected": 339
+      "disconnected": 322
     },
     "realtime": {
       "frames": 722,
-      "elapsed": 3.0012000000119246,
+      "elapsed": 2.9989999999880714,
       "finite": true,
       "soundState": "running"
     },
@@ -476,9 +565,9 @@
           1728,
           896
         ],
-        "meanMs": 1.7445277777893675,
-        "p95Ms": 4.299999982118607,
-        "maxMs": 10.900000005960464,
+        "meanMs": 2.7833055555240978,
+        "p95Ms": 3.9000000059604645,
+        "maxMs": 55.5,
         "maxShock": 35,
         "maxParticles": 250,
         "damageTexts": 25
@@ -489,9 +578,9 @@
           390,
           844
         ],
-        "meanMs": 1.6099722222155994,
-        "p95Ms": 4.300000011920929,
-        "maxMs": 9.699999988079071,
+        "meanMs": 2.597333333351546,
+        "p95Ms": 3.2000000178813934,
+        "maxMs": 81,
         "maxShock": 20,
         "maxParticles": 120,
         "damageTexts": 25

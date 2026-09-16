@@ -140,6 +140,13 @@
       "sha256": "e9ef509686c0c3dc9b301d91c68d0bf09cb70a0bea86a03e50bf9fd71ece3821",
       "source": "https://opengameart.org/content/16x16-explosion",
       "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/lightning-crack.wav",
+      "bytes": 75014,
+      "sha256": "fb998c5498ff41465e8565f1a852ad6d7906b7a8f2e606e13d3d335842877732",
+      "source": "https://opengameart.org/content/thunder",
+      "license": "CC-BY-3.0"
     }
   ]
 }

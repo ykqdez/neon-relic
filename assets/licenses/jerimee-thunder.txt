@@ -1,0 +1,17 @@
+Thunder by Jerimee
+Source: https://opengameart.org/content/thunder
+Original download: https://opengameart.org/sites/default/files/thunder-seq.wav
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+License link: https://creativecommons.org/licenses/by/3.0/
+Legal text: https://creativecommons.org/licenses/by/3.0/legalcode
+
+The author describes the recording as made with minor modifications to
+Rene Nyffenegger's cSound thunder instrument:
+http://www.adp-gmbh.ch/csound/fm/thunder.html
+
+Local adaptation: assets/audio/lightning-crack.wav
+Changes: extract 1.48-2.33 seconds from thunder-seq.wav, average stereo channels
+to mono, normalize peak to 25000/32768, apply a 4 ms fade-in and 300 ms fade-out,
+encode as 44.1 kHz / 16-bit PCM WAV. No endorsement by the author is implied.
+Original SHA-256: eab85a5880092668026264e356953169a24e2d12f956b255b5090e9162f4722d
+Retrieved: 2026-09-16

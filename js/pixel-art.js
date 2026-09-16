@@ -81,18 +81,35 @@
     if(e.shieldHp>0)ring(ctx,e.x,e.y,r+8,'#9fc7ed',2);
     if(!e.isBoss && e.hp<e.maxHp){ctx.fillStyle='#171b2e';ctx.fillRect(snap(e.x-16),snap(e.y-r-8),32,4);ctx.fillStyle='#e69b7c';ctx.fillRect(snap(e.x-16),snap(e.y-r-8),Math.ceil(32*e.hp/e.maxHp),2);}
   }
+  function bladePoint(s,t) {
+    const x=s.fromX,y=s.fromY,dx=s.x-x,dy=s.y-y;
+    const bend=4*t*(1-t)*.18;
+    return {x:x+dx*t-dy*bend,y:y+dy*t+dx*bend};
+  }
   function weapon(ctx,w,p) {
     if(w.level<=0)return;
     if(w.id==='pulse_blade')for(const s of w.slashes) {
-      const progress=1-s.life/s.maxLife;
+      const progress=1-s.life/s.maxLife,head=Math.min(1,progress/.62);
       const color=s.isEvolved?'#d9adff':'#acf5e3';
       ctx.save();ctx.globalAlpha=Math.min(1,s.life/s.maxLife*2);
-      for(let i=0;i<24;i++) {
-        const a=s.angle-.9+i/23*1.8,r=s.radius*(.6+progress*.4);
-        const x=s.x+Math.cos(a)*r,y=s.y+Math.sin(a)*r;
-        ctx.fillStyle=color;ctx.fillRect(snap(x),snap(y),6,6);ctx.fillStyle='#fff3d6';ctx.fillRect(snap(x-2),snap(y-2),4,4);
+      // A faint complete path communicates the instant hit; the bright blade travels along it.
+      ctx.globalAlpha*=.22;
+      for(let i=1;i<=20;i++){
+        const a=bladePoint(s,(i-1)/20),b=bladePoint(s,i/20);line(ctx,a.x,a.y,b.x,b.y,color,2);
       }
-      line(ctx,s.x-8,s.y,s.x+8,s.y,'#fff5d9',3);line(ctx,s.x,s.y-8,s.x,s.y+8,'#fff5d9',3);ctx.restore();
+      ctx.globalAlpha=Math.min(1,s.life/s.maxLife*2);
+      for(let i=1;i<=16;i++){
+        const start=Math.max(0,head-.45),a=bladePoint(s,start+(head-start)*(i-1)/16),b=bladePoint(s,start+(head-start)*i/16);
+        line(ctx,a.x,a.y,b.x,b.y,i>11?'#fff3d6':color,i>10?4:2);
+      }
+      const tip=bladePoint(s,head);
+      for(let i=0;i<16;i++) {
+        const a=s.angle-1.1+i/15*2.2,r=s.radius*.6;
+        ctx.fillStyle=i>3&&i<12?'#fff3d6':color;
+        ctx.fillRect(snap(tip.x+Math.cos(a)*r),snap(tip.y+Math.sin(a)*r),4,4);
+      }
+      if(head===1){line(ctx,s.x-8,s.y,s.x+8,s.y,'#fff5d9',3);line(ctx,s.x,s.y-8,s.x,s.y+8,'#fff5d9',3);}
+      ctx.restore();
     }
     if(w.id==='arc_core')for(const c of w.chains) {
       ctx.save();ctx.globalAlpha=Math.min(1,c.life/c.maxLife*2);
@@ -178,5 +195,5 @@
     g.renderOffscreenIndicators(ctx,w,h);
     g.ctx.imageSmoothingEnabled=false;g.ctx.clearRect(0,0,w,h);g.ctx.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,w,h);
   }
-  window.PixelArt={ready,images,sources,failed,icons,icon,tile,line,ring,player,enemy,weapon,arena,crystals,renderGame};
+  window.PixelArt={ready,images,sources,failed,icons,icon,tile,line,ring,player,enemy,weapon,bladePoint,arena,crystals,renderGame};
 })();

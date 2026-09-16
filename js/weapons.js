@@ -93,12 +93,14 @@ class PulseBlade extends BaseWeapon {
 
       // 生成斩击特效
       this.slashes.push({
+        fromX: player.x,
+        fromY: player.y,
         x: e.x,
         y: e.y,
         angle: angle + (Math.random() - 0.5) * 0.5,
         radius: (this.isEvolved ? 42 : 28) * player.areaBonus,
-        life: 0.18,
-        maxLife: 0.18,
+        life: 0.26,
+        maxLife: 0.26,
         isEvolved: this.isEvolved
       });
 

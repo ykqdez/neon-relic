@@ -76,7 +76,6 @@ class Player {
     }
 
     if (levelsGained > 0 && onLevelUp) {
-      if (window.soundSystem) window.soundSystem.playLevelUp();
       onLevelUp();
     }
   }

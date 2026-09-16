@@ -589,6 +589,7 @@ class Game {
   pauseForSystem() {
     if (this.state === 'ready' || this.state === 'gameover') return;
     this.pauseReasons.add('system_blur');
+    window.soundSystem?.syncMusic();
     // 升级选择完成后再显示暂停层，保留尚未消费的选择。
     if (this.state !== 'upgrade') {
       this.state = 'paused';
@@ -1237,7 +1238,6 @@ class Game {
       const w = this.weapons[card.targetId];
       if (w) {
         w.evolve();
-        if (window.soundSystem) window.soundSystem.playEvolution();
       }
     } else if (card.type === 'heal') {
       this.player.heal(this.player.maxHp * 0.4);

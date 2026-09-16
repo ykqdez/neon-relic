@@ -72,7 +72,7 @@ async function startBrowser() {
       const url = decodeURIComponent(req.url.split('?')[0]);
       const file = path.resolve(root, '.' + (url === '/' ? '/index.html' : url));
       if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
-      const types={'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.mp3':'audio/mpeg','.woff2':'font/woff2','.json':'application/json'};
+      const types={'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.wav':'audio/wav','.mp3':'audio/mpeg','.woff2':'font/woff2','.json':'application/json'};
       res.setHeader('Content-Type',types[path.extname(file)]||'text/html; charset=utf-8');
       res.end(fs.readFileSync(file));
     } catch { res.writeHead(404); res.end(); }
@@ -145,7 +145,7 @@ async function main() {
   if (!ready) throw Error('Game startup timed out');
   report.browser = await ev('({userAgent:navigator.userAgent,initialState:game.state})');
   check(report.browser.initialState === 'ready', 'initial state ready');
-  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
   await ev('auditSaved.sound.ready');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
   if (process.env.VERIFY_FAULT === 'case') cases(await ev('[(()=>{try{throw Error("VERIFY_CASE_SENTINEL")}catch(e){return {name:"injected",error:e.message}}})()]'), 'injected');
@@ -155,6 +155,10 @@ async function main() {
   if (process.argv.includes('--smoke')) { await sleep(100); return; }
   const pixel=await ev('pixelChecks()');save('pixel',pixel);
   for(const row of pixel)check(row.passed,'pixel: '+row.name,row.detail);
+  const experience=await ev('experienceChecks()');save('experience',experience);
+  for(const row of experience)check(row.passed,'experience: '+row.name,row.detail);
+  const bladeFrames=await ev('window.bladePreview');
+  for(let i=0;i<bladeFrames.length;i++)fs.writeFileSync(path.join(out,`blade-trail-${i}.png`),Buffer.from(bladeFrames[i].split(',')[1],'base64'));
   if(process.argv.includes('--preview')) {
     const layouts=[];
     for(const [width,height] of [[390,844],[960,640],[844,390],[320,568]]) {
