@@ -436,6 +436,7 @@ class PlasmaCannon extends BaseWeapon {
           if (isDead) this.kills++;
 
           // 统一击退计算 (遵照敌人击退抗性)
+          if (!isDead) window.soundSystem?.playImpact(e);
           const kb = p.knockback || 110;
           e.applyKnockback(Math.cos(p.angle) * kb, Math.sin(p.angle) * kb);
 
@@ -638,7 +639,7 @@ class BlackHoleGenerator extends BaseWeapon {
     const damage = this.isEvolved ? 18 : (8 + (this.level - 1) * 3);
     const pull = this.isEvolved ? 160 : 90;
 
-    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved);
+    if (window.soundSystem) window.soundSystem.playWeaponAttack(this.id, this.isEvolved, {x:spawnX,y:spawnY});
     this.holes.push({
       x: spawnX,
       y: spawnY,
@@ -654,7 +655,7 @@ class BlackHoleGenerator extends BaseWeapon {
   }
 
   triggerSupernova(h, player, enemies, pool) {
-    if (window.soundSystem) window.soundSystem.playExplosion(true);
+    if (window.soundSystem) window.soundSystem.playExplosion(true,h);
     if (pool && pool.spawnShockwave) pool.spawnShockwave(h.x, h.y, h.radius * 1.6, '#ff007f', true);
 
     for (const e of enemies) {

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>霓虹遗迹 · 行为音效试听</title>
+  <style>
+    body{max-width:900px;margin:32px auto;padding:0 20px;background:#151c2a;color:#e0e9ec;font:16px/1.7 system-ui,sans-serif}
+    a{color:#8fe2cd}h1{font-size:26px}h2{font-size:19px}button{min-height:48px;padding:10px 16px;background:#253951;border:2px solid #63859d;color:inherit;font:inherit;cursor:pointer}
+    button:focus-visible{outline:3px solid #ffe8ac}#choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+    #status{min-height:56px;padding:14px;background:#253044;border-left:4px solid #8fe2cd}progress{width:100%;height:16px}small{display:block;color:#b3c3cc}header{margin-bottom:24px}
+  </style>
+</head>
+<body>
+  <header><a href="index.html">返回游戏</a><h1>行为音效试听</h1>
+    <p>先听单项，再听混合场景，留意是否能分辨攻击、受伤和危险提示。此页复用游戏的音效与混音，用受控时间展示行为；不代表完整对局的听感。</p></header>
+  <div id="choices">
+    <button data-cue="pulse_blade">脉冲刃：挥切</button><button data-cue="arc_core">电弧：雷击</button>
+    <button data-cue="orbital_satellites">卫星：四次接触</button><button data-cue="plasma_cannon">等离子：发射 → 命中</button>
+    <button data-cue="black_hole">黑洞：生成 → 牵引 → 消散</button><button data-cue="supernova">超新星：牵引 → 爆发</button>
+    <button data-cue="prism_ray">进化射线：持续 1 秒</button><button data-cue="hurt">玩家受伤</button>
+    <button data-cue="enemy">敌人：预警 → 闪避窗口</button><button data-cue="death">普通怪 → 精英 → Boss 死亡</button>
+    <button data-cue="gem">小晶体 → 大晶体拾取</button><button data-cue="victory">胜利结算</button>
+    <button data-cue="defeat">失败结算</button><button data-cue="mixed">六武器 + 危险提示混合</button>
+  </div>
+  <h2>当前行为</h2><div id="status" role="status" aria-live="polite">点选一个场景开始试听。</div><progress id="progress" value="0" max="1"></progress>
+  <p><button id="stop">停止全部声音</button> <label><input id="music" type="checkbox">混合场景加入游戏 BGM</label></p>
+  <small>使用游戏音量：音效主增益 55%、BGM 4%。开始前把设备音量调至平时玩游戏的水平。页面隐藏时自动停止。</small>
+  <p><a href="https://github.com/ykqdez/neon-relic/blob/main/docs/AUDIO_AUDIT.md">检查结果、设计依据与验收边界</a></p>
+  <script src="js/audio.js?v=audio-actions-1"></script><script src="js/audio-review.js?v=audio-actions-1"></script>
+</body>
+</html>

@@ -4,10 +4,11 @@ const WEAPON_ATTACK_SOUNDS = Object.freeze({
   arc_core: {sample:'lightning-crack',volume:.28,rate:1.1,cooldown:120},
   orbital_satellites: {sample:'orbital-contact',volume:.11,rate:1,cooldown:230},
   plasma_cannon: {sample:'plasma-shot',volume:.25,rate:1,cooldown:100},
-  black_hole: {sample:'phaserDown1',volume:.22,rate:.65,cooldown:400},
-  prism_ray: {sample:'prism-beam',volume:.17,rate:1,cooldown:220}
+  black_hole: {sample:'gravity-open',volume:.16,rate:1,cooldown:400},
+  prism_ray: {sample:'prism-beam',volume:.12,rate:1,cooldown:220}
 });
-const SOUND_SAMPLE_NAMES=Object.freeze(['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack','plasma-shot','enemy-shatter','orbital-contact','blade-swish','prism-beam']);
+const SOUND_SAMPLE_NAMES=Object.freeze(['laser1','laser5','zap1','zap2','spaceTrash1','spaceTrash4','pepSound1','powerUp3','powerUp8','phaserDown1','lowDown','threeTone1','lightning-crack','plasma-shot','enemy-shatter','orbital-contact','blade-swish','prism-beam','gravity-open','gravity-loop','prism-loop','energy-impact','player-hurt','enemy-windup','crystal-pickup']);
+const weaponFamily = group => /^(weapon|sustain):/.test(group) ? group.split(':')[1] : null;
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -17,6 +18,7 @@ class SoundSystem {
     this.lastSoundTimes = {};
     this.buffers = new Map();
     this.voices = new Set();
+    this.variationSeed = 0x61c88647; // Independent of gameplay RNG.
     this.failed = [];
     this.loadErrors = {};
     this.lastLoadAttempt = -Infinity;
@@ -72,6 +74,7 @@ class SoundSystem {
   get isMuted() { return this._isMuted; }
   set isMuted(value) {
     this._isMuted=!!value;
+    if(this._isMuted)this.stopAll();
     if(this.master)this.master.gain.value=this._isMuted?0:.55;
     if(this.musicGain)this.musicGain.gain.value=this._isMuted?0:.04;
     this.syncMusic();
@@ -94,9 +97,11 @@ class SoundSystem {
   toggleMute() { this.isMuted=!this.isMuted; if(!this.isMuted)this.unlock(); return this.isMuted; }
   setGameState(state) {
     if(this.gameState===state)return;
+    const previous=this.gameState;
     this.gameState=state;
-    if(state!=='playing') {
-      for(const voice of [...this.voices])if(state==='upgrade'||!voice.priority){voice.node.stop();voice.release();}
+    if(state!=='playing' || previous==='gameover') {
+      // Only the just-killed boss may decay underneath the victory cue.
+      for(const voice of [...this.voices])if(state!=='gameover'||voice.group!=='boss-death'){voice.node.stop();voice.release();}
     }
     this.syncMusic();
   }
@@ -123,51 +128,101 @@ class SoundSystem {
     this.combatMixTarget=target;
     this.combatBus.gain.setTargetAtTime(target,this.ctx.currentTime,target<this.combatBus.gain.value?.015:.15);
   }
-  playSample(name, {volume=.35,rate=1,cooldown=45,group=name,priority=false,importance=priority?100:10}={}) {
-    if(this.isMuted || this.gameState==='upgrade' || !this.ctx || this.ctx.state!=='running')return;
+  stopAll() {
+    for(const voice of [...this.voices]){voice.node.stop();voice.release();}
+  }
+  spatial(position) {
+    const p=window.game?.player;
+    if(!position||!p)return {gain:1,pan:0};
+    const dx=position.x-p.x,dy=position.y-p.y,d=Math.hypot(dx,dy);
+    return {gain:d>650?0:1/(1+(d/280)**2),pan:Math.max(-.65,Math.min(.65,dx/420))};
+  }
+  playSample(name, {volume=.35,rate=1,cooldown=45,group=name,priority=false,importance=priority?100:10,position=null,variation=false,loop=false,duration=1}={}) {
+    if(this.isMuted || (this.gameState!=='playing' && !(this.gameState==='gameover'&&group==='result')) || !this.ctx || this.ctx.state!=='running')return;
     const buffer=this.buffers.get(name);if(!buffer)return;
+    const spatial=this.spatial(position);if(spatial.gain===0)return;
     const now=performance.now();
     if(now-(this.lastSoundTimes[group]??-Infinity)<cooldown)return;
     if(group==='hit' && [...this.voices].filter(v=>v.group==='hit').length>=4)return;
-    if(group.startsWith('weapon:') && [...this.voices].filter(v=>v.group===group).length>=2)return;
-    const voices=[...this.voices],weapons=voices.filter(v=>v.group.startsWith('weapon:'));
+    const family=weaponFamily(group);
+    if(family && [...this.voices].filter(v=>weaponFamily(v.group)===family).length>=2)return;
+    const voices=[...this.voices],weapons=voices.filter(v=>weaponFamily(v.group));
     const bus=voices.filter(v=>v.priority===priority);
     let candidates=null;
-    if(group.startsWith('weapon:')&&weapons.length>=8)candidates=weapons;
+    if(family&&weapons.length>=8)candidates=weapons;
     else if(bus.length>=(priority?4:12))candidates=bus;
     else if(voices.length>=this.maxVoices)candidates=voices;
     if(candidates){
-      const victim=candidates.filter(v=>v.importance<=importance).sort((a,b)=>a.importance-b.importance)[0];
+      const victim=candidates.filter(v=>loop?v.importance<importance:v.importance<=importance).sort((a,b)=>a.importance-b.importance)[0];
       if(!victim)return;victim.node.stop();victim.release();
     }
     this.lastSoundTimes[group]=now;
+    if(variation&&!loop) {
+      this.variationSeed=(Math.imul(this.variationSeed,1664525)+1013904223)>>>0;
+      const v=this.variationSeed/4294967296;
+      rate*=.97+v*.06;volume*=.94+v*.06;
+    }
+    volume*=spatial.gain;
     const node=this.ctx.createBufferSource(),gain=this.ctx.createGain();
-    node.buffer=buffer;node.playbackRate.value=rate;
-    const duration=buffer.duration/rate,nowAudio=this.ctx.currentTime;
+    node.buffer=buffer;node.playbackRate.value=rate;node.loop=loop;
+    const length=loop?duration:buffer.duration/rate,nowAudio=this.ctx.currentTime;
     gain.gain.setValueAtTime(0,nowAudio);gain.gain.linearRampToValueAtTime(volume,nowAudio+.004);
-    gain.gain.setValueAtTime(volume,nowAudio+Math.max(.004,duration-.03));gain.gain.linearRampToValueAtTime(0,nowAudio+duration);
-    node.connect(gain);gain.connect(priority?this.criticalBus:this.combatBus);
-    const voice={node,gain,group,priority,importance};this.voices.add(voice);
-    voice.release=()=>{if(!this.voices.delete(voice))return;node.disconnect();gain.disconnect();this.updateMix();};
+    if(!loop){gain.gain.setValueAtTime(volume,nowAudio+Math.max(.004,length-.03));gain.gain.linearRampToValueAtTime(0,nowAudio+length);}
+    const pan=this.ctx.createStereoPanner?.();
+    node.connect(gain);
+    if(pan){pan.pan.value=spatial.pan;gain.connect(pan);pan.connect(priority?this.criticalBus:this.combatBus);}
+    else gain.connect(priority?this.criticalBus:this.combatBus);
+    const voice={node,gain,pan,group,priority,importance,loop,volume,stopping:false};this.voices.add(voice);
+    voice.release=()=>{if(!this.voices.delete(voice))return;node.disconnect();gain.disconnect();pan?.disconnect();this.updateMix();};
     node.onended=voice.release;
     this.updateMix();
     node.start();
+    if(loop)node.stop(nowAudio+length+.05); // Bounded even if rendering stops unexpectedly.
+    return voice;
   }
-  playWeaponAttack(id, evolved=false) {
+  syncWeaponSustains(weapons) {
+    for(const [id,listName,sample,volume] of [['prism_ray','beams','prism-loop',.065],['black_hole','holes','gravity-loop',.045]]) {
+      const weapon=weapons[id],effects=weapon?.level>0?weapon[listName].filter(e=>e.life>0):[];
+      const remaining=Math.max(0,...effects.map(e=>e.life)),group='sustain:'+id;
+      const pilot=window.game?.player;
+      const position=id==='black_hole'&&pilot?effects.reduce((nearest,e)=>!nearest||Math.hypot(e.x-pilot.x,e.y-pilot.y)<Math.hypot(nearest.x-pilot.x,nearest.y-pilot.y)?e:nearest,null):null;
+      const spatial=this.spatial(position);
+      let voice=[...this.voices].find(v=>v.group===group&&!v.stopping);
+      if(remaining<=0 || spatial.gain===0 || this.gameState!=='playing' || this.isMuted) {
+        if(voice){voice.stopping=true;voice.gain.gain.cancelScheduledValues(this.ctx.currentTime);voice.gain.gain.setTargetAtTime(0,this.ctx.currentTime,.008);voice.node.stop(this.ctx.currentTime+.03);}
+        continue;
+      }
+      // One sustain per weapon, even with three beams / several overlapping holes.
+      if(!voice)voice=this.playSample(sample,{volume,group,cooldown:0,loop:true,duration:remaining,importance:35,position});
+      if(voice){
+        voice.gain.gain.setTargetAtTime(volume*spatial.gain,this.ctx.currentTime,.025);
+        voice.pan?.pan.setTargetAtTime(spatial.pan,this.ctx.currentTime,.025);
+        voice.node.stop(this.ctx.currentTime+remaining+.05);
+      }
+    }
+  }
+  playWeaponAttack(id, evolved=false, position=null) {
     const profile=WEAPON_ATTACK_SOUNDS[id];if(!profile)return;
     // One sound per attack/contact, not per projectile or damage tick. Each weapon has its own gate.
     this.playSample(profile.sample,{volume:profile.volume,rate:profile.rate*(evolved?.85:1),
-      cooldown:profile.cooldown,group:'weapon:'+id,importance:evolved?55:50});
+      cooldown:profile.cooldown,group:'weapon:'+id,importance:evolved?55:50,position,variation:id!=='prism_ray'});
   }
-  playHit(isCrit=false) { this.playSample(isCrit?'zap2':'pepSound1',{volume:isCrit?.20:.12,rate:isCrit?1.3:1.6,cooldown:isCrit?25:35,group:'hit'}); }
-  playExplosion(isLarge=false) { this.playSample(isLarge?'spaceTrash4':'spaceTrash1',{volume:isLarge?.32:.16,cooldown:isLarge?100:65,group:'explosion',priority:isLarge,importance:isLarge?70:25}); }
-  playEnemyDeath(elite=false,boss=false) {
+  playHit(isCrit=false) { this.playSample('energy-impact',{volume:isCrit?.10:.07,rate:isCrit?1.15:.95,cooldown:60,group:'hit',variation:true}); }
+  playExplosion(isLarge=false,position=null) { this.playSample(isLarge?'spaceTrash4':'spaceTrash1',{volume:isLarge?.24:.14,cooldown:isLarge?100:65,group:'explosion',importance:isLarge?70:25,position,variation:true}); }
+  playImpact(position) {this.playSample('energy-impact',{volume:.10,rate:1,cooldown:100,group:'impact',importance:22,position,variation:true});}
+  playEnemyCue(kind,position) {
+    const c=window.game?.camera;
+    if(c&&position&&(Math.abs(position.x-c.x)>c.width/(2*c.zoom)||Math.abs(position.y-c.y)>c.height/(2*c.zoom)))return;
+    this.playSample('enemy-windup',{volume:kind==='hazard'?.23:.17,rate:kind==='charge'?.85:kind==='sentry'?1.1:1,
+      cooldown:160,group:'enemy-warning',priority:true,importance:85,position});
+  }
+  playEnemyDeath(elite=false,boss=false,position=null) {
     this.playSample('enemy-shatter',{volume:boss?.28:elite?.18:.11,rate:boss?.65:elite?.85:1.12,
-      cooldown:boss?250:90,group:boss?'boss-death':'enemy-death',priority:boss,importance:boss?90:20});
+      cooldown:boss?250:90,group:boss?'boss-death':'enemy-death',priority:boss,importance:boss?90:20,position:boss?null:position,variation:!boss});
   }
-  playGem(value=1) { this.playSample('pepSound1',{volume:.12,rate:value>=25?1.8:1.35,group:'gem',cooldown:65,importance:5}); }
-  playHurt() { this.playSample('phaserDown1',{volume:.35,cooldown:100,priority:true}); }
+  playGem(value=1) { this.playSample('crystal-pickup',{volume:.10,rate:value>=25?1.3:1,group:'gem',cooldown:90,importance:5}); }
+  playHurt() { this.playSample('player-hurt',{volume:.30,cooldown:100,group:'player-hurt',priority:true,importance:100}); }
   playBossAlert() { this.playSample('threeTone1',{volume:.5,rate:.7,cooldown:500,priority:true,importance:110}); }
-  playResult(victory) { this.playSample(victory?'powerUp8':'lowDown',{volume:.4,cooldown:500,priority:true,importance:120}); }
+  playResult(victory) { this.playSample(victory?'powerUp8':'lowDown',{volume:.4,cooldown:500,group:'result',priority:true,importance:120}); }
 }
 window.soundSystem=new SoundSystem();

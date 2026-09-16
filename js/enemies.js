@@ -74,7 +74,7 @@ class BaseEnemy {
     if (this.hp <= 0) {
       this.hp = 0;
       this.isDead = true;
-      if (window.soundSystem) window.soundSystem.playEnemyDeath(this.isElite, this.isBoss);
+      if (window.soundSystem) window.soundSystem.playEnemyDeath(this.isElite, this.isBoss, this);
       pool.spawnSparks(this.x, this.y, this.color, this.isElite ? 18 : 8);
       return true;
     }
@@ -262,6 +262,7 @@ class PrismSniper extends BaseEnemy {
       if(eligible && this.shootTimer<=0 && rangedSlotAvailable(this,enemies,pool)) {
         this.attackState='track';this.shootTimer=this.aimDuration;this.aimTimer=0;
         this.aimAngle=Math.atan2(player.y-this.y,player.x-this.x);
+        window.soundSystem?.playEnemyCue('sniper',this);
       }
       return;
     }
@@ -345,6 +346,7 @@ class BurstSentry extends BaseEnemy {
       if(this.attackTimer<=0&&eligible&&rangedSlotAvailable(this,enemies,pool)) {
         this.attackState='windup';this.attackTimer=.95;this.aimAngle=Math.atan2(dy,dx);
         this.aimOrigin={x:this.x,y:this.y};
+        window.soundSystem?.playEnemyCue('sentry',this);
       }
     } else if(this.attackTimer<=0) {
       const o=this.aimOrigin;
@@ -427,6 +429,7 @@ class ChargeStriker extends BaseEnemy {
         this.state = 'charge_aim';
         this.stateTimer = this.aimDuration;
         this.dashAngle = Math.atan2(dy, dx);
+        window.soundSystem?.playEnemyCue('charge',this);
       }
     } else if (this.state === 'charge_aim') {
       if (this.stateTimer <= 0) {
@@ -593,6 +596,7 @@ class BossTitan extends BaseEnemy {
         timer: this.hazardTimerDuration,
         maxTimer: this.hazardTimerDuration
       });
+      window.soundSystem?.playEnemyCue('hazard',this.hazardZones[this.hazardZones.length-1]);
       // 8 向高速弹
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2 + Math.random() * 0.2;

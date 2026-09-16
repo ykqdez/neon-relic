@@ -44,7 +44,7 @@ const meta={runId:report.runId,timestamp:report.timestamp,node:report.node,brows
   baseCommit:report.baseCommit,sourceHashes,command:'node tests/verify.cjs --growth'+(report.noOgg?' --no-ogg':''),
   conditions:bench.method,notes:'baseCommit is the parent commit before local edits; sourceHashes identify the tested tree. Game-displayed seed is not a gameplay replay seed.'};
 const data={metadata:meta,verification:{status:report.status,totalAssertions:report.totalAssertions,failures:report.failures,
-  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),pixel:read('pixel'),experience:read('experience'),combat:read('combat'),audio:report.audio,realtime:report.realtime,stress:extra.stress},
+  integrity:integrity.rows.map(({mode,passed,exit})=>({mode,passed,exit})),pixel:read('pixel'),experience:read('experience'),combat:read('combat'),audioActions:read('audio-actions'),audio:report.audio,realtime:report.realtime,stress:extra.stress},
   weapons:bench.all,sustained60s:focused.find(r=>r.name==='sustained_60s_fps').result,
   satelliteAreaCoverage:bench.areaCoverage,satellitePassiveInteractions:bench.passiveInteractions,
   flows:flows.map(({levels,...rest})=>rest),growth:{method:'390x844, 60Hz, seeds 1..30 per difficulty/strategy, up to 900 simulated seconds, real offered cards, identical movement policy, no granted equipment or invulnerability. Quantiles are conditional on reaching each milestone; unreached samples remain censored.',summary:growthSummary}};
@@ -62,14 +62,15 @@ fs.writeFileSync(path.join(root,'FIX_VERIFICATION.md'),`# 修复与验收结果\
 
 ## 本轮修复
 
+- 全行为音效检查：黑洞/受伤分离音色；射线与黑洞的起音、持续声和停止跟随有效状态；等离子非致命命中、敌人蓄力危险提示；拾取缩为 75ms 晶体声。攻击/死亡音色轻微变化使用独立随机源；世界声音按距离和左右位置衰减/声像定位。暂停、静音、重开清理残留。见 docs/AUDIO_AUDIT.md 和 audio-review.html。
 - 战斗重调：卫星固定 54 轨道、近身击退与限频挡弹，范围扩大接触面；射线 Lv2–5 和进化伤害回调。加入修复祭司、扇射哨兵及特殊怪数量/同时预警预算。狙击锁定起点固定，屏外取消攻击，开火后休整。设计依据与参数见 docs/COMBAT_DESIGN.md。
 - 卫星换轻护盾撞击声与环绕尾迹，脉冲刃换挥切声，射线换短持续能量声；卫星空转不发声，实际接触/挡弹共享 230ms 限频。
 - 等离子炮改为带亮核/能量外壳/尾迹/炮口闪光/命中扩散的能量弹，使用新能量脉冲发射声；敌人使用独立碎裂死亡声，普通/精英/Boss 分级音高音量。
-- 手机音频：18 项音效使用 PCM WAV，BGM 通过独立 GainNode 控制 4% 音量；可信触屏/点击/按键及继续游戏可重新解锁上下文，加载失败可重试。验证包含禁用 OGG 解码、触控恢复后攻击发声；未进行 iPhone 真机验收。
+- 手机音频：25 项音效使用 PCM WAV，BGM 通过独立 GainNode 控制 4% 音量；可信触屏/点击/按键及继续游戏可重新解锁上下文，加载失败可重试。验证包含禁用 OGG 解码、触控恢复后攻击发声；未进行 iPhone 真机验收。
 - 升级与进化选卡静音，BGM 连续播放；失焦后完成选卡仍保留暂停。脉冲刃增加角色到目标的动态刃光与拖尾，保持原有瞬时伤害。
 - 电弧改用 CC BY 3.0 雷击采样。普通战斗/重要提示分组，武器合计 8 声上限，普通组 12 声、重要组 4 声；重要提示压低战斗组，音效动态压缩。回归包含实际混音峰值检查，具体证据见 CURRENT_BENCHMARK.json 的 experience。
 - 声音调整：BGM 从 13% 降至 4%；六武器分别使用独立攻击采样和限频组，补齐黑洞生成、卫星核心/力场接触音效，进化保留对应音色并降低音高。齐射只触发一次发射音；每种武器最多同时播放 2 个攻击采样。
-- 像素美术：本地 CC0 角色/怪物/装备图集、五帧爆炸、18 个采样音效、低音量循环 BGM，以及 OFL 中文像素字体。六武器渲染、地板、HUD 和所有弹窗统一像素风。素材来源与完整许可见 assets/CREDITS.md。
+- 像素美术：本地 CC0 角色/怪物/装备图集、五帧爆炸、25 个采样音效、低音量循环 BGM，以及 OFL 中文像素字体。六武器渲染、地板、HUD 和所有弹窗统一像素风。素材来源与完整许可见 assets/CREDITS.md。
 - 新增资源哈希/解码、像素画布、渲染不消耗玩法随机数、BGM 跟随暂停/抽屉/静音、采样节点上限与回收回归。
 
 - R01：黑洞每帧仅扣一次 tick 时间；Lv5 单洞 3.4 秒内为 13 次命中、260 伤害。

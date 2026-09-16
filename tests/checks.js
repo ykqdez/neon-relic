@@ -157,7 +157,7 @@ window.measureControls = () => {
 };
 
 window.checkSustainedAudio = async () => {
-  const sound=auditSaved.sound, ctx=sound.ctx;await ctx.resume();sound.isMuted=false;
+  const sound=auditSaved.sound, ctx=sound.ctx;await ctx.resume();sound.isMuted=false;sound.setGameState('playing');
   await sound.ready;
   const original=ctx.createBufferSource;let created=0,active=0,peak=0,disconnected=0;
   ctx.createBufferSource=function() {

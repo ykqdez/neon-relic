@@ -51,7 +51,7 @@ window.pixelChecks = async () => {
   g.gameOver(false);check(sound.music.paused,'game over suspends BGM immediately');
   window.soundSystem=null;
   sound.setGameState('playing');sound.isMuted=true;await new Promise(r=>setTimeout(r,100));check(sound.music.paused,'mute suspends BGM');
-  sound.setGameState('ready');sound.isMuted=false;
+  sound.setGameState('playing');sound.isMuted=false;
   for(let i=0;i<100;i++)sound.playSample('zap1',{cooldown:0,group:'budget-'+i});
   check(sound.voices.size<=sound.maxVoices,'sample voice budget',sound.voices.size);
   await new Promise(r=>setTimeout(r,1200));check(sound.voices.size===0,'sample voices release after playback',sound.voices.size);

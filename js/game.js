@@ -750,6 +750,7 @@ class Game {
     for (const weapon of Object.values(this.weapons)) {
       weapon.update(dt, this.player, this.enemies, this);
     }
+    window.soundSystem?.syncWeaponSustains(this.weapons);
 
     // 5. 更新所有敌人
     for (let i = this.enemies.length - 1; i >= 0; i--) {

@@ -156,7 +156,7 @@ async function main() {
   if (!ready) throw Error('Game startup timed out');
   report.browser = await ev('({userAgent:navigator.userAgent,initialState:game.state})');
   check(report.browser.initialState === 'ready', 'initial state ready');
-  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js', 'combat-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
+  for (const file of ['scenarios.js', 'diagnostics.js', 'regression-probes.js', 'checks.js', 'pixel-checks.js', 'experience-checks.js', 'combat-checks.js', 'audio-action-checks.js']) await ev(fs.readFileSync(path.join(__dirname, file), 'utf8'));
   await ev('auditSaved.sound.ready');
   if(report.noOgg)check(await ev('auditRejectedOgg===0&&auditSaved.sound.failed.length===0&&auditSaved.sound.buffers.size===SOUND_SAMPLE_NAMES.length'),'all SFX decode with OGG support disabled');
   if (process.env.VERIFY_FAULT === 'async') await ev('setTimeout(()=>{throw Error("VERIFY_ASYNC_SENTINEL")},0)');
@@ -171,6 +171,8 @@ async function main() {
   for(const row of experience)check(row.passed,'experience: '+row.name,row.detail);
   const combat=await ev('combatChecks()');save('combat',combat);
   for(const row of combat)check(row.passed,'combat: '+row.name,row.detail);
+  const audioActions=await ev('audioActionChecks()');save('audio-actions',audioActions);
+  for(const row of audioActions)check(row.passed,'audio-actions: '+row.name,row.detail);
   fs.writeFileSync(path.join(out,'combat-preview.png'),Buffer.from((await ev('window.combatPreview')).split(',')[1],'base64'));
   const bladeFrames=await ev('window.bladePreview');
   for(let i=0;i<bladeFrames.length;i++)fs.writeFileSync(path.join(out,`blade-trail-${i}.png`),Buffer.from(bladeFrames[i].split(',')[1],'base64'));
@@ -291,6 +293,15 @@ async function main() {
     await new Promise(r=>setTimeout(r,3000));window.requestAnimationFrame=()=>0;g.state='paused';
     return {frames,elapsed:g.elapsedTime,finite:Number.isFinite(g.player.x),soundState:soundSystem.ctx?.state};})()`);
   check(report.realtime.frames > 0 && report.realtime.elapsed > 0 && report.realtime.finite, 'real RAF and audio smoke', report.realtime);
+  await cdp('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/audio-review.html'});
+  for(let i=0;i<100;i++){if(await ev('!!window.soundSystem&&!!document.querySelector("[data-cue]")'))break;await sleep(50);}
+  await ev('soundSystem.ready');await ev('window.requestAnimationFrame=window.auditOriginalRAF');
+  for(const cue of ['pulse_blade','arc_core','orbital_satellites','plasma_cannon','black_hole','supernova','prism_ray','hurt','enemy','death','gem','victory','defeat','mixed']) {
+    await ev(`document.querySelector('[data-cue="${cue}"]').click()`);await sleep(140);
+    check(await ev('Object.keys(soundSystem.lastSoundTimes).length>0&&soundSystem.ctx.state==="running"'),'audition page plays '+cue);
+    await ev('document.getElementById("stop").click()');
+    check(await ev('soundSystem.voices.size===0&&soundSystem.music.paused'),'audition stop clears '+cue);
+  }
 }
 main().catch(e => { check(false, 'uncaught runner failure', e.stack); }).finally(async () => {
   check(errors.length === 0, 'no browser errors', errors);

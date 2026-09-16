@@ -77,12 +77,52 @@ def generate():
         tone = math.sin(2*math.pi*220*t)+.3*math.sin(2*math.pi*441*t)+.1*math.sin(2*math.pi*880*t)
         samples.append(tone*(.9+.1*math.sin(2*math.pi*28*t))*env)
     write_pcm('prism-beam', samples)
+    # Sustain beds are periodic over 0.5 seconds, without a baked-in envelope.
+    # Runtime gain provides attack/release and follows the actual effect lifetime.
+    for name, base in [('prism-loop', 220), ('gravity-loop', 110)]:
+        samples = []
+        for i in range(22050):
+            t = i/44100
+            samples.append((math.sin(2*math.pi*base*t)+.32*math.sin(2*math.pi*base*2*t)+
+                .15*math.sin(2*math.pi*base*4*t))*(.88+.12*math.cos(2*math.pi*8*t)))
+        write_pcm(name, samples)
+    samples = []
+    phase = 0
+    for i in range(round(.42*44100)):
+        t=i/44100
+        phase+=2*math.pi*(170+320*(t/.42)**2)/44100
+        env=math.sin(math.pi*t/.42)**1.3
+        samples.append((.7*math.sin(phase)+.25*math.sin(phase*1.5)+.08*rng.uniform(-1,1))*env)
+    write_pcm('gravity-open', samples)
+    for name, length, freq, noise_gain in [('energy-impact',.11,580,.35),('player-hurt',.19,185,.65)]:
+        samples=[]
+        for i in range(round(length*44100)):
+            t=i/44100
+            env=min(1,t/.003)*math.exp(-t*26)*min(1,(length-t)/.025)
+            tone=math.sin(2*math.pi*(freq*t-freq*.65*t*t))
+            samples.append((tone*.55+rng.uniform(-1,1)*noise_gain)*env)
+        write_pcm(name,samples)
+    samples=[]
+    for i in range(round(.24*44100)):
+        t=i/44100
+        # Two short rising pulses signal enemy intent, distinct from reward arpeggios.
+        pulse=t% .12
+        env=math.sin(math.pi*min(1,pulse/.09))**2 if pulse<.09 else 0
+        samples.append(math.sin(2*math.pi*(620*t+450*t*t))*env)
+    write_pcm('enemy-windup',samples)
+    samples=[]
+    for i in range(round(.075*44100)):
+        t=i/44100
+        env=min(1,t/.002)*math.exp(-t*46)*min(1,(.075-t)/.015)
+        samples.append((math.sin(2*math.pi*1040*t)+.32*math.sin(2*math.pi*1560*t))*env)
+    write_pcm('crystal-pickup',samples)
     manifest_path = ROOT / 'assets/manifest.json'
     manifest = json.loads(manifest_path.read_text(encoding='utf8'))
     records = {entry['path']: entry for entry in manifest['files']}
     for source in sorted(AUDIO.glob('*.wav')):
         rel = source.relative_to(ROOT).as_posix()
-        if source.stem in ['plasma-shot', 'enemy-shatter', 'orbital-contact', 'blade-swish', 'prism-beam']:
+        if source.stem in ['plasma-shot', 'enemy-shatter', 'orbital-contact', 'blade-swish', 'prism-beam',
+                'gravity-open', 'gravity-loop', 'prism-loop', 'energy-impact', 'player-hurt', 'enemy-windup', 'crystal-pickup']:
             origin, license_id = 'tools/build_audio.py', 'CC0-1.0'
         elif source.stem == 'lightning-crack':
             origin, license_id = 'https://opengameart.org/content/thunder', 'CC-BY-3.0'

@@ -9,9 +9,44 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/crystal-pickup.wav",
+      "bytes": 6660,
+      "sha256": "a084ac542d8b898b2b6657fd03a8749f29406591638b1b79a42d65963d102b5e",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/enemy-shatter.wav",
       "bytes": 15920,
       "sha256": "fd7546c4a574117e6b15d0c5bab0cbed54f43146e72e2832958952e6e694fd83",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/enemy-windup.wav",
+      "bytes": 21212,
+      "sha256": "c886cf0d24c15372b478482ee866081cae81986a59e99e2608db1dcc76f37193",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/energy-impact.wav",
+      "bytes": 9746,
+      "sha256": "8661a41eb385dcf1c3437b39fee0e463f61eef02cddc4615fd243378e049a436",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/gravity-loop.wav",
+      "bytes": 44144,
+      "sha256": "52731382f10d224cdef9244e79e5f9be1dc233d2d4ec5a83c91a7132cabc5fad",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/gravity-open.wav",
+      "bytes": 37088,
+      "sha256": "93556f804c3fa9a8f79fe57e57c0fe07d2737930f11ea9795341468155463565",
       "source": "tools/build_audio.py",
       "license": "CC0-1.0"
     },
@@ -107,6 +142,13 @@
       "license": "CC0-1.0"
     },
     {
+      "path": "assets/audio/player-hurt.wav",
+      "bytes": 16802,
+      "sha256": "073d2764b4ee756589b0cd9d12e92a84a281617e000c8428e478417d9c63f406",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
       "path": "assets/audio/powerUp3.ogg",
       "bytes": 9043,
       "sha256": "59e7591f7a068882767bc1fd61edabf479b78787466d3a70bc49dfa0533777d2",
@@ -138,6 +180,13 @@
       "path": "assets/audio/prism-beam.wav",
       "bytes": 42380,
       "sha256": "3349f5c9b35c7b46cc4ffe78cd3bae8788a64113a5aed81d87c1ef75d5100796",
+      "source": "tools/build_audio.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "path": "assets/audio/prism-loop.wav",
+      "bytes": 44144,
+      "sha256": "90b9fd9d4b6814b8ede690a58c111e2cd84783e5d6f2e3b379e00be95475635f",
       "source": "tools/build_audio.py",
       "license": "CC0-1.0"
     },
